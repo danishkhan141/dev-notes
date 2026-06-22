@@ -1,0 +1,429 @@
+1. Constaint change karne changes.
+2. Related problems.
+3. Loop change kar skte hai kya.
+4. write Time Complexity of each case.
+5. Understand the concept of time and space complexity.
+
+LC:1 [two sum]
+public int[] twoSum(int[] nums, target){
+	Map(Integer, Integer) map = new HashMap<>();
+	
+	for(int i=0; i<nums.size; i++)
+	{
+		int need = target - nums[i];
+		
+		if(map.containsKey(need))
+		{
+			return new int[]{map.get(need),i}
+		}
+		map.put(nums[i],i);
+	}
+	return new int[] {};
+}
+Doubt: can we use the foreEach loop like LC:2? 
+
+LC:2 [Greedy]
+public int maxProfit(int[] prices)
+{
+	int minPrice = Integer.MAX_VALUE;
+	int MaxProfit = 0;
+	
+	for(int price : prices)
+	{
+		if(price < minPrice)
+		{
+			minPrice = price;
+		} else 
+			{
+				maxProfit = Math.max(MaxProfit, price - minPrice);
+			}
+	}
+	return maxProfit;
+}
+
+LC:3 [Cycle Detection Algorithm] [Floyd's Tortoise and Hari Algorithm]
+public int findDuplicate(int[] nums)
+{
+	int slow = nums[0];
+	int fast = nums[0];
+	
+	do
+	{
+		slow = nums[slow];
+		fast = nums[nums[fast]];
+	}while(slow != fast;
+	
+	slow = nums[0];
+	while(slow != fast)
+	{
+		slow = nums[slow];
+		fast = nums[fast];
+	}
+	return slow;
+}
+Doubt: can't we use both while loop top+bottom? and in return we can return both slow or fast?
+
+LC:4 [prefix product + suffix product]
+public int[] productExceptSelf(int[] nums)
+{
+	int n = nums.length;
+	int[] answer = new int[n];
+	
+	answer[0]=1;
+	for(int i=1; i<n; i++)
+	{
+		answer[i] = answer[i-1] * nums[i-1]; //answer is product of index ke left se nums ki values ka multiple
+	}
+	
+	int rightProduct = 1;
+	for(i=n-1; i>=0; i--)
+	{
+		answer[i] = answer[i] * rightProduct; // answer ke index right side nums ki values ka multiple-nothing but rightProduct
+		rightProduct *= nums[i]; // rightProduct nums ki values ka multiple hai in reverse order
+	}
+	return answer;
+}
+Doubt: here time complexity will be O(n2)? why two different ways for suffix and prefix?
+
+             nums = [1, 2, 3, 4]==start
+		   answer = [1, 1, 2, 6]==after prefix
+		   
+		   answer = [24, 12, 8, 6]==after suffix
+		   
+LC:5 [Maximum SubArray]	[Kadane's Algorithm] [Greedy + Dynamic Programming]
+public int maxSubArray(int[] nums){
+        int currSum = nums[0];
+        int maxSum = nums[0];
+
+        for (int i = 1; i < nums.length; i++) {
+            currSum = Math.max(nums[i], currSum + nums[i]);
+            maxSum = Math.max(maxSum, currSum);
+        }
+        return maxSum;
+    }
+}
+maxSum && respective subArray
+public int maxSubArray(int[] nums) {
+
+        int currSum = nums[0];
+        int maxSum = nums[0];
+
+        int start = 0, end = 0;
+        int tempStart = 0;
+
+        for (int i = 1; i < nums.length; i++) {
+
+            if (nums[i] > currSum + nums[i]) {
+                currSum = nums[i];
+                tempStart = i;   // new subarray starts
+            } else {
+                currSum += nums[i];
+            }
+
+            if (currSum > maxSum) {
+                maxSum = currSum;
+                start = tempStart;
+                end = i;
+            }
+        }
+
+        // Printing subarray (optional)
+        System.out.println("Max Sum = " + maxSum);
+        System.out.print("Subarray = ");
+        for (int i = start; i <= end; i++) {
+            System.out.print(nums[i] + " ");
+        }
+
+        return maxSum;
+    }
+}
+
+LC:6 [Maximum Product Subarray] [ Modified Kadane’s Algorithm (Tracking Max & Min Product) (Category: Dynamic Programming / Greedy hybrid)]
+public int maxProduct(int[] nums){
+
+        int max = nums[0];
+        int min = nums[0];
+        int result = nums[0];
+
+        for (int i = 1; i < nums.length; i++) {
+
+            int curr = nums[i];
+
+            int tempMax = Math.max(curr,
+                            Math.max(max * curr, min * curr));
+
+            min = Math.min(curr,
+                    Math.min(max * curr, min * curr));
+
+            max = tempMax;
+
+            result = Math.max(result, max);
+        }
+
+        return result;
+    }
+}
+
+LC:7 [Find Minimum in Rotated Sorted Array] [Binary Search on Rotated Sorted Array (also called Pivot-based Binary Search)]
+public int findMin(int[] nums) {
+
+        int left = 0, right = nums.length - 1;
+
+        while (left < right) {
+
+            int mid = left + (right - left) / 2;
+
+            if (nums[mid] > nums[right]) {
+                // minimum is in right half
+                left = mid + 1;
+            } else {
+                // minimum is at mid or in left half
+                right = mid;
+            }
+        }
+
+        return nums[left];
+    }
+}
+
+LC:8 [Search in Rotated Sorted Array] [Modified Binary Search on Rotated Sorted Array]
+public int search(int[] nums, int target){
+        int left = 0, right = nums.length - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                return mid;
+            }
+            // Left half is sorted
+            if (nums[left] <= nums[mid]) {
+                if (nums[left] <= target && target < nums[mid]) {
+                    right = mid - 1;
+                } else {
+                    left = mid + 1;
+                }
+            } 
+            // Right half is sorted
+            else {
+                if (nums[mid] < target && target <= nums[right]) {
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+        }
+        return -1;
+    }
+}
+
+LC:9 [3Sum] [Sorting + Two Pointer Technique (Category: Two Pointers / Hashing pattern extension)]
+public List<List<Integer>> threeSum(int[] nums) {
+
+        List<List<Integer>> result = new ArrayList<>();
+        Arrays.sort(nums);
+
+        for (int i = 0; i < nums.length - 2; i++) {
+
+            // skip duplicate first element
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+
+            int left = i + 1;
+            int right = nums.length - 1;
+
+            while (left < right) {
+
+                int sum = nums[i] + nums[left] + nums[right];
+
+                if (sum == 0) {
+                    result.add(Arrays.asList(nums[i], nums[left], nums[right]));
+
+                    // skip duplicates
+                    while (left < right && nums[left] == nums[left + 1]) left++;
+                    while (left < right && nums[right] == nums[right - 1]) right--;
+
+                    left++;
+                    right--;
+                }
+                else if (sum < 0) {
+                    left++;
+                }
+                else {
+                    right--;
+                }
+            }
+        }
+        return result;
+    }
+}
+
+LC:10 [Container With Most Water] [Two Pointer Technique (Greedy)]
+public int maxArea(int[] height) {
+
+        int left = 0, right = height.length - 1;
+        int maxArea = 0;
+
+        while (left < right) {
+
+            int area = Math.min(height[left], height[right]) * (right - left);
+            maxArea = Math.max(maxArea, area);
+
+            if (height[left] < height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+
+        return maxArea;
+    }
+}
+
+LC:11 [Factorial Trailing Zeroes] [Factor Counting / Mathematical Observation (Counting Factors of 5)]
+class Solution {
+    public int trailingZeroes(int n) {
+
+        int count = 0;
+
+        while (n > 0) {
+            n /= 5;
+            count += n;
+        }
+
+        return count;
+    }
+}
+
+LC:12 [Trapping Rain Water] [Two Pointer Technique with LeftMax & RightMax (Alternate: Prefix Max / Suffix Max)]
+public int trap(int[] height) {
+
+        int left = 0, right = height.length - 1;
+        int leftMax = 0, rightMax = 0;
+        int water = 0;
+
+        while (left < right) {
+
+            if (height[left] <= height[right]) {
+
+                if (height[left] >= leftMax) {
+                    leftMax = height[left];
+                } else {
+                    water += leftMax - height[left];
+                }
+                left++;
+
+            } else {
+
+                if (height[right] >= rightMax) {
+                    rightMax = height[right];
+                } else {
+                    water += rightMax - height[right];
+                }
+                right--;
+            }
+        }
+
+        return water;
+    }
+}
+
+LC:13 [Chocolate Distribution Problem] [Sorting + Sliding Window (Greedy)]
+public static int findMinDiff(int[] arr, int n, int m) {
+
+        if (m == 0 || n == 0) return 0;
+        if (m > n) return -1;
+
+        Arrays.sort(arr);
+
+        int minDiff = Integer.MAX_VALUE;
+
+        for (int i = 0; i + m - 1 < n; i++) {
+            int diff = arr[i + m - 1] - arr[i];
+            minDiff = Math.min(minDiff, diff);
+        }
+
+        return minDiff;
+    }
+}
+
+LC:14 [Insert Interval] [Interval Merging (Greedy / Linear Scan)]
+public int[][] insert(int[][] intervals, int[] newInterval) {
+
+        List<int[]> result = new ArrayList<>();
+
+        for (int[] interval : intervals) {
+
+            // Case 1: interval completely before newInterval
+            if (interval[1] < newInterval[0]) {
+                result.add(interval);
+            }
+
+            // Case 2: interval completely after newInterval
+            else if (interval[0] > newInterval[1]) {
+                result.add(newInterval);
+                newInterval = interval;
+            }
+
+            // Case 3: overlapping intervals
+            else {
+                newInterval[0] = Math.min(newInterval[0], interval[0]);
+                newInterval[1] = Math.max(newInterval[1], interval[1]);
+            }
+        }
+
+        // add the last newInterval
+        result.add(newInterval);
+
+        return result.toArray(new int[result.size()][]);
+    }
+}
+
+LC:15 [Merge Intervals] [Sorting + Greedy Interval Merging]
+public int[][] merge(int[][] intervals) {
+
+        // Step 1: sort by start time
+        Arrays.sort(intervals, (a, b) -> a[0] - b[0]);
+
+        List<int[]> result = new ArrayList<>();
+
+        // Step 2: add first interval
+        result.add(intervals[0]);
+
+        // Step 3: process remaining intervals
+        for (int i = 1; i < intervals.length; i++) {
+
+            int[] last = result.get(result.size() - 1);
+            int[] current = intervals[i];
+
+            // overlap
+            if (current[0] <= last[1]) {
+                last[1] = Math.max(last[1], current[1]);
+            }
+            // no overlap
+            else {
+                result.add(current);
+            }
+        }
+
+        return result.toArray(new int[result.size()][]);
+    }
+}
+
+LC:16 [Non-overlapping Intervals] [Greedy Interval Scheduling (sort by end time)]
+public int eraseOverlapIntervals(int[][] intervals) {
+        if (intervals.length == 0) return 0;
+        // sort by end time
+        Arrays.sort(intervals, (a, b) -> a[1] - b[1]);
+        int remove = 0;
+        int lastEnd = intervals[0][1];
+        for (int i = 1; i < intervals.length; i++) {
+
+            if (intervals[i][0] < lastEnd) {
+                // overlap → remove current
+                remove++;
+            } else {
+                // no overlap → keep
+                lastEnd = intervals[i][1];
+            }
+        }
+        return remove;
+    }
+}
