@@ -1747,3 +1747,2010 @@ Your strongest positioning is:
 [7]: https://docs.spring.io/spring-batch/reference/step/chunk-oriented-processing/retry-logic.html?utm_source=chatgpt.com "Configuring Retry Logic :: Spring Batch Reference"
 [8]: https://docs.spring.io/spring-batch/reference/step/chunk-oriented-processing/transaction-attributes.html "Transaction Attributes :: Spring Batch Reference"
 [9]: https://docs.spring.io/spring-batch/reference/scalability.html "Scaling and Parallel Processing :: Spring Batch Reference"
+
+```
+1. Give me the example for the difference between job vs step as per the project, how job contains 1 or more steps?
+2. How to achieve the skip/retry in spring batch both xml/java config, and which type of data should be skipped/retry?
+3. Explain execution context/Listener, how to configure it?
+```
+```
+## 1. Job vs Step — Project-Based Example
+
+Think of **Job** as the complete batch process and **Step** as one phase inside that process.
+
+Suppose your project has a requirement:
+
+> Fetch pending request records from source DB, validate them, call stored procedure, insert/update into target DB, and finally update batch summary.
+
+This complete process is one **Job**.
+
+```text
+Job: dailyRequestTransferJob
+
+    Step 1: cleanupStagingStep
+            Delete old temporary/staging records
+
+    Step 2: requestTransferStep
+            Read records from source DB
+            Validate/process records
+            Write records to target DB
+
+    Step 3: summaryUpdateStep
+            Update batch summary table / audit table
+
+    Step 4: notificationStep
+            Send success/failure mail or log final status
+```
+
+So:
+
+```text
+Job = complete business batch flow
+Step = one unit/phase of that flow
+```
+
+A job can have **one step**:
+
+```text
+Job: csvToDbImportJob
+    Step 1: read CSV -> validate -> insert DB
+```
+
+Or a job can have **multiple steps**:
+
+```text
+Job: monthlyInvoiceJob
+    Step 1: Clean staging table
+    Step 2: Load invoice data
+    Step 3: Generate invoice file
+    Step 4: Archive file
+    Step 5: Send notification
+```
+
+### XML Example: Job with Multiple Steps
+
+```xml
+<job id="dailyRequestTransferJob" xmlns="http://www.springframework.org/schema/batch">
+
+    <step id="cleanupStagingStep" next="requestTransferStep">
+        <tasklet ref="cleanupTasklet"/>
+    </step>
+
+    <step id="requestTransferStep" next="summaryUpdateStep">
+        <tasklet transaction-manager="transactionManager">
+            <chunk reader="requestReader"
+                   processor="requestProcessor"
+                   writer="requestWriter"
+                   commit-interval="100"/>
+        </tasklet>
+    </step>
+
+    <step id="summaryUpdateStep" next="notificationStep">
+        <tasklet ref="summaryUpdateTasklet"/>
+    </step>
+
+    <step id="notificationStep">
+        <tasklet ref="notificationTasklet"/>
+    </step>
+
+</job>
+```
+
+### Java Config Example
+
+```java
+@Configuration
+@EnableBatchProcessing
+public class RequestTransferJobConfig {
+
+    @Autowired
+    private JobBuilderFactory jobBuilderFactory;
+
+    @Autowired
+    private StepBuilderFactory stepBuilderFactory;
+
+    @Bean
+    public Job dailyRequestTransferJob() {
+        return jobBuilderFactory.get("dailyRequestTransferJob")
+                .start(cleanupStagingStep())
+                .next(requestTransferStep())
+                .next(summaryUpdateStep())
+                .next(notificationStep())
+                .build();
+    }
+
+    @Bean
+    public Step cleanupStagingStep() {
+        return stepBuilderFactory.get("cleanupStagingStep")
+                .tasklet(cleanupTasklet())
+                .build();
+    }
+
+    @Bean
+    public Step requestTransferStep() {
+        return stepBuilderFactory.get("requestTransferStep")
+                .<SourceRequest, TargetRequest>chunk(100)
+                .reader(requestReader())
+                .processor(requestProcessor())
+                .writer(requestWriter())
+                .build();
+    }
+
+    @Bean
+    public Step summaryUpdateStep() {
+        return stepBuilderFactory.get("summaryUpdateStep")
+                .tasklet(summaryUpdateTasklet())
+                .build();
+    }
+
+    @Bean
+    public Step notificationStep() {
+        return stepBuilderFactory.get("notificationStep")
+                .tasklet(notificationTasklet())
+                .build();
+    }
+}
+```
+
+### Interview Answer
+
+> In Spring Batch, a Job represents the complete batch process, and a Step represents one phase inside that job. For example, in a DB-to-DB transfer project, the job can be `dailyRequestTransferJob`. It may contain multiple steps: first cleaning the staging table, second reading records from source DB, processing business validations and writing to target DB, third updating summary tables, and fourth sending notification. So a job can have one or more steps depending on business flow.
+
+---
+
+# 2. Skip and Retry in Spring Batch
+
+## What is Skip?
+
+**Skip** means bad data is ignored and the job continues.
+
+Example:
+
+```text
+Total records = 10,000
+One record has invalid email / invalid amount / wrong date format
+Instead of failing the full job, skip that record and continue
+```
+
+Use skip when the error is related to **bad data** and business allows you to continue.
+
+### Data/Exceptions that can be skipped
+
+| Situation                            |            Should Skip? | Reason                       |
+| ------------------------------------ | ----------------------: | ---------------------------- |
+| Invalid CSV row format               |                     Yes | Bad input data               |
+| Missing non-critical field           |                     Yes | Can log and continue         |
+| Invalid email/mobile                 |                     Yes | Validation failure           |
+| Duplicate record                     | Yes, if business allows | Can move to error table      |
+| Wrong date format                    |                     Yes | Bad source data              |
+| Optional reference data missing      |               Sometimes | Depends on business          |
+| NullPointerException due to code bug |                      No | Fix code                     |
+| DB down                              |                      No | Retry/fail, not skip         |
+| Payment amount mismatch              |              Usually no | Critical business data       |
+| Security/authentication error        |                      No | Configuration/security issue |
+
+## What is Retry?
+
+**Retry** means Spring Batch tries the same failed operation again.
+
+Use retry when the issue is **temporary/transient**.
+
+### Data/Exceptions that should be retried
+
+| Situation                          | Should Retry? | Reason                         |
+| ---------------------------------- | ------------: | ------------------------------ |
+| DB deadlock                        |           Yes | Temporary lock issue           |
+| DB lock timeout                    |           Yes | May pass after retry           |
+| Network timeout                    |           Yes | Temporary                      |
+| REST API 503/504                   |           Yes | External service may recover   |
+| Kafka broker temporary unavailable |           Yes | Infrastructure issue           |
+| Connection reset                   |           Yes | Temporary                      |
+| Invalid data                       |            No | Retrying will not fix bad data |
+| NullPointerException               |            No | Code bug                       |
+| SQL syntax error                   |            No | Query bug                      |
+| Constraint violation               |    Usually no | Data/design issue              |
+
+Simple rule:
+
+```text
+Bad data      -> Skip
+Temporary error -> Retry
+Code/config bug -> Fail
+```
+
+---
+
+## Java Config: Skip and Retry
+
+```java
+@Bean
+public Step requestTransferStep() {
+    return stepBuilderFactory.get("requestTransferStep")
+            .<SourceRequest, TargetRequest>chunk(100)
+            .reader(requestReader())
+            .processor(requestProcessor())
+            .writer(requestWriter())
+            .faultTolerant()
+
+            // Skip bad data exceptions
+            .skip(InvalidRecordException.class)
+            .skip(FlatFileParseException.class)
+            .skipLimit(50)
+
+            // Retry temporary exceptions
+            .retry(DeadlockLoserDataAccessException.class)
+            .retry(CannotAcquireLockException.class)
+            .retryLimit(3)
+
+            .build();
+}
+```
+
+### Custom Exception Example
+
+```java
+public class InvalidRecordException extends RuntimeException {
+
+    public InvalidRecordException(String message) {
+        super(message);
+    }
+}
+```
+
+### Processor Example with Skip
+
+```java
+@Component
+public class RequestProcessor implements ItemProcessor<SourceRequest, TargetRequest> {
+
+    @Override
+    public TargetRequest process(SourceRequest request) {
+
+        if (request.getRequestId() == null) {
+            throw new InvalidRecordException("Request ID is missing");
+        }
+
+        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidRecordException("Invalid amount for request: " + request.getRequestId());
+        }
+
+        TargetRequest target = new TargetRequest();
+        target.setRequestId(request.getRequestId());
+        target.setAmount(request.getAmount());
+        target.setStatus("PROCESSED");
+
+        return target;
+    }
+}
+```
+
+Here `InvalidRecordException` will be skipped if it is configured in `.skip()`.
+
+---
+
+## XML Config: Skip and Retry
+
+```xml
+<step id="requestTransferStep" xmlns="http://www.springframework.org/schema/batch">
+    <tasklet transaction-manager="transactionManager">
+        <chunk reader="requestReader"
+               processor="requestProcessor"
+               writer="requestWriter"
+               commit-interval="100"
+               skip-limit="50"
+               retry-limit="3">
+
+            <skippable-exception-classes>
+                <include class="com.example.batch.exception.InvalidRecordException"/>
+                <include class="org.springframework.batch.item.file.FlatFileParseException"/>
+            </skippable-exception-classes>
+
+            <retryable-exception-classes>
+                <include class="org.springframework.dao.DeadlockLoserDataAccessException"/>
+                <include class="org.springframework.dao.CannotAcquireLockException"/>
+            </retryable-exception-classes>
+
+        </chunk>
+    </tasklet>
+</step>
+```
+
+### Interview Answer
+
+> In Spring Batch, skip and retry are used for fault tolerance. Skip is used for bad records where business allows the job to continue, such as invalid CSV row, missing optional field, invalid date format, or duplicate data. Retry is used for temporary technical failures like DB deadlock, lock timeout, network timeout, REST API 503, or Kafka temporary failure. I would not skip code bugs, SQL syntax issues, security errors, or critical financial mismatches. In Java config, we use `.faultTolerant().skip().skipLimit().retry().retryLimit()`. In XML config, we configure `skip-limit`, `retry-limit`, `skippable-exception-classes`, and `retryable-exception-classes`.
+
+---
+
+# 3. ExecutionContext in Spring Batch
+
+## What is ExecutionContext?
+
+`ExecutionContext` is a key-value storage used by Spring Batch during job execution.
+
+It stores runtime data like:
+
+```text
+last processed ID
+file name
+record count
+custom status
+error count
+business date
+temporary values needed between steps
+```
+
+There are two types:
+
+```text
+JobExecutionContext  -> shared at job level
+StepExecutionContext -> specific to one step
+```
+
+## Example Use Case
+
+Suppose your batch has 3 steps:
+
+```text
+Step 1: Read pending request count
+Step 2: Process requests
+Step 3: Update summary
+```
+
+Step 1 calculates total pending records:
+
+```text
+totalPendingRecords = 5000
+```
+
+You want Step 3 to use this value while updating summary.
+
+That value can be stored in `ExecutionContext`.
+
+---
+
+## StepExecutionListener Example
+
+```java
+@Component
+public class RequestStepListener implements StepExecutionListener {
+
+    @Override
+    public void beforeStep(StepExecution stepExecution) {
+        System.out.println("Step started: " + stepExecution.getStepName());
+
+        String businessDate = stepExecution
+                .getJobParameters()
+                .getString("businessDate");
+
+        stepExecution.getExecutionContext()
+                .putString("businessDate", businessDate);
+    }
+
+    @Override
+    public ExitStatus afterStep(StepExecution stepExecution) {
+
+        int readCount = stepExecution.getReadCount();
+        int writeCount = stepExecution.getWriteCount();
+        int skipCount = stepExecution.getSkipCount();
+
+        stepExecution.getExecutionContext().putInt("readCount", readCount);
+        stepExecution.getExecutionContext().putInt("writeCount", writeCount);
+        stepExecution.getExecutionContext().putInt("skipCount", skipCount);
+
+        System.out.println("Read Count: " + readCount);
+        System.out.println("Write Count: " + writeCount);
+        System.out.println("Skip Count: " + skipCount);
+
+        return ExitStatus.COMPLETED;
+    }
+}
+```
+
+## Configure Listener in Java Config
+
+```java
+@Bean
+public Step requestTransferStep(RequestStepListener requestStepListener) {
+    return stepBuilderFactory.get("requestTransferStep")
+            .<SourceRequest, TargetRequest>chunk(100)
+            .reader(requestReader())
+            .processor(requestProcessor())
+            .writer(requestWriter())
+            .listener(requestStepListener)
+            .build();
+}
+```
+
+---
+
+## JobExecutionListener Example
+
+```java
+@Component
+public class RequestJobListener implements JobExecutionListener {
+
+    @Override
+    public void beforeJob(JobExecution jobExecution) {
+        System.out.println("Job started: " + jobExecution.getJobInstance().getJobName());
+
+        jobExecution.getExecutionContext()
+                .putString("startedBy", "SYSTEM");
+    }
+
+    @Override
+    public void afterJob(JobExecution jobExecution) {
+
+        BatchStatus status = jobExecution.getStatus();
+
+        System.out.println("Job completed with status: " + status);
+
+        if (status == BatchStatus.COMPLETED) {
+            System.out.println("Send success notification");
+        } else {
+            System.out.println("Send failure notification");
+        }
+    }
+}
+```
+
+## Configure Job Listener in Java Config
+
+```java
+@Bean
+public Job dailyRequestTransferJob(RequestJobListener requestJobListener) {
+    return jobBuilderFactory.get("dailyRequestTransferJob")
+            .listener(requestJobListener)
+            .start(cleanupStagingStep())
+            .next(requestTransferStep())
+            .next(summaryUpdateStep())
+            .build();
+}
+```
+
+---
+
+# 4. ExecutionContext Promotion Between Steps
+
+Important interview point:
+
+> StepExecutionContext is local to one step. If one step wants to pass data to another step, we need to promote that value to JobExecutionContext.
+
+Example:
+
+```java
+@Bean
+public ExecutionContextPromotionListener promotionListener() {
+    ExecutionContextPromotionListener listener = new ExecutionContextPromotionListener();
+    listener.setKeys(new String[]{"totalProcessedCount", "businessDate"});
+    return listener;
+}
+```
+
+Configure it in step:
+
+```java
+@Bean
+public Step requestTransferStep() {
+    return stepBuilderFactory.get("requestTransferStep")
+            .<SourceRequest, TargetRequest>chunk(100)
+            .reader(requestReader())
+            .processor(requestProcessor())
+            .writer(requestWriter())
+            .listener(promotionListener())
+            .build();
+}
+```
+
+Now values from StepExecutionContext can be promoted to JobExecutionContext and used by the next step.
+
+---
+
+# 5. XML Config for Listener and ExecutionContext
+
+## XML Listener Configuration
+
+```xml
+<bean id="requestJobListener" class="com.example.batch.listener.RequestJobListener"/>
+<bean id="requestStepListener" class="com.example.batch.listener.RequestStepListener"/>
+<bean id="skipRecordListener" class="com.example.batch.listener.SkipRecordListener"/>
+
+<job id="dailyRequestTransferJob" xmlns="http://www.springframework.org/schema/batch">
+
+    <listeners>
+        <listener ref="requestJobListener"/>
+    </listeners>
+
+    <step id="requestTransferStep">
+        <tasklet transaction-manager="transactionManager">
+            <chunk reader="requestReader"
+                   processor="requestProcessor"
+                   writer="requestWriter"
+                   commit-interval="100"
+                   skip-limit="50">
+
+                <skippable-exception-classes>
+                    <include class="com.example.batch.exception.InvalidRecordException"/>
+                </skippable-exception-classes>
+
+            </chunk>
+
+            <listeners>
+                <listener ref="requestStepListener"/>
+                <listener ref="skipRecordListener"/>
+            </listeners>
+
+        </tasklet>
+    </step>
+
+</job>
+```
+
+---
+
+# 6. Skip Listener Example
+
+Skip listener is very useful in production because skipped records should not disappear silently.
+
+```java
+@Component
+public class SkipRecordListener implements SkipListener<SourceRequest, TargetRequest> {
+
+    @Override
+    public void onSkipInRead(Throwable t) {
+        System.out.println("Skipped during read: " + t.getMessage());
+    }
+
+    @Override
+    public void onSkipInProcess(SourceRequest item, Throwable t) {
+        System.out.println("Skipped during process. RequestId: "
+                + item.getRequestId()
+                + ", reason: "
+                + t.getMessage());
+
+        // Real project:
+        // Insert into BATCH_ERROR_LOG table
+    }
+
+    @Override
+    public void onSkipInWrite(TargetRequest item, Throwable t) {
+        System.out.println("Skipped during write. RequestId: "
+                + item.getRequestId()
+                + ", reason: "
+                + t.getMessage());
+    }
+}
+```
+
+Configure in Java:
+
+```java
+@Bean
+public Step requestTransferStep(SkipRecordListener skipRecordListener) {
+    return stepBuilderFactory.get("requestTransferStep")
+            .<SourceRequest, TargetRequest>chunk(100)
+            .reader(requestReader())
+            .processor(requestProcessor())
+            .writer(requestWriter())
+            .faultTolerant()
+            .skip(InvalidRecordException.class)
+            .skipLimit(50)
+            .listener(skipRecordListener)
+            .build();
+}
+```
+
+---
+
+# 7. Listener Types in Spring Batch
+
+| Listener                | Purpose                | Real Project Use                    |
+| ----------------------- | ---------------------- | ----------------------------------- |
+| `JobExecutionListener`  | Before/after job       | Send notification, audit job status |
+| `StepExecutionListener` | Before/after step      | Log read/write/skip count           |
+| `ItemReadListener`      | Before/after read      | Debug source data issues            |
+| `ItemProcessListener`   | Before/after process   | Debug transformation issues         |
+| `ItemWriteListener`     | Before/after write     | Debug DB insert/update issues       |
+| `SkipListener`          | When record is skipped | Store rejected records              |
+| `ChunkListener`         | Before/after chunk     | Monitor chunk performance           |
+
+---
+
+# 8. Combined Real Project Flow
+
+For your kind of project, you can explain like this:
+
+```text
+Job: dailyRequestTransferJob
+
+Step 1: cleanupStagingStep
+    Type: Tasklet
+    Work: Delete old staging records
+
+Step 2: requestTransferStep
+    Type: Chunk
+    Reader: Reads pending requests from source DB
+    Processor: Validates request, applies business rules, calls stored procedure
+    Writer: Inserts/updates records into target DB
+    Skip: Invalid business records
+    Retry: DB deadlock/lock timeout
+    Listener: Logs read/write/skip count
+
+Step 3: summaryUpdateStep
+    Type: Tasklet
+    Work: Update summary table using ExecutionContext values
+
+Step 4: notificationStep
+    Type: Tasklet
+    Work: Send success/failure notification
+```
+
+---
+
+# 9. Strong Interview Answer
+
+> In Spring Batch, a Job is the complete batch process and it can contain one or more Steps. For example, in a DB-to-DB transfer project, the job can be `dailyRequestTransferJob`. It can have a cleanup step to clear staging data, a chunk step to read records from source DB, process validations and stored procedure logic, then write to target DB, and finally a summary or notification step.
+>
+> For fault tolerance, Spring Batch provides skip and retry. Skip is used for bad records, such as invalid file row, missing non-critical field, invalid date format, or duplicate record if business allows it. Retry is used for temporary technical failures like DB deadlock, lock timeout, network timeout, REST API 503, or temporary Kafka failure. I would not skip code bugs, SQL syntax errors, security issues, or critical financial mismatches.
+>
+> ExecutionContext is a key-value store maintained by Spring Batch at job and step level. It is useful for storing runtime state like last processed ID, business date, read/write count, or values required by later steps. Listeners are lifecycle hooks used before or after job, step, read, process, write, skip, or chunk events. In production, I use listeners for audit logging, monitoring, skipped record tracking, and notification.
+```
+```
+1. Tasklet/chunk in xml/java config based application?
+2. Skip/Retry in xml/java config based application?
+3. How to achieve idempotency in spring batch?
+```
+```
+## 1. Tasklet vs Chunk in XML / Java Config
+
+Spring Batch has two main styles of step processing:
+
+| Type        | Meaning                              | Best Use Case                                                                        |
+| ----------- | ------------------------------------ | ------------------------------------------------------------------------------------ |
+| **Tasklet** | One unit of work                     | Cleanup table, move file, archive file, call one stored procedure, send notification |
+| **Chunk**   | Read-process-write records in groups | CSV to DB, DB to DB transfer, report data processing, large record processing        |
+
+Spring Batch docs describe **chunk processing** as reading items one at a time, grouping them into chunks, writing the chunk, and committing the transaction after the commit interval. A **Tasklet** has an `execute()` method and is useful for one operation like SQL update, script call, stored procedure, or file operation. ([Home][1])
+
+---
+
+# A. Tasklet Example
+
+## Real Project Example
+
+Suppose your batch job starts by deleting old temporary records:
+
+```text
+Job: dailyRequestTransferJob
+
+Step 1: cleanupStagingStep       -> Tasklet
+Step 2: requestTransferStep      -> Chunk
+Step 3: summaryUpdateStep        -> Tasklet
+```
+
+`cleanupStagingStep` is a **Tasklet** because it does not read 10,000 records one by one. It performs one direct operation.
+
+---
+
+## Java Config — Tasklet
+
+```java
+@Configuration
+public class BatchConfig {
+
+    @Bean
+    public Step cleanupStagingStep(JobRepository jobRepository,
+                                   PlatformTransactionManager transactionManager,
+                                   JdbcTemplate jdbcTemplate) {
+
+        return new StepBuilder("cleanupStagingStep", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
+
+                    int deletedRows = jdbcTemplate.update(
+                            "DELETE FROM STAGING_REQUEST WHERE CREATED_DATE < SYSDATE - 7"
+                    );
+
+                    System.out.println("Deleted staging rows: " + deletedRows);
+
+                    return RepeatStatus.FINISHED;
+
+                }, transactionManager)
+                .build();
+    }
+}
+```
+
+### Interview Explanation
+
+> I use Tasklet when the step has one specific task, for example cleaning a staging table, moving processed files to archive, calling one stored procedure, or sending notification. It is not suitable when I need to process records one by one. For record-based processing, I use chunk.
+
+---
+
+## XML Config — Tasklet
+
+```xml
+<bean id="cleanupTasklet" class="com.example.batch.tasklet.CleanupTasklet"/>
+
+<batch:step id="cleanupStagingStep">
+    <batch:tasklet ref="cleanupTasklet"
+                   transaction-manager="transactionManager"/>
+</batch:step>
+```
+
+```java
+public class CleanupTasklet implements Tasklet {
+
+    private JdbcTemplate jdbcTemplate;
+
+    public CleanupTasklet(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Override
+    public RepeatStatus execute(StepContribution contribution,
+                                ChunkContext chunkContext) {
+
+        int deletedRows = jdbcTemplate.update(
+                "DELETE FROM STAGING_REQUEST WHERE CREATED_DATE < SYSDATE - 7"
+        );
+
+        System.out.println("Deleted rows: " + deletedRows);
+
+        return RepeatStatus.FINISHED;
+    }
+}
+```
+
+---
+
+# B. Chunk Example
+
+## Real Project Example
+
+Suppose you need to transfer records from source DB to target DB:
+
+```text
+Reader    -> read pending requests from source DB
+Processor -> validate request + call stored procedure + transform data
+Writer    -> insert/update into target DB
+```
+
+This is a **Chunk** step.
+
+```text
+Chunk size = 100
+
+Read 100 records
+Process 100 records
+Write 100 records
+Commit transaction
+```
+
+---
+
+## Java Config — Chunk Step
+
+```java
+@Bean
+public Step requestTransferStep(JobRepository jobRepository,
+                                PlatformTransactionManager transactionManager,
+                                ItemReader<SourceRequest> requestReader,
+                                ItemProcessor<SourceRequest, TargetRequest> requestProcessor,
+                                ItemWriter<TargetRequest> requestWriter) {
+
+    return new StepBuilder("requestTransferStep", jobRepository)
+            .<SourceRequest, TargetRequest>chunk(100, transactionManager)
+            .reader(requestReader)
+            .processor(requestProcessor)
+            .writer(requestWriter)
+            .build();
+}
+```
+
+---
+
+## XML Config — Chunk Step
+
+```xml
+<batch:step id="requestTransferStep">
+    <batch:tasklet transaction-manager="transactionManager">
+        <batch:chunk reader="requestReader"
+                     processor="requestProcessor"
+                     writer="requestWriter"
+                     commit-interval="100"/>
+    </batch:tasklet>
+</batch:step>
+```
+
+---
+
+## Job Containing Tasklet + Chunk Steps
+
+## Java Config
+
+```java
+@Bean
+public Job dailyRequestTransferJob(JobRepository jobRepository,
+                                   Step cleanupStagingStep,
+                                   Step requestTransferStep,
+                                   Step summaryUpdateStep) {
+
+    return new JobBuilder("dailyRequestTransferJob", jobRepository)
+            .start(cleanupStagingStep)
+            .next(requestTransferStep)
+            .next(summaryUpdateStep)
+            .build();
+}
+```
+
+## XML Config
+
+```xml
+<batch:job id="dailyRequestTransferJob">
+
+    <batch:step id="cleanupStagingStep" next="requestTransferStep">
+        <batch:tasklet ref="cleanupTasklet"/>
+    </batch:step>
+
+    <batch:step id="requestTransferStep" next="summaryUpdateStep">
+        <batch:tasklet transaction-manager="transactionManager">
+            <batch:chunk reader="requestReader"
+                         processor="requestProcessor"
+                         writer="requestWriter"
+                         commit-interval="100"/>
+        </batch:tasklet>
+    </batch:step>
+
+    <batch:step id="summaryUpdateStep">
+        <batch:tasklet ref="summaryUpdateTasklet"/>
+    </batch:step>
+
+</batch:job>
+```
+
+---
+
+# 2. Skip / Retry in XML / Java Config
+
+## A. Skip
+
+**Skip** means bad records are ignored and the batch continues.
+
+Use skip for **bad data**, not technical failures.
+
+Examples:
+
+```text
+Invalid CSV row
+Invalid date format
+Missing optional field
+Invalid mobile/email
+Duplicate record, if business allows
+Reference data missing, if business allows
+```
+
+Spring Batch docs clearly say skipping is a business decision. For example, financial data may not be skippable, but vendor/customer loading may allow invalid records to be skipped and reviewed later. ([Home][2])
+
+---
+
+## B. Retry
+
+**Retry** means the same operation is tried again.
+
+Use retry for **temporary/transient issues**.
+
+Examples:
+
+```text
+DB deadlock
+DB lock timeout
+Temporary network issue
+REST API 503/504
+Kafka broker temporary unavailable
+Connection reset
+```
+
+Spring Batch supports retry by configuring retryable exceptions and retry limits for an individual item. ([Home][3])
+
+---
+
+## Simple Interview Rule
+
+```text
+Bad Data           -> Skip
+Temporary Failure  -> Retry
+Code Bug           -> Fail
+Critical Data      -> Fail
+```
+
+---
+
+## Java Config — Skip + Retry
+
+```java
+@Bean
+public Step requestTransferStep(JobRepository jobRepository,
+                                PlatformTransactionManager transactionManager,
+                                ItemReader<SourceRequest> requestReader,
+                                ItemProcessor<SourceRequest, TargetRequest> requestProcessor,
+                                ItemWriter<TargetRequest> requestWriter,
+                                SkipRecordListener skipRecordListener) {
+
+    return new StepBuilder("requestTransferStep", jobRepository)
+            .<SourceRequest, TargetRequest>chunk(100, transactionManager)
+            .reader(requestReader)
+            .processor(requestProcessor)
+            .writer(requestWriter)
+
+            .faultTolerant()
+
+            // Skip bad data
+            .skip(InvalidRecordException.class)
+            .skip(NumberFormatException.class)
+            .skipLimit(50)
+
+            // Retry temporary DB/infra issue
+            .retry(DeadlockLoserDataAccessException.class)
+            .retry(CannotAcquireLockException.class)
+            .retryLimit(3)
+
+            .listener(skipRecordListener)
+            .build();
+}
+```
+
+---
+
+## Custom Skip Exception
+
+```java
+public class InvalidRecordException extends RuntimeException {
+
+    public InvalidRecordException(String message) {
+        super(message);
+    }
+}
+```
+
+---
+
+## Processor Throwing Skippable Exception
+
+```java
+@Component
+public class RequestProcessor implements ItemProcessor<SourceRequest, TargetRequest> {
+
+    @Override
+    public TargetRequest process(SourceRequest request) {
+
+        if (request.getRequestId() == null) {
+            throw new InvalidRecordException("Request ID is missing");
+        }
+
+        if (request.getAmount() == null ||
+                request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidRecordException(
+                    "Invalid amount for requestId: " + request.getRequestId()
+            );
+        }
+
+        TargetRequest target = new TargetRequest();
+        target.setRequestId(request.getRequestId());
+        target.setAmount(request.getAmount());
+        target.setStatus("PROCESSED");
+
+        return target;
+    }
+}
+```
+
+If `InvalidRecordException` is thrown and skip is configured, Spring Batch skips that item and continues until skip limit is reached.
+
+---
+
+## XML Config — Skip + Retry
+
+```xml
+<batch:step id="requestTransferStep">
+    <batch:tasklet transaction-manager="transactionManager">
+
+        <batch:chunk reader="requestReader"
+                     processor="requestProcessor"
+                     writer="requestWriter"
+                     commit-interval="100"
+                     skip-limit="50"
+                     retry-limit="3">
+
+            <batch:skippable-exception-classes>
+                <batch:include class="com.example.batch.exception.InvalidRecordException"/>
+                <batch:include class="java.lang.NumberFormatException"/>
+            </batch:skippable-exception-classes>
+
+            <batch:retryable-exception-classes>
+                <batch:include class="org.springframework.dao.DeadlockLoserDataAccessException"/>
+                <batch:include class="org.springframework.dao.CannotAcquireLockException"/>
+            </batch:retryable-exception-classes>
+
+        </batch:chunk>
+
+        <batch:listeners>
+            <batch:listener ref="skipRecordListener"/>
+        </batch:listeners>
+
+    </batch:tasklet>
+</batch:step>
+```
+
+---
+
+## Skip Listener
+
+In production, do not silently skip records. Always log them into an error table, rejection file, or monitoring system.
+
+```java
+@Component
+public class SkipRecordListener implements SkipListener<SourceRequest, TargetRequest> {
+
+    @Override
+    public void onSkipInRead(Throwable t) {
+        System.out.println("Skipped during read: " + t.getMessage());
+    }
+
+    @Override
+    public void onSkipInProcess(SourceRequest item, Throwable t) {
+        System.out.println("Skipped in processor. requestId="
+                + item.getRequestId()
+                + ", reason="
+                + t.getMessage());
+
+        // Real project:
+        // insert into BATCH_ERROR_LOG table
+    }
+
+    @Override
+    public void onSkipInWrite(TargetRequest item, Throwable t) {
+        System.out.println("Skipped in writer. requestId="
+                + item.getRequestId()
+                + ", reason="
+                + t.getMessage());
+    }
+}
+```
+
+Spring Batch guarantees that `SkipListener` is called once per skipped item and is called before transaction commit, which is useful when logging skipped records transactionally. ([Home][4])
+
+---
+
+## When Not to Skip
+
+Do **not** skip these blindly:
+
+```text
+Payment amount mismatch
+Tax calculation mismatch
+Security/authentication error
+SQL syntax error
+NullPointerException due to code bug
+Table not found
+DB connection down
+Wrong stored procedure logic
+Critical business validation failure
+```
+
+These should usually fail the job.
+
+---
+
+## When Not to Retry
+
+Do **not** retry these:
+
+```text
+Invalid input data
+Wrong date format
+Missing mandatory field
+Duplicate key due to bad source data
+SQL syntax error
+NullPointerException
+Invalid credentials
+```
+
+Retrying will not solve these issues.
+
+---
+
+# 3. How to Achieve Idempotency in Spring Batch?
+
+## What is Idempotency?
+
+**Idempotency** means running the same batch again should not create duplicate or incorrect data.
+
+Simple meaning:
+
+```text
+Same input + same job rerun = same final result
+```
+
+This is very important because Spring Batch jobs can fail, restart, rollback, or reprocess records. Spring Batch docs mention that when a chunk rolls back, cached items may be reprocessed, so processors should be implemented idempotently. ([Home][5])
+
+---
+
+## Why Idempotency is Important?
+
+Suppose your batch processes 10,000 records.
+
+```text
+Chunk size = 100
+Job fails after 5,000 records
+Job is restarted
+```
+
+If your writer blindly inserts records again, duplicates may happen.
+
+Bad writer:
+
+```sql
+INSERT INTO TARGET_REQUEST (REQ_ID, STATUS)
+VALUES (?, ?);
+```
+
+If the same `REQ_ID` is processed again, duplicate record issue may happen.
+
+---
+
+# Practical Ways to Achieve Idempotency
+
+## 1. Use Unique Business Key
+
+Add unique constraint on business columns.
+
+Example:
+
+```sql
+ALTER TABLE TARGET_REQUEST
+ADD CONSTRAINT UK_TARGET_REQUEST UNIQUE (REQ_ID, BUSINESS_DATE);
+```
+
+Now even if the same record is inserted twice, DB will prevent duplicate data.
+
+Interview line:
+
+> I always prefer DB-level protection because application-level checks alone are not enough in concurrent or restart scenarios.
+
+---
+
+## 2. Use UPSERT / MERGE Instead of Blind INSERT
+
+Instead of blindly inserting, use `MERGE`.
+
+### Oracle / DB2 Style Example
+
+```sql
+MERGE INTO TARGET_REQUEST tgt
+USING (
+    SELECT ? AS REQ_ID,
+           ? AS BUSINESS_DATE,
+           ? AS STATUS
+    FROM dual
+) src
+ON (
+    tgt.REQ_ID = src.REQ_ID
+    AND tgt.BUSINESS_DATE = src.BUSINESS_DATE
+)
+WHEN MATCHED THEN
+    UPDATE SET tgt.STATUS = src.STATUS
+WHEN NOT MATCHED THEN
+    INSERT (REQ_ID, BUSINESS_DATE, STATUS)
+    VALUES (src.REQ_ID, src.BUSINESS_DATE, src.STATUS);
+```
+
+Meaning:
+
+```text
+If record exists    -> update it
+If record not exists -> insert it
+```
+
+This is one of the best ways to make writer idempotent.
+
+---
+
+## 3. Use Processed Flag in Source Table
+
+Add status in source table:
+
+```text
+PENDING
+IN_PROGRESS
+PROCESSED
+FAILED
+SKIPPED
+```
+
+Reader should pick only pending records:
+
+```sql
+SELECT *
+FROM SOURCE_REQUEST
+WHERE STATUS = 'PENDING'
+ORDER BY REQ_ID;
+```
+
+After successful write, update source status:
+
+```sql
+UPDATE SOURCE_REQUEST
+SET STATUS = 'PROCESSED'
+WHERE REQ_ID = ?;
+```
+
+This prevents already processed records from being picked again.
+
+---
+
+## 4. Use Batch ID / Run ID
+
+Add a `BATCH_ID` column in target or audit table.
+
+```text
+REQ_ID | BUSINESS_DATE | STATUS    | BATCH_ID
+101    | 2026-06-28    | PROCESSED | BATCH_001
+```
+
+This helps in:
+
+```text
+Tracking which batch processed which record
+Finding duplicate processing
+Rollback/reconciliation
+Debugging production issues
+```
+
+---
+
+## 5. Use Staging Table
+
+For complex enterprise jobs, use staging.
+
+```text
+Step 1: Load data into staging table
+Step 2: Validate staging records
+Step 3: Move valid records to target table using MERGE
+Step 4: Mark invalid records as rejected
+```
+
+Example:
+
+```text
+SOURCE_FILE
+   ↓
+STAGING_REQUEST
+   ↓ validation
+TARGET_REQUEST
+```
+
+This is very useful in DB-to-DB, CSV-to-DB, and reconciliation jobs.
+
+---
+
+## 6. Make Processor Idempotent
+
+Processor should not perform irreversible side effects.
+
+Bad processor:
+
+```java
+@Override
+public TargetRequest process(SourceRequest item) {
+    sendEmail(item); // bad: may send duplicate email during retry/restart
+    item.setStatus("PROCESSED"); // mutating original object may be risky
+    return convert(item);
+}
+```
+
+Better processor:
+
+```java
+@Override
+public TargetRequest process(SourceRequest item) {
+
+    TargetRequest target = new TargetRequest();
+    target.setRequestId(item.getRequestId());
+    target.setBusinessDate(item.getBusinessDate());
+    target.setAmount(item.getAmount());
+    target.setStatus("PROCESSED");
+
+    return target;
+}
+```
+
+Spring Batch docs also recommend that fault-tolerant processors should avoid changing the input item and should update only the result instance. ([Home][5])
+
+---
+
+## 7. Avoid External Side Effects Inside Processor
+
+Avoid doing this inside processor:
+
+```text
+Sending email
+Calling payment API
+Calling third-party irreversible API
+Publishing Kafka event without idempotency
+Updating another DB outside transaction
+```
+
+If needed, use:
+
+```text
+Outbox table
+Event ID
+Idempotency key
+Separate notification step
+Post-processing after successful commit
+```
+
+---
+
+## 8. Use Idempotency Key for External Calls
+
+If your batch calls REST API or Kafka, pass a unique idempotency key.
+
+Example:
+
+```text
+idempotencyKey = requestId + businessDate
+```
+
+For Kafka:
+
+```text
+eventId = requestId + "_" + businessDate
+```
+
+Consumer should ignore duplicate `eventId`.
+
+---
+
+## 9. Use Correct JobParameters
+
+Do not rely only on `run.id`.
+
+Better:
+
+```java
+JobParameters params = new JobParametersBuilder()
+        .addString("businessDate", "2026-06-28")
+        .addString("fileName", "request_20260628.csv")
+        .addLong("run.id", System.currentTimeMillis())
+        .toJobParameters();
+```
+
+For business uniqueness:
+
+```text
+businessDate + fileName
+```
+
+should identify the business run.
+
+---
+
+## 10. Be Careful with Multiple Datasources
+
+If JobRepository and business DB are not in the same transaction, failure can happen after business data is committed but before metadata is updated. Spring Batch docs mention this can cause step re-execution and duplicate processing, so idempotent processing or external transaction management such as JTA may be needed. ([Home][6])
+
+This is very important for your DB-to-DB project.
+
+---
+
+# Idempotent Writer Example
+
+```java
+@Component
+public class RequestWriter implements ItemWriter<TargetRequest> {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    public RequestWriter(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Override
+    public void write(Chunk<? extends TargetRequest> chunk) {
+
+        for (TargetRequest item : chunk) {
+
+            jdbcTemplate.update(
+                    """
+                    MERGE INTO TARGET_REQUEST tgt
+                    USING (
+                        SELECT ? AS REQ_ID,
+                               ? AS BUSINESS_DATE,
+                               ? AS STATUS
+                        FROM dual
+                    ) src
+                    ON (
+                        tgt.REQ_ID = src.REQ_ID
+                        AND tgt.BUSINESS_DATE = src.BUSINESS_DATE
+                    )
+                    WHEN MATCHED THEN
+                        UPDATE SET tgt.STATUS = src.STATUS
+                    WHEN NOT MATCHED THEN
+                        INSERT (REQ_ID, BUSINESS_DATE, STATUS)
+                        VALUES (src.REQ_ID, src.BUSINESS_DATE, src.STATUS)
+                    """,
+                    item.getRequestId(),
+                    item.getBusinessDate(),
+                    item.getStatus()
+            );
+        }
+    }
+}
+```
+
+---
+
+# Idempotency in Your Project Style
+
+For your kind of legacy DB-to-DB Spring Batch project, you can explain like this:
+
+```text
+Reader:
+Reads only PENDING records from source DB.
+
+Processor:
+Validates data.
+Calls stored procedure carefully.
+Does not perform irreversible side effects.
+Returns a new target object.
+
+Writer:
+Uses MERGE/UPSERT instead of blind INSERT.
+Uses unique key like REQ_ID + BUSINESS_DATE.
+Updates source status as PROCESSED after successful write.
+
+JobRepository:
+Tracks job and step execution.
+
+Error Handling:
+Bad records go to error table.
+Temporary DB errors are retried.
+Duplicate records are handled using unique key/MERGE.
+```
+
+---
+
+# Strong Interview Answer
+
+> In Spring Batch, I use Tasklet for one-time operations like cleanup, file movement, calling one stored procedure, or sending notification. I use chunk processing when I need to process records one by one, like reading pending records from source DB, validating them in processor, and writing to target DB. In XML configuration, tasklet and chunk are configured using batch namespace, while in Java config, we use `StepBuilder` with either `.tasklet()` or `.chunk()`.
+>
+> For fault tolerance, I use skip for bad data and retry for temporary technical issues. For example, invalid date format, invalid CSV row, or missing optional field can be skipped if business allows it. DB deadlock, lock timeout, network timeout, or REST API 503 should be retried. I never skip code bugs, SQL syntax errors, authentication errors, or critical financial mismatches.
+>
+> For idempotency, I make sure rerunning or restarting the job does not create duplicate data. I use unique business keys, MERGE/UPSERT instead of blind insert, processed flags, batch IDs, staging tables, and idempotent processors. This is especially important because after rollback or restart, Spring Batch may reprocess records. In DB-to-DB jobs, idempotency is mandatory to avoid duplicate inserts and inconsistent target data.
+
+[1]: https://docs.spring.io/spring-batch/reference/step/chunk-oriented-processing.html?utm_source=chatgpt.com "Chunk-oriented Processing :: Spring Batch Reference"
+[2]: https://docs.spring.io/spring-batch/reference/step/chunk-oriented-processing/configuring-skip.html?utm_source=chatgpt.com "Configuring Skip Logic :: Spring Batch Reference"
+[3]: https://docs.spring.io/spring-batch/reference/step/chunk-oriented-processing/retry-logic.html?utm_source=chatgpt.com "Configuring Retry Logic :: Spring Batch Reference"
+[4]: https://docs.spring.io/spring-batch/reference/step/chunk-oriented-processing/intercepting-execution.html?utm_source=chatgpt.com "Intercepting Step Execution :: Spring Batch Reference"
+[5]: https://docs.spring.io/spring-batch/reference/processor.html?utm_source=chatgpt.com "Item processing :: Spring Batch Reference"
+[6]: https://docs.spring.io/spring-batch/reference/step/chunk-oriented-processing/configuring.html?utm_source=chatgpt.com "Configuring a Step :: Spring Batch Reference"
+```
+```
+1. How to access spring batch metadata tables?
+2. What is meant by database deadlocks?
+```
+```
+## 1. How to access Spring Batch metadata tables?
+
+Spring Batch stores job/step execution details in **metadata tables**. These tables help with job tracking, restartability, status checking, failure analysis, read/write count, skip count, rollback count, etc. Official Spring Batch docs define metadata tables like `BATCH_JOB_INSTANCE`, `BATCH_JOB_EXECUTION`, `BATCH_STEP_EXECUTION`, and execution-context tables. ([Home][1])
+
+---
+
+# A. Important Spring Batch Metadata Tables
+
+| Table                          | Purpose                                                  |
+| ------------------------------ | -------------------------------------------------------- |
+| `BATCH_JOB_INSTANCE`           | Stores unique job instance details                       |
+| `BATCH_JOB_EXECUTION`          | Stores each job execution/run status                     |
+| `BATCH_JOB_EXECUTION_PARAMS`   | Stores job parameters                                    |
+| `BATCH_STEP_EXECUTION`         | Stores step-level status, read/write/skip/rollback count |
+| `BATCH_JOB_EXECUTION_CONTEXT`  | Stores job-level execution context                       |
+| `BATCH_STEP_EXECUTION_CONTEXT` | Stores step-level execution context                      |
+
+Simple relation:
+
+```text
+BATCH_JOB_INSTANCE
+        ↓
+BATCH_JOB_EXECUTION
+        ↓
+BATCH_STEP_EXECUTION
+```
+
+---
+
+# B. Access Using SQL Queries
+
+In production, most commonly we access these tables through SQL Developer, DB2 Data Studio, DBeaver, MySQL Workbench, etc.
+
+## 1. Check latest job executions
+
+```sql
+SELECT 
+    JE.JOB_EXECUTION_ID,
+    JI.JOB_NAME,
+    JE.STATUS,
+    JE.START_TIME,
+    JE.END_TIME,
+    JE.EXIT_CODE,
+    JE.EXIT_MESSAGE
+FROM BATCH_JOB_INSTANCE JI
+JOIN BATCH_JOB_EXECUTION JE
+    ON JI.JOB_INSTANCE_ID = JE.JOB_INSTANCE_ID
+ORDER BY JE.START_TIME DESC;
+```
+
+---
+
+## 2. Check step execution details
+
+```sql
+SELECT
+    SE.STEP_EXECUTION_ID,
+    SE.JOB_EXECUTION_ID,
+    SE.STEP_NAME,
+    SE.STATUS,
+    SE.READ_COUNT,
+    SE.WRITE_COUNT,
+    SE.FILTER_COUNT,
+    SE.COMMIT_COUNT,
+    SE.ROLLBACK_COUNT,
+    SE.READ_SKIP_COUNT,
+    SE.PROCESS_SKIP_COUNT,
+    SE.WRITE_SKIP_COUNT,
+    SE.START_TIME,
+    SE.END_TIME,
+    SE.EXIT_CODE,
+    SE.EXIT_MESSAGE
+FROM BATCH_STEP_EXECUTION SE
+ORDER BY SE.START_TIME DESC;
+```
+
+This is very useful in production.
+
+Example:
+
+```text
+READ_COUNT = 10000
+WRITE_COUNT = 9950
+PROCESS_SKIP_COUNT = 50
+STATUS = COMPLETED
+```
+
+Meaning:
+
+```text
+10,000 records read
+9,950 records written
+50 records skipped during processing
+Job completed successfully
+```
+
+---
+
+## 3. Find failed jobs
+
+```sql
+SELECT 
+    JI.JOB_NAME,
+    JE.JOB_EXECUTION_ID,
+    JE.STATUS,
+    JE.START_TIME,
+    JE.END_TIME,
+    JE.EXIT_CODE,
+    JE.EXIT_MESSAGE
+FROM BATCH_JOB_INSTANCE JI
+JOIN BATCH_JOB_EXECUTION JE
+    ON JI.JOB_INSTANCE_ID = JE.JOB_INSTANCE_ID
+WHERE JE.STATUS = 'FAILED'
+ORDER BY JE.START_TIME DESC;
+```
+
+---
+
+## 4. Check failed step reason
+
+```sql
+SELECT
+    STEP_NAME,
+    STATUS,
+    EXIT_CODE,
+    EXIT_MESSAGE,
+    READ_COUNT,
+    WRITE_COUNT,
+    ROLLBACK_COUNT
+FROM BATCH_STEP_EXECUTION
+WHERE JOB_EXECUTION_ID = 101;
+```
+
+---
+
+## 5. Check job parameters
+
+```sql
+SELECT *
+FROM BATCH_JOB_EXECUTION_PARAMS
+WHERE JOB_EXECUTION_ID = 101;
+```
+
+Example data:
+
+```text
+businessDate = 2026-06-28
+fileName = request_20260628.csv
+run.id = 123456789
+```
+
+---
+
+# C. Access Metadata Using Java Code
+
+In modern Spring Batch, you can access metadata using `JobExplorer`.
+
+## Example: Read Job Execution Status
+
+```java
+@Service
+public class BatchStatusService {
+
+    private final JobExplorer jobExplorer;
+
+    public BatchStatusService(JobExplorer jobExplorer) {
+        this.jobExplorer = jobExplorer;
+    }
+
+    public String getJobStatus(Long jobExecutionId) {
+
+        JobExecution jobExecution = jobExplorer.getJobExecution(jobExecutionId);
+
+        if (jobExecution == null) {
+            return "No job execution found for id: " + jobExecutionId;
+        }
+
+        return "Job Status: " + jobExecution.getStatus()
+                + ", Exit Status: " + jobExecution.getExitStatus().getExitCode();
+    }
+}
+```
+
+---
+
+## REST API to Check Batch Status
+
+```java
+@RestController
+@RequestMapping("/batch")
+public class BatchStatusController {
+
+    private final BatchStatusService batchStatusService;
+
+    public BatchStatusController(BatchStatusService batchStatusService) {
+        this.batchStatusService = batchStatusService;
+    }
+
+    @GetMapping("/status/{jobExecutionId}")
+    public ResponseEntity<String> getStatus(@PathVariable Long jobExecutionId) {
+        return ResponseEntity.ok(batchStatusService.getJobStatus(jobExecutionId));
+    }
+}
+```
+
+Example:
+
+```text
+GET /batch/status/101
+```
+
+Response:
+
+```text
+Job Status: COMPLETED, Exit Status: COMPLETED
+```
+
+---
+
+# D. Access Metadata Using JobRepository / JobExplorer / JobOperator
+
+| Component       | Usage                              |
+| --------------- | ---------------------------------- |
+| `JobRepository` | Stores job metadata                |
+| `JobExplorer`   | Reads job metadata                 |
+| `JobOperator`   | Start, stop, restart, abandon jobs |
+| SQL queries     | Production debugging               |
+
+Interview answer:
+
+> In production, we usually access Spring Batch metadata tables directly using SQL for debugging. For application-level access, we use `JobExplorer` to read job and step execution details. `JobRepository` is internally used by Spring Batch to persist metadata, and `JobOperator` can be used to start, stop, restart, or abandon jobs.
+
+---
+
+# E. Important Warning
+
+Do **not** casually update metadata tables manually.
+
+Avoid this unless it is a production recovery case approved by the team:
+
+```sql
+UPDATE BATCH_JOB_EXECUTION 
+SET STATUS = 'FAILED'
+WHERE JOB_EXECUTION_ID = 101;
+```
+
+Why?
+
+Because manual changes can break restartability and job consistency.
+
+Better approach:
+
+```text
+Use JobOperator
+Use proper restart
+Check logs
+Check scheduler history
+Check DB metadata
+Take DBA/team approval before manual update
+```
+
+---
+
+# 2. What is meant by database deadlock?
+
+A **database deadlock** happens when two or more transactions are waiting for each other’s locked resources, and none of them can proceed. Oracle defines a deadlock as a situation where two or more users are waiting for data locked by each other, preventing transactions from continuing. ([Oracle Documentation][2])
+
+---
+
+## Simple Example
+
+Suppose two transactions are running at the same time.
+
+### Transaction 1
+
+```sql
+UPDATE ACCOUNT SET BALANCE = BALANCE - 100 WHERE ACCOUNT_ID = 1;
+```
+
+Transaction 1 locks `ACCOUNT_ID = 1`.
+
+Then it tries:
+
+```sql
+UPDATE ACCOUNT SET BALANCE = BALANCE + 100 WHERE ACCOUNT_ID = 2;
+```
+
+But `ACCOUNT_ID = 2` is locked by Transaction 2.
+
+---
+
+### Transaction 2
+
+```sql
+UPDATE ACCOUNT SET BALANCE = BALANCE - 50 WHERE ACCOUNT_ID = 2;
+```
+
+Transaction 2 locks `ACCOUNT_ID = 2`.
+
+Then it tries:
+
+```sql
+UPDATE ACCOUNT SET BALANCE = BALANCE + 50 WHERE ACCOUNT_ID = 1;
+```
+
+But `ACCOUNT_ID = 1` is locked by Transaction 1.
+
+---
+
+## Deadlock Situation
+
+```text
+Transaction 1 locked ACCOUNT_ID = 1
+Transaction 1 is waiting for ACCOUNT_ID = 2
+
+Transaction 2 locked ACCOUNT_ID = 2
+Transaction 2 is waiting for ACCOUNT_ID = 1
+
+Both are waiting for each other.
+This is a deadlock.
+```
+
+Database will usually detect this and kill/rollback one transaction.
+
+---
+
+# Deadlock in Spring Batch Project
+
+In Spring Batch, deadlock can happen when multiple chunks, jobs, or threads update the same tables/rows.
+
+Example:
+
+```text
+Job A processing request IDs: 1, 2, 3, 4
+Job B processing request IDs: 4, 3, 2, 1
+```
+
+If both jobs update records in different order, locks can conflict.
+
+---
+
+## Common Causes of Deadlock
+
+| Cause                                    | Example                                        |
+| ---------------------------------------- | ---------------------------------------------- |
+| Multiple transactions updating same rows | Two batch jobs updating same request records   |
+| Different update order                   | Job 1 updates A then B, Job 2 updates B then A |
+| Large chunk size                         | Transaction holds locks for long time          |
+| Missing indexes                          | DB locks more rows/table scans                 |
+| Long-running stored procedure            | Locks remain active for longer                 |
+| Parallel batch processing                | Multiple threads touching same data            |
+| High isolation level                     | More strict locking                            |
+| Uncommitted transactions                 | One process holds lock too long                |
+
+---
+
+# How to Solve / Reduce Deadlocks
+
+## 1. Update records in same order
+
+Bad:
+
+```text
+Job 1: update ID 1 then ID 2
+Job 2: update ID 2 then ID 1
+```
+
+Better:
+
+```text
+Both jobs update records in ascending ID order
+```
+
+SQL:
+
+```sql
+SELECT *
+FROM SOURCE_REQUEST
+WHERE STATUS = 'PENDING'
+ORDER BY REQUEST_ID;
+```
+
+---
+
+## 2. Reduce chunk size
+
+If chunk size is too large:
+
+```text
+chunk size = 5000
+```
+
+Locks are held for a long time.
+
+Better:
+
+```text
+chunk size = 100 or 500
+```
+
+depending on data volume and DB performance.
+
+---
+
+## 3. Add proper indexes
+
+If your query is:
+
+```sql
+SELECT *
+FROM SOURCE_REQUEST
+WHERE STATUS = 'PENDING'
+AND BUSINESS_DATE = ?
+```
+
+Then useful index may be:
+
+```sql
+CREATE INDEX IDX_SOURCE_REQ_STATUS_DATE
+ON SOURCE_REQUEST (STATUS, BUSINESS_DATE);
+```
+
+Without index, DB may scan many rows and lock more data.
+
+---
+
+## 4. Keep transactions short
+
+Avoid heavy logic inside one transaction:
+
+```text
+Long stored procedure
+External API call
+Large chunk
+Complex joins
+```
+
+Long transactions increase lock time.
+
+---
+
+## 5. Avoid parallel update on same records
+
+If partitioning or multi-threaded batch is used, divide data properly:
+
+```text
+Thread 1: request_id 1 - 10000
+Thread 2: request_id 10001 - 20000
+Thread 3: request_id 20001 - 30000
+```
+
+Do not allow all threads to update the same range.
+
+---
+
+## 6. Use retry for deadlock
+
+Deadlock is usually a temporary issue, so retry is valid.
+
+### Java Config
+
+```java
+@Bean
+public Step requestTransferStep(JobRepository jobRepository,
+                                PlatformTransactionManager transactionManager,
+                                ItemReader<SourceRequest> reader,
+                                ItemProcessor<SourceRequest, TargetRequest> processor,
+                                ItemWriter<TargetRequest> writer) {
+
+    return new StepBuilder("requestTransferStep", jobRepository)
+            .<SourceRequest, TargetRequest>chunk(100, transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .faultTolerant()
+            .retry(DeadlockLoserDataAccessException.class)
+            .retry(CannotAcquireLockException.class)
+            .retryLimit(3)
+            .build();
+}
+```
+
+### XML Config
+
+```xml
+<batch:step id="requestTransferStep">
+    <batch:tasklet transaction-manager="transactionManager">
+        <batch:chunk reader="requestReader"
+                     processor="requestProcessor"
+                     writer="requestWriter"
+                     commit-interval="100"
+                     retry-limit="3">
+
+            <batch:retryable-exception-classes>
+                <batch:include class="org.springframework.dao.DeadlockLoserDataAccessException"/>
+                <batch:include class="org.springframework.dao.CannotAcquireLockException"/>
+            </batch:retryable-exception-classes>
+
+        </batch:chunk>
+    </batch:tasklet>
+</batch:step>
+```
+
+---
+
+# Interview Answer
+
+> Spring Batch metadata tables are used to track job and step execution details. Important tables are `BATCH_JOB_INSTANCE`, `BATCH_JOB_EXECUTION`, `BATCH_JOB_EXECUTION_PARAMS`, `BATCH_STEP_EXECUTION`, and execution context tables. In production, I can query these tables to check job status, failed steps, read count, write count, skip count, rollback count, and exit messages. In Java, I can use `JobExplorer` to read metadata and `JobOperator` to manage jobs.
+>
+> A database deadlock happens when two or more transactions hold locks on different resources and each transaction waits for the other to release its lock. For example, Transaction 1 locks row A and waits for row B, while Transaction 2 locks row B and waits for row A. In Spring Batch, this can happen when multiple jobs or chunks update the same tables/rows in different order. To solve it, we keep update order consistent, reduce chunk size, add proper indexes, keep transactions short, avoid overlapping parallel processing, and configure retry for deadlock exceptions.
+
+[1]: https://docs.spring.io/spring-batch/reference/schema-appendix.html?utm_source=chatgpt.com "Meta-Data Schema :: Spring Batch Reference"
+[2]: https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-concurrency-and-consistency.html?utm_source=chatgpt.com "Data Concurrency and Consistency"
+```
