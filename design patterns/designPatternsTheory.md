@@ -2590,3 +2590,682 @@ For your 7-year Java Backend / Full Stack Java profile, Design Patterns should b
 > “Design Patterns helped me write clean and extensible code in my Spring Boot project. I used service-layer design similar to Facade to keep controllers thin. I used Builder Pattern for DTOs and API responses. I used Strategy Pattern for flexible file storage and notification handling. Spring internally used Singleton for beans, Proxy for transactions and JPA repositories, Chain of Responsibility for security filters, and Factory through ApplicationContext. In microservices, these patterns become even more important in API Gateway, service discovery, Kafka events, Feign clients, circuit breakers, and cloud-based deployments.”
 
 This is the level of answer that sounds suitable for a **Senior Java Developer / Microservices Developer** interview.
+
+Below are **only UML class diagrams** for important Design Patterns in **Mermaid format**.
+
+---
+
+## 1. Singleton Pattern
+
+```mermaid
+classDiagram
+    class Singleton {
+        -static Singleton instance
+        -Singleton()
+        +static getInstance() Singleton
+        +businessMethod()
+    }
+```
+
+---
+
+## 2. Factory Method Pattern
+
+```mermaid
+classDiagram
+    class Notification {
+        <<interface>>
+        +send(message)
+    }
+
+    class EmailNotification {
+        +send(message)
+    }
+
+    class SmsNotification {
+        +send(message)
+    }
+
+    class NotificationFactory {
+        +createNotification(type) Notification
+    }
+
+    Notification <|.. EmailNotification
+    Notification <|.. SmsNotification
+    NotificationFactory --> Notification
+```
+
+---
+
+## 3. Abstract Factory Pattern
+
+```mermaid
+classDiagram
+    class UIFactory {
+        <<interface>>
+        +createButton() Button
+        +createCheckbox() Checkbox
+    }
+
+    class Button {
+        <<interface>>
+        +render()
+    }
+
+    class Checkbox {
+        <<interface>>
+        +render()
+    }
+
+    class WebUIFactory {
+        +createButton() Button
+        +createCheckbox() Checkbox
+    }
+
+    class MobileUIFactory {
+        +createButton() Button
+        +createCheckbox() Checkbox
+    }
+
+    class WebButton {
+        +render()
+    }
+
+    class MobileButton {
+        +render()
+    }
+
+    class WebCheckbox {
+        +render()
+    }
+
+    class MobileCheckbox {
+        +render()
+    }
+
+    UIFactory <|.. WebUIFactory
+    UIFactory <|.. MobileUIFactory
+
+    Button <|.. WebButton
+    Button <|.. MobileButton
+
+    Checkbox <|.. WebCheckbox
+    Checkbox <|.. MobileCheckbox
+
+    WebUIFactory --> WebButton
+    WebUIFactory --> WebCheckbox
+    MobileUIFactory --> MobileButton
+    MobileUIFactory --> MobileCheckbox
+```
+
+---
+
+## 4. Builder Pattern
+
+```mermaid
+classDiagram
+    class User {
+        -Long id
+        -String name
+        -String email
+        -String role
+    }
+
+    class UserBuilder {
+        -Long id
+        -String name
+        -String email
+        -String role
+        +id(id) UserBuilder
+        +name(name) UserBuilder
+        +email(email) UserBuilder
+        +role(role) UserBuilder
+        +build() User
+    }
+
+    UserBuilder --> User
+```
+
+---
+
+## 5. Prototype Pattern
+
+```mermaid
+classDiagram
+    class Prototype {
+        <<interface>>
+        +clone() Prototype
+    }
+
+    class UserPrototype {
+        -String name
+        -String email
+        +clone() Prototype
+    }
+
+    Prototype <|.. UserPrototype
+```
+
+---
+
+## 6. Adapter Pattern
+
+```mermaid
+classDiagram
+    class PaymentService {
+        <<interface>>
+        +pay(amount) boolean
+    }
+
+    class RazorpayClient {
+        +makePayment(amount) String
+    }
+
+    class RazorpayAdapter {
+        -RazorpayClient razorpayClient
+        +pay(amount) boolean
+    }
+
+    PaymentService <|.. RazorpayAdapter
+    RazorpayAdapter --> RazorpayClient
+```
+
+---
+
+## 7. Facade Pattern
+
+```mermaid
+classDiagram
+    class PostController {
+        +createPost(request)
+    }
+
+    class PostFacade {
+        -PostService postService
+        -CategoryService categoryService
+        -FileService fileService
+        -NotificationService notificationService
+        +createPost(request)
+    }
+
+    class PostService {
+        +savePost(post)
+    }
+
+    class CategoryService {
+        +validateCategory(categoryId)
+    }
+
+    class FileService {
+        +uploadFile(file)
+    }
+
+    class NotificationService {
+        +sendNotification(message)
+    }
+
+    PostController --> PostFacade
+    PostFacade --> PostService
+    PostFacade --> CategoryService
+    PostFacade --> FileService
+    PostFacade --> NotificationService
+```
+
+---
+
+## 8. Proxy Pattern
+
+```mermaid
+classDiagram
+    class PostService {
+        <<interface>>
+        +createPost(post)
+    }
+
+    class PostServiceImpl {
+        +createPost(post)
+    }
+
+    class TransactionProxy {
+        -PostService target
+        +createPost(post)
+    }
+
+    PostService <|.. PostServiceImpl
+    PostService <|.. TransactionProxy
+    TransactionProxy --> PostServiceImpl
+```
+
+---
+
+## 9. Decorator Pattern
+
+```mermaid
+classDiagram
+    class ReportService {
+        <<interface>>
+        +generateReport() String
+    }
+
+    class BasicReportService {
+        +generateReport() String
+    }
+
+    class ReportDecorator {
+        -ReportService reportService
+        +generateReport() String
+    }
+
+    class LoggingReportDecorator {
+        +generateReport() String
+    }
+
+    class CachingReportDecorator {
+        +generateReport() String
+    }
+
+    ReportService <|.. BasicReportService
+    ReportService <|.. ReportDecorator
+    ReportDecorator <|-- LoggingReportDecorator
+    ReportDecorator <|-- CachingReportDecorator
+    ReportDecorator --> ReportService
+```
+
+---
+
+## 10. Composite Pattern
+
+```mermaid
+classDiagram
+    class MenuComponent {
+        <<interface>>
+        +display()
+    }
+
+    class MenuItem {
+        -String name
+        +display()
+    }
+
+    class Menu {
+        -List~MenuComponent~ children
+        +add(component)
+        +remove(component)
+        +display()
+    }
+
+    MenuComponent <|.. MenuItem
+    MenuComponent <|.. Menu
+    Menu --> MenuComponent
+```
+
+---
+
+## 11. Strategy Pattern
+
+```mermaid
+classDiagram
+    class FileStorageStrategy {
+        <<interface>>
+        +upload(file) String
+    }
+
+    class LocalStorageStrategy {
+        +upload(file) String
+    }
+
+    class S3StorageStrategy {
+        +upload(file) String
+    }
+
+    class FileService {
+        -FileStorageStrategy strategy
+        +uploadFile(file) String
+    }
+
+    FileStorageStrategy <|.. LocalStorageStrategy
+    FileStorageStrategy <|.. S3StorageStrategy
+    FileService --> FileStorageStrategy
+```
+
+---
+
+## 12. Observer Pattern
+
+```mermaid
+classDiagram
+    class Subject {
+        <<interface>>
+        +addObserver(observer)
+        +removeObserver(observer)
+        +notifyObservers()
+    }
+
+    class Observer {
+        <<interface>>
+        +update(event)
+    }
+
+    class PostEventPublisher {
+        -List~Observer~ observers
+        +addObserver(observer)
+        +removeObserver(observer)
+        +notifyObservers()
+    }
+
+    class EmailNotificationListener {
+        +update(event)
+    }
+
+    class KafkaEventListener {
+        +update(event)
+    }
+
+    class AnalyticsListener {
+        +update(event)
+    }
+
+    Subject <|.. PostEventPublisher
+    Observer <|.. EmailNotificationListener
+    Observer <|.. KafkaEventListener
+    Observer <|.. AnalyticsListener
+
+    PostEventPublisher --> Observer
+```
+
+---
+
+## 13. Template Method Pattern
+
+```mermaid
+classDiagram
+    class DataImportTemplate {
+        +importData()
+        #readData()
+        #validateData()
+        #processData()
+        #saveData()
+    }
+
+    class CsvDataImport {
+        #readData()
+        #processData()
+        #saveData()
+    }
+
+    class ExcelDataImport {
+        #readData()
+        #processData()
+        #saveData()
+    }
+
+    DataImportTemplate <|-- CsvDataImport
+    DataImportTemplate <|-- ExcelDataImport
+```
+
+---
+
+## 14. Chain of Responsibility Pattern
+
+```mermaid
+classDiagram
+    class Filter {
+        <<interface>>
+        +setNext(filter)
+        +doFilter(request)
+    }
+
+    class JwtAuthenticationFilter {
+        -Filter next
+        +setNext(filter)
+        +doFilter(request)
+    }
+
+    class AuthorizationFilter {
+        -Filter next
+        +setNext(filter)
+        +doFilter(request)
+    }
+
+    class LoggingFilter {
+        -Filter next
+        +setNext(filter)
+        +doFilter(request)
+    }
+
+    Filter <|.. JwtAuthenticationFilter
+    Filter <|.. AuthorizationFilter
+    Filter <|.. LoggingFilter
+
+    JwtAuthenticationFilter --> AuthorizationFilter
+    AuthorizationFilter --> LoggingFilter
+```
+
+---
+
+## 15. Command Pattern
+
+```mermaid
+classDiagram
+    class Command {
+        <<interface>>
+        +execute()
+    }
+
+    class SendEmailCommand {
+        -EmailService emailService
+        +execute()
+    }
+
+    class PublishKafkaEventCommand {
+        -KafkaService kafkaService
+        +execute()
+    }
+
+    class CommandInvoker {
+        -Command command
+        +setCommand(command)
+        +executeCommand()
+    }
+
+    class EmailService {
+        +sendEmail()
+    }
+
+    class KafkaService {
+        +publishEvent()
+    }
+
+    Command <|.. SendEmailCommand
+    Command <|.. PublishKafkaEventCommand
+
+    SendEmailCommand --> EmailService
+    PublishKafkaEventCommand --> KafkaService
+
+    CommandInvoker --> Command
+```
+
+---
+
+## 16. State Pattern
+
+```mermaid
+classDiagram
+    class PostState {
+        <<interface>>
+        +publish(post)
+        +archive(post)
+    }
+
+    class DraftState {
+        +publish(post)
+        +archive(post)
+    }
+
+    class PublishedState {
+        +publish(post)
+        +archive(post)
+    }
+
+    class ArchivedState {
+        +publish(post)
+        +archive(post)
+    }
+
+    class Post {
+        -PostState state
+        +setState(state)
+        +publish()
+        +archive()
+    }
+
+    PostState <|.. DraftState
+    PostState <|.. PublishedState
+    PostState <|.. ArchivedState
+
+    Post --> PostState
+```
+
+---
+
+## 17. Repository Pattern
+
+```mermaid
+classDiagram
+    class PostRepository {
+        <<interface>>
+        +save(post)
+        +findById(id)
+        +findAll()
+        +deleteById(id)
+    }
+
+    class JpaPostRepository {
+        +save(post)
+        +findById(id)
+        +findAll()
+        +deleteById(id)
+    }
+
+    class PostService {
+        -PostRepository postRepository
+        +createPost(post)
+        +getPost(id)
+    }
+
+    class Post {
+        -Long id
+        -String title
+        -String content
+    }
+
+    PostRepository <|.. JpaPostRepository
+    PostService --> PostRepository
+    JpaPostRepository --> Post
+```
+
+---
+
+## 18. MVC Pattern
+
+```mermaid
+classDiagram
+    class PostController {
+        -PostService postService
+        +createPost(request)
+        +getPost(id)
+    }
+
+    class PostService {
+        -PostRepository postRepository
+        +createPost(request)
+        +getPost(id)
+    }
+
+    class PostRepository {
+        +save(post)
+        +findById(id)
+    }
+
+    class Post {
+        -Long id
+        -String title
+        -String content
+    }
+
+    class PostDto {
+        -Long id
+        -String title
+        -String content
+    }
+
+    PostController --> PostService
+    PostService --> PostRepository
+    PostRepository --> Post
+    PostController --> PostDto
+```
+
+---
+
+## 19. Front Controller Pattern
+
+```mermaid
+classDiagram
+    class Client {
+        +sendRequest()
+    }
+
+    class DispatcherServlet {
+        +dispatch(request)
+    }
+
+    class HandlerMapping {
+        +getHandler(request)
+    }
+
+    class PostController {
+        +createPost()
+        +getPost()
+    }
+
+    class ViewResolver {
+        +resolveView()
+    }
+
+    Client --> DispatcherServlet
+    DispatcherServlet --> HandlerMapping
+    HandlerMapping --> PostController
+    DispatcherServlet --> ViewResolver
+```
+
+---
+
+## 20. Dependency Injection Pattern
+
+```mermaid
+classDiagram
+    class PostController {
+        -PostService postService
+        +PostController(postService)
+        +createPost()
+    }
+
+    class PostService {
+        <<interface>>
+        +createPost()
+    }
+
+    class PostServiceImpl {
+        -PostRepository postRepository
+        +createPost()
+    }
+
+    class PostRepository {
+        <<interface>>
+        +save(post)
+    }
+
+    PostController --> PostService
+    PostService <|.. PostServiceImpl
+    PostServiceImpl --> PostRepository
+```
