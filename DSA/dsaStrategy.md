@@ -1,8 +1,409 @@
+
 # Introduction
+0. [Prompt](#prompt)
 1. [Strategy](#dsa-mental-model-for-java-backend--full-stack-interviews)
 2. [HashMap](#hashmap-complete-postmortem-for-dsa-interviews)
 3. [HashMap Problems](#master-hashmap-pattern-map)
 4. [2-Pointers](#2-pointers-complete-postmortem-for-dsa-interviews)
+5. [Sliding Window](#sliding-window--complete-postmortem-for-dsa-interviews)
+
+
+# Prompt
+I am preparing for Java Backend / Full Stack Java interviews with around 7 years of experience.
+
+My target roles are:
+
+* Java Backend Developer
+* Senior Java Developer
+* Microservices Developer
+* Java Full Stack Developer
+
+My target technology stack includes:
+
+* Java 8/11/17
+* Spring Core
+* Spring Boot
+* Spring Security
+* Spring Batch
+* Hibernate/JPA
+* REST APIs
+* Microservices
+* Kafka
+* Docker
+* Kubernetes
+* Jenkins
+* AWS
+* MySQL/Oracle/DB2
+* React
+* DSA
+* System Design
+
+My hands-on/project experience includes:
+
+1. Spring Boot Blog Application:
+
+   * Spring Boot
+   * Spring Security + JWT
+   * REST APIs
+   * JPA/Hibernate
+   * MySQL
+   * DTOs and validations
+   * Global exception handling
+   * Pagination and sorting
+   * Swagger/OpenAPI
+   * Actuator
+   * AWS Lightsail/cloud deployment
+
+2. React frontend integrated with Spring Boot backend.
+
+3. Planned/ongoing microservices version:
+
+   * API Gateway
+   * Eureka Service Discovery
+   * user-service, post-service, category-service
+   * Docker
+   * Kubernetes
+   * Jenkins CI/CD
+   * AWS deployment
+
+Technology / Topic:
+DSA
+
+
+
+My requirement:
+
+I want to prepare this technology using a strong mental-model-first approach.
+
+Just like:
+
+* For Design Patterns, UML diagrams help me memorize structure and then understand Java code.
+* For Spring Security, request-flow diagrams help me understand how filters, authentication, authorization, JWT, and SecurityContext work.
+* Similarly, for this technology, I want the best possible visual/mental model that suits the topic.
+
+Please analyze the technology and create the most effective mental model for interview preparation, revision, and project explanation.
+
+Important:
+Do not give only theory.
+Do not give a generic syllabus.
+Do not explain everything randomly.
+First identify the best mental model format for this technology, then explain the topic through that model.
+
+The output should help me:
+
+* Understand the topic quickly
+* Revise the topic easily
+* Remember the internal flow/structure
+* Connect theory with Java/Spring Boot/microservices project usage
+* Explain it confidently in interviews
+* Prepare code/program examples after understanding the diagram/model
+* Validate my 7 years of experience in this specific technology
+
+Please prepare the answer in the following structure:
+
+## 1. Best Mental Model for This Technology
+
+First decide which mental model is best suited for this technology.
+
+Choose the right format based on the topic:
+
+* UML class diagram
+* Request flow diagram
+* Lifecycle diagram
+* Architecture diagram
+* Component interaction diagram
+* Data flow diagram
+* Execution flow diagram
+* Thread/memory model
+* State transition diagram
+* Pipeline diagram
+* Sequence diagram
+* Decision tree
+* Pattern map
+* Layered architecture diagram
+* Deployment diagram
+* Troubleshooting/debugging flow
+* Interview revision map
+
+Explain why this mental model is suitable for this technology.
+
+## 2. Master Mental Model Diagram
+
+Create one master diagram for the complete topic.
+
+Use Mermaid diagram format wherever possible.
+
+Use the most suitable Mermaid type:
+
+* classDiagram
+* flowchart TD
+* sequenceDiagram
+* stateDiagram-v2
+* mindmap
+* graph TD
+
+The diagram should show:
+
+* Main components
+* Flow of execution
+* Important relationships
+* Where this technology fits in a real project
+* How a request/data/event/job moves through the system
+* Where failures or interview scenarios usually appear
+
+The diagram should be simple enough for revision but strong enough for interview explanation.
+
+## 3. One-Line Mental Shortcut
+
+Give me a very short memory shortcut.
+
+Example format:
+
+* Spring Security = Request → Filter Chain → Authentication → SecurityContext → Authorization → Controller
+* Kafka = Producer → Topic/Partition → Broker → Consumer Group → Offset → Processing
+* Spring Batch = Job → Step → Reader → Processor → Writer → Metadata
+* React = Component → Props/State → Render → Event → Re-render
+* Hibernate = Entity → Persistence Context → Dirty Checking → SQL Flush → DB
+* Microservices = Service → API Gateway → Discovery → Communication → Resilience → Observability
+
+Create a similar shortcut for this technology.
+
+## 4. Topic Breakdown Using Mental Model
+
+Break the complete topic into small blocks using the mental model.
+
+For each block, explain:
+
+* What it means
+* Why it exists
+* How it works
+* Where it is used in a real project
+* What interviewers ask from this block
+* What code/practical example is required
+
+Use this table:
+
+| Mental Model Block | Meaning | Why It Is Important | Project Usage | Interview Focus |
+| ------------------ | ------- | ------------------- | ------------- | --------------- |
+
+## 5. Visual Notes for Each Important Subtopic
+
+For every important subtopic, create a small diagram.
+
+Examples:
+
+* For Java Collections: internal HashMap flow, ArrayList resize flow, ConcurrentHashMap locking/bin flow
+* For Multithreading: thread lifecycle, synchronized lock flow, executor service flow
+* For Spring Boot: startup flow, auto-configuration flow, request-to-controller flow
+* For Spring Security: login flow, JWT filter flow, 401/403 flow
+* For Hibernate/JPA: entity lifecycle, persistence context, lazy loading proxy, transaction flow
+* For Kafka: producer flow, partitioning, consumer group, offset commit, retry/DLQ
+* For Spring Batch: job/step/chunk flow, retry/skip flow
+* For Microservices: API Gateway flow, service discovery, circuit breaker, saga/event flow
+* For Docker: image build flow, container lifecycle, volume/network flow
+* For Kubernetes: pod lifecycle, deployment/replica set flow, service discovery flow
+* For Jenkins: CI/CD pipeline flow
+* For AWS: request/deployment architecture flow
+* For React: component lifecycle, hooks flow, API call flow, routing flow
+* For DSA: pattern decision tree and problem-solving templates
+* For System Design: read/write flow, scaling flow, caching flow, queue flow
+
+If the topic is different, choose the best matching visual style.
+
+## 6. Theory Required Behind the Mental Model
+
+Explain only the theory that is necessary to understand the diagrams.
+
+For each theory point, explain:
+
+* Simple definition
+* Why it matters
+* Internal working
+* Interview explanation
+* Real project example
+
+Avoid unnecessary academic depth unless it is commonly asked in interviews.
+
+## 7. Code / Program Mapping
+
+After explaining the mental model, map it to code or practical implementation.
+
+Use this table:
+
+| Mental Model Concept | Code/Program Needed? | What To Implement | Why It Helps |
+| -------------------- | -------------------- | ----------------- | ------------ |
+
+Then provide small, clean, interview-friendly code examples.
+
+Important:
+
+* Do not generate very long project code unless required.
+* First help me understand the structure and flow.
+* Then provide code snippets that match the mental model.
+
+## 8. Project Usage Mapping
+
+Connect this topic with my project experience.
+
+Use examples from:
+
+* Spring Boot Blog Application
+* JWT Security
+* REST APIs
+* JPA/Hibernate
+* MySQL
+* React frontend
+* AWS deployment
+* Planned microservices architecture
+* API Gateway
+* Eureka
+* Docker
+* Kubernetes
+* Jenkins
+
+Use this format:
+
+| Concept | How I Can Use/Explain It In My Project | Interview Line |
+| ------- | -------------------------------------- | -------------- |
+
+Keep it realistic. Do not fake production experience, but help me frame my hands-on knowledge professionally.
+
+## 9. Scenario-Based Mental Models
+
+Create scenario-based flows that interviewers commonly ask.
+
+Examples:
+
+* What happens when request comes?
+* What happens when authentication fails?
+* What happens when DB transaction fails?
+* What happens when Kafka consumer fails?
+* What happens when pod crashes?
+* What happens when API is slow?
+* What happens when lazy loading fails?
+* What happens when React state changes?
+* What happens when two threads update same object?
+* What happens when system load increases?
+
+Use diagrams or step flows wherever useful.
+
+For each scenario, include:
+
+* Flow
+* Problem
+* Root cause
+* Fix
+* Interview explanation
+
+## 10. Debugging / Production Issue Flow
+
+Create a troubleshooting mental model.
+
+Use this format:
+
+Issue → Possible Cause → Where To Check → Fix → Interview Explanation
+
+Examples:
+
+* 401/403 in Spring Security
+* LazyInitializationException in Hibernate
+* Duplicate Kafka messages
+* Consumer lag
+* Docker container not starting
+* Kubernetes pod CrashLoopBackOff
+* Jenkins pipeline failure
+* Slow SQL query
+* React blank page/API failure
+
+Customize based on the selected technology.
+
+## 11. 60–70% Most Important Interview Coverage
+
+From this technology, identify the topics that cover 60–70% of most interview questions.
+
+Use this table:
+
+| Priority | Topic | Mental Model Needed | Code Needed | Scenario Needed | Interview Weight |
+| -------- | ----- | ------------------- | ----------- | --------------- | ---------------- |
+
+Priority:
+
+* P0 = Must cover first
+* P1 = Very important
+* P2 = Can cover after interviews start
+* P3 = Optional/later
+
+Focus mostly on P0 and P1.
+
+## 12. Revision Format
+
+Create a quick revision section.
+
+Include:
+
+* Master shortcut
+* 5 key diagrams
+* 10 must-remember points
+* 10 common interview lines
+* 10 common mistakes
+* 5 debugging flows
+* 5 project explanation points
+
+Make this suitable for mobile/laptop quick revision.
+
+## 13. Interview Answer Templates
+
+Give me ready-made answers using this style:
+
+“As per my project experience...”
+
+“In my Spring Boot application...”
+
+“In microservices architecture...”
+
+“In production, this is usually handled by...”
+
+“The flow starts from...”
+
+“The main issue here is...”
+
+“The reason we use this approach is...”
+
+Create 8–10 strong answers that I can directly speak in interviews.
+
+## 14. Final Learning Strategy
+
+Tell me how to prepare this technology using the mental model.
+
+Give me this order:
+
+1. First memorize the master diagram.
+2. Then understand each block.
+3. Then write small code/programs.
+4. Then connect it with project examples.
+5. Then practice scenario questions.
+6. Then revise using shortcuts.
+
+Also tell me:
+
+* What to learn first
+* What to code first
+* What to skip initially
+* What is enough to start interviews
+* What to continue later in parallel
+
+Important instructions:
+
+* Use a mental-model-first approach.
+* Choose the diagram/model according to the technology.
+* Do not force the same diagram type for every topic.
+* Use Mermaid diagrams wherever possible.
+* Keep the explanation practical and interview-focused.
+* Explain as per 7 years Java Backend / Full Stack Java experience.
+* Connect with Java, Spring Boot, Microservices, REST API, React, Docker, Kubernetes, Jenkins, AWS only where relevant.
+* Avoid unnecessary theory.
+* Focus on memorization, understanding, interview explanation, and project mapping.
+
 
 
 
@@ -6333,7 +6734,9 @@ public class MergeSortedArrays {
 
 ### Interview line
 
-> “Since both arrays are sorted, I use one pointer on each array and always pick the smaller current element.”
+> “Since both arrays are sorted, I use one pointer on each array and always pick the smaller current element.”  
+> "suppose first array has 3 elements and another has 6 elements then after first while loop may be iterate till 3 elements of first and second array"  
+> "In that case 2 elements would be remaining in the second array then another 2 while loops are for these remaining elements"
 
 ---
 
@@ -6968,3 +7371,3239 @@ Triplet sum?        → sort + fix one + two pointers
 Final interview-ready line:
 
 > “Two-pointer problems are about reducing unnecessary comparisons. I first identify whether pointers should move from both ends, same direction, across two sorted inputs, or fast-slow in a linked list. Then I define the exact movement rule. Once pointer movement is clear, the code becomes simple and usually runs in O(n) time with O(1) extra space.”
+
+Absolutely. These are the **remaining important 2-pointer problems**. Some are pure 2-pointers, and some are **sliding-window**, which is also a two-pointer style because `left` and `right` move forward.
+
+# Master Table
+
+| Problem                             | Pattern Type                     | Main Idea                              |
+| ----------------------------------- | -------------------------------- | -------------------------------------- |
+| Sort Colors                         | 3 pointers / Dutch National Flag | 0 left, 2 right, 1 middle              |
+| Trapping Rain Water                 | Left-right pointers              | Move smaller height side               |
+| Partition Array                     | Slow-fast / left-right           | Put valid/smaller elements on one side |
+| Merge Two Sorted Linked Lists       | Two sorted pointers              | Compare and attach smaller node        |
+| Find Start of Cycle                 | Fast-slow pointer                | Detect meeting, then find entry        |
+| Longest Substring Without Repeating | Sliding window + HashMap         | Move left when duplicate appears       |
+| Minimum Size Subarray Sum           | Sliding window                   | Shrink when sum is enough              |
+| Max Sum Subarray of Size K          | Fixed-size sliding window        | Maintain window of size K              |
+
+---
+
+# 1. Sort Colors
+
+## Problem
+
+Given array containing only `0`, `1`, and `2`, sort it in-place.
+
+```text
+Input:  [2,0,2,1,1,0]
+Output: [0,0,1,1,2,2]
+```
+
+## How to identify?
+
+Signal:
+
+```text
+Only 0, 1, 2
+Sort in-place
+One pass expected
+```
+
+This is called:
+
+```text
+Dutch National Flag Algorithm
+```
+
+## Mental Model
+
+```text
+0s should go left
+2s should go right
+1s stay in middle
+```
+
+We use 3 pointers:
+
+```text
+low  = position for next 0
+mid  = current scanning pointer
+high = position for next 2
+```
+
+## Flow
+
+```text
+nums[mid] == 0 → swap low and mid, low++, mid++
+nums[mid] == 1 → mid++
+nums[mid] == 2 → swap mid and high, high--
+```
+
+Important:
+When swapping with `high`, do **not** increment `mid`, because the swapped element from right side is still unchecked.
+
+## Java Code
+
+```java
+public class SortColors {
+
+    public void sortColors(int[] nums) {
+        int low = 0;
+        int mid = 0;
+        int high = nums.length - 1;
+
+        while (mid <= high) {
+            if (nums[mid] == 0) {
+                swap(nums, low, mid);
+                low++;
+                mid++;
+            } else if (nums[mid] == 1) {
+                mid++;
+            } else {
+                swap(nums, mid, high);
+                high--;
+            }
+        }
+    }
+
+    private void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+## Interview Line
+
+> “This is a three-pointer problem. I keep 0s on the left, 2s on the right, and scan with mid. This sorts the array in one pass with constant space.”
+
+---
+
+# 2. Trapping Rain Water
+
+## Problem
+
+Given heights, calculate how much water can be trapped.
+
+```text
+Input:  [0,1,0,2,1,0,1,3,2,1,2,1]
+Output: 6
+```
+
+## How to identify?
+
+Signal:
+
+```text
+Water trapped between bars
+Need left boundary and right boundary
+Can be solved from both ends
+```
+
+## Core Formula
+
+At any index:
+
+```text
+water = min(maxLeft, maxRight) - height[i]
+```
+
+But instead of precomputing arrays, we use two pointers.
+
+## Mental Model
+
+```text
+Water depends on smaller boundary.
+Move the side with smaller height.
+```
+
+## Java Code
+
+```java
+public class TrappingRainWater {
+
+    public int trap(int[] height) {
+        int left = 0;
+        int right = height.length - 1;
+
+        int leftMax = 0;
+        int rightMax = 0;
+
+        int water = 0;
+
+        while (left < right) {
+            if (height[left] < height[right]) {
+                if (height[left] >= leftMax) {
+                    leftMax = height[left];
+                } else {
+                    water += leftMax - height[left];
+                }
+                left++;
+            } else {
+                if (height[right] >= rightMax) {
+                    rightMax = height[right];
+                } else {
+                    water += rightMax - height[right];
+                }
+                right--;
+            }
+        }
+
+        return water;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+## Interview Line
+
+> “Water at any point depends on the smaller of left max and right max. So I move the pointer with smaller height and maintain max boundary from both sides.”
+
+---
+
+# 3. Partition Array
+
+Partition array can have multiple versions. The common interview version is:
+
+```text
+Move all elements less than pivot to left side,
+and greater/equal elements to right side.
+```
+
+Example:
+
+```text
+Input: nums = [9,12,3,5,14,10,10], pivot = 10
+Output possible: [9,3,5,12,14,10,10]
+```
+
+Order does not need to be preserved.
+
+## How to identify?
+
+Signal:
+
+```text
+Partition
+Move smaller elements left
+Move larger elements right
+In-place
+```
+
+## Pattern
+
+Use left-right pointers.
+
+```text
+left finds element >= pivot
+right finds element < pivot
+swap them
+```
+
+## Java Code
+
+```java
+public class PartitionArray {
+
+    public int partitionArray(int[] nums, int pivot) {
+        int left = 0;
+        int right = nums.length - 1;
+
+        while (left <= right) {
+            while (left <= right && nums[left] < pivot) {
+                left++;
+            }
+
+            while (left <= right && nums[right] >= pivot) {
+                right--;
+            }
+
+            if (left <= right) {
+                swap(nums, left, right);
+                left++;
+                right--;
+            }
+        }
+
+        return left;
+    }
+
+    private void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+}
+```
+
+## What does it return?
+
+```text
+left = first index where elements >= pivot start
+```
+
+Example:
+
+```text
+All elements before left are < pivot
+All elements from left onwards are >= pivot
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+## Interview Line
+
+> “This is an in-place partitioning problem. I use left pointer to find misplaced large elements and right pointer to find misplaced small elements, then swap them.”
+
+---
+
+# 4. Merge Two Sorted Linked Lists
+
+## Problem
+
+Merge two sorted linked lists.
+
+```text
+list1 = 1 → 2 → 4
+list2 = 1 → 3 → 4
+
+output = 1 → 1 → 2 → 3 → 4 → 4
+```
+
+## How to identify?
+
+Signal:
+
+```text
+Two sorted linked lists
+Need sorted merged list
+```
+
+This is same as merge two sorted arrays, but with nodes.
+
+## Mental Model
+
+```text
+Compare current node of both lists.
+Attach smaller node to result.
+Move that list pointer.
+```
+
+## Java Code
+
+```java
+public class MergeTwoSortedLists {
+
+    static class ListNode {
+        int val;
+        ListNode next;
+
+        ListNode(int val) {
+            this.val = val;
+        }
+    }
+
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        ListNode dummy = new ListNode(-1);
+        ListNode current = dummy;
+
+        while (list1 != null && list2 != null) {
+            if (list1.val <= list2.val) {
+                current.next = list1;
+                list1 = list1.next;
+            } else {
+                current.next = list2;
+                list2 = list2.next;
+            }
+
+            current = current.next;
+        }
+
+        if (list1 != null) {
+            current.next = list1;
+        }
+
+        if (list2 != null) {
+            current.next = list2;
+        }
+
+        return dummy.next;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n + m)
+Space: O(1)
+```
+
+## Interview Line
+
+> “Since both linked lists are sorted, I compare both current nodes and attach the smaller one to the result list. Dummy node helps simplify edge cases.”
+
+---
+
+# 5. Find Start of Cycle in Linked List
+
+## Problem
+
+Given a linked list, return the node where cycle begins.
+
+```text
+If no cycle, return null.
+```
+
+## How to identify?
+
+Signal:
+
+```text
+Linked list cycle
+Find cycle starting point
+```
+
+This is advanced fast-slow pointer.
+
+## Step 1: Detect cycle
+
+```text
+slow moves 1 step
+fast moves 2 steps
+if slow == fast, cycle exists
+```
+
+## Step 2: Find start of cycle
+
+After meeting point:
+
+```text
+Move one pointer to head.
+Keep other at meeting point.
+Move both one step.
+Where they meet = cycle start.
+```
+
+## Java Code
+
+```java
+public class LinkedListCycleStart {
+
+    static class ListNode {
+        int val;
+        ListNode next;
+
+        ListNode(int val) {
+            this.val = val;
+        }
+    }
+
+    public ListNode detectCycle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+
+        boolean hasCycle = false;
+
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+
+            if (slow == fast) {
+                hasCycle = true;
+                break;
+            }
+        }
+
+        if (!hasCycle) {
+            return null;
+        }
+
+        ListNode pointer1 = head;
+        ListNode pointer2 = slow;
+
+        while (pointer1 != pointer2) {
+            pointer1 = pointer1.next;
+            pointer2 = pointer2.next;
+        }
+
+        return pointer1;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+## Interview Line
+
+> “First I detect the cycle using fast and slow pointers. Once they meet, I move one pointer to head and keep one at meeting point. Moving both one step gives the cycle start.”
+
+---
+
+# 6. Longest Substring Without Repeating Characters
+
+This one is technically **Sliding Window + HashMap**, but sliding window is also two pointers.
+
+## Problem
+
+```text
+Input: "abcabcbb"
+Output: 3
+
+Longest substring = "abc"
+```
+
+## How to identify?
+
+Signal:
+
+```text
+Longest substring
+Without repeating
+Contiguous string part
+```
+
+Whenever you see:
+
+```text
+longest / smallest + substring/subarray + condition
+```
+
+Think:
+
+```text
+Sliding Window
+```
+
+## Mental Model
+
+```text
+right expands window
+left removes invalid part
+HashMap stores last seen index
+```
+
+## Java Code
+
+```java
+import java.util.*;
+
+public class LongestSubstringWithoutRepeating {
+
+    public int lengthOfLongestSubstring(String s) {
+        Map<Character, Integer> lastSeen = new HashMap<>();
+
+        int left = 0;
+        int maxLength = 0;
+
+        for (int right = 0; right < s.length(); right++) {
+            char currentChar = s.charAt(right);
+
+            if (lastSeen.containsKey(currentChar) && lastSeen.get(currentChar) >= left) {
+                left = lastSeen.get(currentChar) + 1;
+            }
+
+            lastSeen.put(currentChar, right);
+
+            int currentLength = right - left + 1;
+            maxLength = Math.max(maxLength, currentLength);
+        }
+
+        return maxLength;
+    }
+}
+```
+
+## Why this condition is important?
+
+```java
+lastSeen.get(currentChar) >= left
+```
+
+Because the duplicate may be outside the current window.
+
+Example:
+
+```text
+s = "abba"
+```
+
+Without this condition, `left` can move backward incorrectly.
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(k), where k = unique characters
+```
+
+## Interview Line
+
+> “This is a sliding window problem. I maintain a valid window without duplicates. If current character already exists inside the window, I move left after its previous index.”
+
+---
+
+# 7. Minimum Size Subarray Sum
+
+## Problem
+
+Given positive integers and target, find minimum length of contiguous subarray whose sum is at least target.
+
+```text
+Input: target = 7, nums = [2,3,1,2,4,3]
+Output: 2
+
+Because [4,3] has sum 7
+```
+
+## How to identify?
+
+Signal:
+
+```text
+Minimum length
+Subarray
+Sum at least target
+All positive numbers
+```
+
+This is sliding window.
+
+Important:
+
+```text
+Works because all numbers are positive.
+```
+
+If negative numbers are present, sliding window may fail because sum can decrease unpredictably.
+
+## Mental Model
+
+```text
+Expand right until sum >= target.
+Then shrink left to minimize window.
+```
+
+## Java Code
+
+```java
+public class MinimumSizeSubarraySum {
+
+    public int minSubArrayLen(int target, int[] nums) {
+        int left = 0;
+        int sum = 0;
+
+        int minLength = Integer.MAX_VALUE;
+
+        for (int right = 0; right < nums.length; right++) {
+            sum += nums[right];
+
+            while (sum >= target) {
+                int currentLength = right - left + 1;
+                minLength = Math.min(minLength, currentLength);
+
+                sum -= nums[left];
+                left++;
+            }
+        }
+
+        return minLength == Integer.MAX_VALUE ? 0 : minLength;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+## Interview Line
+
+> “Since all numbers are positive and the problem asks for minimum length contiguous subarray, I use sliding window. I expand right to reach target and shrink left to minimize length.”
+
+---
+
+# 8. Max Sum Subarray of Size K
+
+## Problem
+
+Find maximum sum of any contiguous subarray of size `k`.
+
+```text
+Input: nums = [2,1,5,1,3,2], k = 3
+Output: 9
+
+Because [5,1,3] = 9
+```
+
+## How to identify?
+
+Signal:
+
+```text
+Subarray
+Fixed size K
+Maximum sum
+```
+
+This is fixed-size sliding window.
+
+## Mental Model
+
+```text
+Maintain window of exactly size k.
+Add right element.
+If window size > k, remove left element.
+Update max when size == k.
+```
+
+## Java Code
+
+```java
+public class MaxSumSubarraySizeK {
+
+    public int maxSumSubarrayOfSizeK(int[] nums, int k) {
+        int left = 0;
+        int sum = 0;
+
+        int maxSum = Integer.MIN_VALUE;
+
+        for (int right = 0; right < nums.length; right++) {
+            sum += nums[right];
+
+            if (right - left + 1 == k) {
+                maxSum = Math.max(maxSum, sum);
+
+                sum -= nums[left];
+                left++;
+            }
+        }
+
+        return maxSum;
+    }
+}
+```
+
+## Edge Case
+
+If all numbers are positive, `maxSum = 0` also works.
+But if array can contain negative numbers, use:
+
+```java
+int maxSum = Integer.MIN_VALUE;
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+## Interview Line
+
+> “Since the window size is fixed as K, I maintain a running sum of exactly K elements. After each window, I update max and slide the window by removing left element.”
+
+---
+
+# Fixed vs Variable Sliding Window
+
+This is very important.
+
+| Problem                              | Window Type     | Movement                               |
+| ------------------------------------ | --------------- | -------------------------------------- |
+| Max sum subarray of size K           | Fixed window    | Window size always K                   |
+| Minimum size subarray sum            | Variable window | Expand until valid, shrink to optimize |
+| Longest substring without repeat     | Variable window | Expand until duplicate, move left      |
+| Longest ones after flipping K zeroes | Variable window | Maintain invalid count                 |
+| Permutation in string                | Fixed window    | Compare frequency in window            |
+
+---
+
+# Revision Table
+
+| Problem                   | Identify Signal                | Pointer Rule                       | Complexity   |
+| ------------------------- | ------------------------------ | ---------------------------------- | ------------ |
+| Sort Colors               | 0,1,2 in-place sort            | 0 left, 2 right, 1 middle          | O(n), O(1)   |
+| Trapping Rain Water       | Water between bars             | Move smaller height side           | O(n), O(1)   |
+| Partition Array           | Smaller left, larger right     | Swap misplaced values              | O(n), O(1)   |
+| Merge Sorted Linked Lists | Two sorted lists               | Attach smaller node                | O(n+m), O(1) |
+| Find Start of Cycle       | Linked list cycle start        | Detect meet, then head + meet move | O(n), O(1)   |
+| Longest Substring         | Longest substring no duplicate | Move left after duplicate index    | O(n), O(k)   |
+| Minimum Size Subarray Sum | Min length with sum target     | Expand right, shrink left          | O(n), O(1)   |
+| Max Sum Size K            | Fixed K subarray               | Add right, remove left             | O(n), O(1)   |
+
+---
+
+# Final 2-Pointer Shortcut for These Problems
+
+```text
+Sort Colors                 → low/mid/high
+Trapping Rain Water          → left/right + leftMax/rightMax
+Partition Array              → left finds large, right finds small
+Merge Sorted Linked Lists     → compare list1 and list2 nodes
+Find Start of Cycle           → fast-slow meet, then head + meet
+Longest Substring No Repeat   → sliding window + lastSeen map
+Minimum Size Subarray Sum      → variable window, shrink when sum >= target
+Max Sum Subarray Size K        → fixed window of size K
+```
+
+# Interview-Ready Final Line
+
+> “Two-pointer problems are mainly about defining pointer meaning and pointer movement rule. For sorted pair problems, I move left/right based on comparison. For in-place problems, slow writes and fast scans. For linked lists, fast-slow solves middle and cycle. For substring/subarray problems, sliding window uses left and right to maintain a valid window.”
+
+# Sliding Window — Complete Postmortem for DSA Interviews
+
+Your learning order is correct:
+
+```text
+HashMap → Two Pointers → Sliding Window
+```
+
+Sliding Window is built on top of two pointers and frequently uses a HashMap, HashSet, frequency array, running sum, or deque to maintain information about the current window. Your existing notes also classify it immediately after HashMap and Two Pointers, which is the right progression. 
+
+---
+
+# 1. Sliding Window Mental Model
+
+The simplest mental model is:
+
+```text
+Sliding Window = Maintain one contiguous range
+               + expand from right
+               + remove from left
+               + reuse previous calculation
+```
+
+Imagine this array:
+
+```text
+[2, 1, 5, 1, 3, 2]
+```
+
+For a window of size `3`:
+
+```text
+[2, 1, 5] 1, 3, 2
+ 2,[1, 5, 1],3, 2
+ 2, 1,[5, 1, 3],2
+ 2, 1, 5,[1, 3, 2]
+```
+
+Instead of recalculating every window:
+
+```text
+2 + 1 + 5
+1 + 5 + 1
+5 + 1 + 3
+1 + 3 + 2
+```
+
+we reuse the previous result:
+
+```text
+newWindowSum = oldWindowSum
+             - outgoingElement
+             + incomingElement
+```
+
+That is the core power of Sliding Window.
+
+---
+
+# 2. One-Line Mental Shortcut
+
+```text
+Sliding Window = Expand Right → Update State → Shrink Left → Update Answer
+```
+
+Even more precisely:
+
+```text
+Contiguous range + reusable state + movable boundaries = Sliding Window
+```
+
+Interview line:
+
+> “I use Sliding Window when the problem asks about a contiguous subarray or substring and the current range can be updated incrementally by adding the right element and removing the left element.”
+
+---
+
+# 3. Master Mental Model
+
+```mermaid
+flowchart TD
+    A[Array or String Problem] --> B{Contiguous range required?}
+
+    B -- No --> C[Not normally Sliding Window]
+    B -- Yes --> D{Window size fixed?}
+
+    D -- Yes --> E[Fixed Sliding Window]
+    E --> E1[Add right element]
+    E1 --> E2{Window reached size K?}
+    E2 -- Yes --> E3[Calculate or update answer]
+    E3 --> E4[Remove left element]
+    E4 --> E5[Move left]
+
+    D -- No --> F[Variable Sliding Window]
+    F --> G[Expand right]
+    G --> H[Update window state]
+    H --> I{What does problem ask?}
+
+    I --> J[Longest Valid Window]
+    I --> K[Smallest Valid Window]
+    I --> L[Count Valid Windows]
+
+    J --> J1{Window invalid?}
+    J1 -- Yes --> J2[Shrink until valid]
+    J1 -- No --> J3[Update maximum]
+
+    K --> K1{Window valid?}
+    K1 -- Yes --> K2[Update minimum]
+    K2 --> K3[Shrink to find smaller window]
+
+    L --> L1[Shrink until valid]
+    L1 --> L2[Add right-left+1]
+
+    H --> M{State required?}
+    M --> M1[Running Sum]
+    M --> M2[HashSet]
+    M --> M3[Frequency Map]
+    M --> M4[Frequency Array]
+    M --> M5[Monotonic Deque]
+```
+
+---
+
+# 4. What Exactly Is a Window?
+
+A window is a contiguous section between two indexes:
+
+```text
+Window = [left ... right]
+```
+
+For example:
+
+```text
+Array:  [4, 2, 1, 7, 8, 1, 2, 8, 1, 0]
+Index:   0  1  2  3  4  5  6  7  8  9
+
+left = 2
+right = 5
+
+Window = [1, 7, 8, 1]
+```
+
+Window length:
+
+```java
+int windowLength = right - left + 1;
+```
+
+The `+1` is necessary because both `left` and `right` are included.
+
+---
+
+# 5. Sliding Window Has Four Components
+
+Every Sliding Window problem contains these four things:
+
+| Component          | Meaning                              | Example                           |
+| ------------------ | ------------------------------------ | --------------------------------- |
+| `left`             | Start of current window              | Character to remove               |
+| `right`            | End of current window                | Character to add                  |
+| Window state       | Information about current window     | Sum, frequency, unique characters |
+| Validity condition | Whether current window is acceptable | Sum ≥ target, no duplicates       |
+
+Mental model:
+
+```text
+right adds something
+left removes something
+state describes the window
+condition decides whether left should move
+```
+
+For example, in “longest substring without repeating characters”:
+
+```text
+left         = beginning of substring
+right        = newly included character
+state        = HashSet of characters
+invalid      = duplicate exists
+answer       = maximum valid window length
+```
+
+---
+
+# 6. The Most Important Concept: Window Invariant
+
+An **invariant** is the condition you continuously maintain for the window.
+
+Examples:
+
+```text
+Window contains no duplicate characters
+Window sum is less than or equal to K
+Window contains at most K distinct characters
+Window contains all required characters
+Window has at most K zeroes
+```
+
+In Sliding Window, pointer movement is not random.
+
+```text
+Expand right → possibly break invariant
+Shrink left → restore invariant
+```
+
+Example:
+
+```text
+Problem: Longest substring without repeating characters
+
+Invariant:
+Current window must contain unique characters only.
+```
+
+As soon as a duplicate appears:
+
+```text
+Window invalid
+→ remove characters from left
+→ continue until duplicate disappears
+→ window becomes valid again
+```
+
+This is the real Sliding Window thinking.
+
+---
+
+# 7. How to Identify a Sliding Window Problem
+
+Look for these strong signals.
+
+## 7.1 Signal 1: Subarray or Substring
+
+These words usually indicate contiguous elements:
+
+```text
+Subarray
+Substring
+Contiguous elements
+Consecutive elements
+Continuous sequence
+```
+
+Examples:
+
+```text
+Longest substring without repeating characters
+Maximum sum subarray of size K
+Minimum length subarray with sum at least target
+Longest sequence of ones
+```
+
+Important:
+
+```text
+Substring/Subarray  = Contiguous
+Subsequence         = Not necessarily contiguous
+Subset              = Any selection
+```
+
+Sliding Window usually applies to:
+
+```text
+Subarray / Substring
+```
+
+It normally does not directly apply to:
+
+```text
+Subsequence / Subset
+```
+
+---
+
+## 7.2 Signal 2: Longest or Maximum Valid Range
+
+Examples:
+
+```text
+Longest substring with no duplicates
+Longest subarray with at most K zeroes
+Longest substring with at most K distinct characters
+Maximum consecutive ones after K replacements
+```
+
+Typical template:
+
+```text
+Expand right
+While invalid:
+    shrink left
+Update maximum length
+```
+
+---
+
+## 7.3 Signal 3: Smallest or Minimum Satisfying Range
+
+Examples:
+
+```text
+Minimum size subarray with sum at least target
+Minimum window containing all characters
+Smallest substring satisfying a condition
+```
+
+Typical template:
+
+```text
+Expand right
+While valid:
+    update minimum
+    shrink left
+```
+
+Notice the difference:
+
+```text
+Longest problem → shrink while invalid
+Smallest problem → shrink while valid
+```
+
+This distinction is extremely important.
+
+---
+
+## 7.4 Signal 4: Fixed Size K
+
+Examples:
+
+```text
+Maximum sum of any subarray of size K
+Average of every window of size K
+First negative integer in every window of size K
+Maximum element in every window of size K
+Find anagrams of length pattern.length()
+```
+
+Typical template:
+
+```text
+Add right
+When size == K:
+    calculate answer
+    remove left
+    move left
+```
+
+---
+
+## 7.5 Signal 5: At Most K or Exactly K
+
+Examples:
+
+```text
+At most K distinct characters
+At most K zeroes
+At most K replacements
+Exactly K distinct integers
+```
+
+These are strong Sliding Window signals.
+
+Useful transformation:
+
+```text
+Exactly K = AtMost(K) - AtMost(K - 1)
+```
+
+---
+
+## 7.6 Signal 6: Repeated Calculation Over Overlapping Ranges
+
+Brute force may repeatedly calculate:
+
+```text
+sum(i...j)
+characters(i...j)
+frequency(i...j)
+max(i...j)
+```
+
+Because neighbouring ranges overlap heavily, Sliding Window can reuse most of the previous state.
+
+---
+
+# 8. Sliding Window Identification Decision Tree
+
+```mermaid
+flowchart TD
+    A[New Array/String Problem] --> B{Does answer involve contiguous elements?}
+
+    B -- No --> C[Think HashMap, Two Pointers, DP, Prefix Sum etc.]
+    B -- Yes --> D{Fixed window size K given?}
+
+    D -- Yes --> E[Fixed Sliding Window]
+    D -- No --> F{Longest or maximum valid range?}
+
+    F -- Yes --> G[Variable Window: Shrink While Invalid]
+    F -- No --> H{Smallest or minimum satisfying range?}
+
+    H -- Yes --> I[Variable Window: Shrink While Valid]
+    H -- No --> J{Count subarrays/substrings?}
+
+    J -- Yes --> K{At most K condition?}
+    K -- Yes --> L[Count using right-left+1]
+    K -- No --> M{Exactly K?}
+    M -- Yes --> N[AtMost K - AtMost K-1]
+    M -- No --> O[May need Prefix Sum + HashMap]
+
+    E --> P{What state is needed?}
+    G --> P
+    I --> P
+    L --> P
+
+    P --> Q[Sum/Count]
+    P --> R[HashSet]
+    P --> S[Frequency Map/Array]
+    P --> T[Deque]
+```
+
+---
+
+# 9. Main Sliding Window Families
+
+Sliding Window problems can be divided into five important families.
+
+| Family                     | Window Movement       | Common Question                           |
+| -------------------------- | --------------------- | ----------------------------------------- |
+| Fixed-size window          | Size always equals K  | Maximum/average of every K elements       |
+| Longest valid window       | Shrink while invalid  | Longest substring/subarray                |
+| Smallest satisfying window | Shrink while valid    | Minimum window/length                     |
+| Count valid windows        | Add `right-left+1`    | Number of subarrays satisfying constraint |
+| Monotonic window           | Deque maintains order | Maximum/minimum in every window           |
+
+---
+
+# 10. Pattern 1: Fixed-Size Sliding Window
+
+Use when the problem explicitly gives:
+
+```text
+Window size = K
+Subarray of length K
+Every K consecutive elements
+```
+
+## Mental flow
+
+```mermaid
+flowchart TD
+    A[right adds element] --> B[Update window state]
+    B --> C{Window size less than K?}
+    C -- Yes --> D[Continue expanding]
+    C -- No --> E[Use current window]
+    E --> F[Remove nums left]
+    F --> G[Move left]
+    G --> H[Continue with next right]
+```
+
+## Universal fixed-window template
+
+```java
+public void fixedWindow(int[] nums, int k) {
+    int left = 0;
+    int windowState = 0;
+
+    for (int right = 0; right < nums.length; right++) {
+        // 1. Include nums[right]
+        windowState += nums[right];
+
+        // 2. Window is too large
+        if (right - left + 1 > k) {
+            windowState -= nums[left];
+            left++;
+        }
+
+        // 3. Exact window size reached
+        if (right - left + 1 == k) {
+            // update answer
+        }
+    }
+}
+```
+
+An alternative common style:
+
+```java
+for (int right = 0; right < nums.length; right++) {
+    windowSum += nums[right];
+
+    if (right >= k - 1) {
+        // use window
+        windowSum -= nums[left];
+        left++;
+    }
+}
+```
+
+---
+
+# 11. Example 1: Maximum Sum Subarray of Size K
+
+## Problem
+
+```text
+nums = [2, 1, 5, 1, 3, 2]
+k = 3
+
+Answer = 9
+Window = [5, 1, 3]
+```
+
+## Brute force
+
+For every possible starting position, calculate K elements.
+
+```text
+Time: O(n × k)
+```
+
+## Sliding Window
+
+```java
+public int maxSumSubarrayOfSizeK(int[] nums, int k) {
+    if (nums == null || k <= 0 || k > nums.length) {
+        throw new IllegalArgumentException("Invalid input");
+    }
+
+    int left = 0;
+    int windowSum = 0;
+    int maxSum = Integer.MIN_VALUE;
+
+    for (int right = 0; right < nums.length; right++) {
+        windowSum += nums[right];
+
+        if (right - left + 1 == k) {
+            maxSum = Math.max(maxSum, windowSum);
+
+            windowSum -= nums[left];
+            left++;
+        }
+    }
+
+    return maxSum;
+}
+```
+
+## Dry run
+
+| Right | Added | Window    | Sum | Action                   |
+| ----: | ----: | --------- | --: | ------------------------ |
+|     0 |     2 | `[2]`     |   2 | Size below 3             |
+|     1 |     1 | `[2,1]`   |   3 | Size below 3             |
+|     2 |     5 | `[2,1,5]` |   8 | Update max = 8, remove 2 |
+|     3 |     1 | `[1,5,1]` |   7 | Max remains 8, remove 1  |
+|     4 |     3 | `[5,1,3]` |   9 | Update max = 9           |
+|     5 |     2 | `[1,3,2]` |   6 | Max remains 9            |
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 12. Pattern 2: Variable Window — Longest Valid Window
+
+Use when the problem asks:
+
+```text
+Longest
+Maximum length
+Largest valid substring/subarray
+At most K
+Without repeating
+```
+
+## Correct mental flow
+
+```text
+1. Expand right.
+2. Add the new element to window state.
+3. If window becomes invalid, shrink from left.
+4. Once valid again, update maximum length.
+```
+
+## Master template
+
+```java
+public int longestValidWindow(int[] nums) {
+    int left = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < nums.length; right++) {
+        // Add nums[right] to state
+
+        while (/* window is invalid */) {
+            // Remove nums[left] from state
+            left++;
+        }
+
+        maxLength = Math.max(maxLength, right - left + 1);
+    }
+
+    return maxLength;
+}
+```
+
+Key point:
+
+```text
+Update answer after restoring validity.
+```
+
+---
+
+# 13. Example 2: Longest Substring Without Repeating Characters
+
+## Problem
+
+```text
+Input: "abcabcbb"
+Output: 3
+Answer substring: "abc"
+```
+
+## Window invariant
+
+```text
+All characters inside the current window must be unique.
+```
+
+## Using HashSet
+
+```java
+import java.util.HashSet;
+import java.util.Set;
+
+public int lengthOfLongestSubstring(String s) {
+    if (s == null || s.isEmpty()) {
+        return 0;
+    }
+
+    Set<Character> window = new HashSet<>();
+    int left = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < s.length(); right++) {
+        char current = s.charAt(right);
+
+        while (window.contains(current)) {
+            window.remove(s.charAt(left));
+            left++;
+        }
+
+        window.add(current);
+
+        maxLength = Math.max(
+                maxLength,
+                right - left + 1
+        );
+    }
+
+    return maxLength;
+}
+```
+
+## Dry run for `"abca"`
+
+| Right | Character | Window before shrinking | Action                  | Final Window |
+| ----: | --------- | ----------------------- | ----------------------- | ------------ |
+|     0 | a         | `{}`                    | Add a                   | `"a"`        |
+|     1 | b         | `"a"`                   | Add b                   | `"ab"`       |
+|     2 | c         | `"ab"`                  | Add c                   | `"abc"`      |
+|     3 | a         | `"abc"`                 | Duplicate; remove old a | `"bca"`      |
+
+Answer:
+
+```text
+Maximum length = 3
+```
+
+## Optimized last-seen-index version
+
+Instead of removing one character at a time, jump `left` directly.
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public int lengthOfLongestSubstringOptimized(String s) {
+    Map<Character, Integer> lastSeen = new HashMap<>();
+
+    int left = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < s.length(); right++) {
+        char current = s.charAt(right);
+
+        if (lastSeen.containsKey(current)) {
+            left = Math.max(
+                    left,
+                    lastSeen.get(current) + 1
+            );
+        }
+
+        lastSeen.put(current, right);
+
+        maxLength = Math.max(
+                maxLength,
+                right - left + 1
+        );
+    }
+
+    return maxLength;
+}
+```
+
+Why `Math.max()`?
+
+Consider:
+
+```text
+"abba"
+```
+
+Without `Math.max()`, `left` could incorrectly move backwards.
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(min(n, characterSetSize))
+```
+
+---
+
+# 14. Pattern 3: Variable Window — Smallest Satisfying Window
+
+Use when the problem asks:
+
+```text
+Minimum length
+Smallest substring
+Minimum window
+Shortest valid subarray
+```
+
+## Correct mental flow
+
+```text
+1. Expand right until window satisfies the condition.
+2. Once valid, record answer.
+3. Keep shrinking left while still valid.
+4. Stop shrinking when window becomes invalid.
+5. Expand right again.
+```
+
+## Master template
+
+```java
+public int smallestValidWindow(int[] nums) {
+    int left = 0;
+    int minLength = Integer.MAX_VALUE;
+
+    for (int right = 0; right < nums.length; right++) {
+        // Add nums[right] to window state
+
+        while (/* window is valid */) {
+            minLength = Math.min(
+                    minLength,
+                    right - left + 1
+            );
+
+            // Remove nums[left]
+            left++;
+        }
+    }
+
+    return minLength == Integer.MAX_VALUE ? 0 : minLength;
+}
+```
+
+Compare both templates:
+
+```text
+Longest valid:
+while invalid → shrink
+then update maximum
+
+Smallest satisfying:
+while valid → update minimum
+then shrink
+```
+
+---
+
+# 15. Example 3: Minimum Size Subarray Sum
+
+## Problem
+
+Given positive integers, find the minimum length of a contiguous subarray whose sum is at least `target`.
+
+```text
+nums = [2, 3, 1, 2, 4, 3]
+target = 7
+
+Answer = 2
+Subarray = [4, 3]
+```
+
+## Code
+
+```java
+public int minSubArrayLen(int target, int[] nums) {
+    int left = 0;
+    int windowSum = 0;
+    int minLength = Integer.MAX_VALUE;
+
+    for (int right = 0; right < nums.length; right++) {
+        windowSum += nums[right];
+
+        while (windowSum >= target) {
+            minLength = Math.min(
+                    minLength,
+                    right - left + 1
+            );
+
+            windowSum -= nums[left];
+            left++;
+        }
+    }
+
+    return minLength == Integer.MAX_VALUE ? 0 : minLength;
+}
+```
+
+## Why do we shrink while valid?
+
+Suppose:
+
+```text
+Window sum = 10
+Target = 7
+```
+
+The window is valid, but there may be a smaller valid window inside it.
+
+Therefore:
+
+```text
+Record current length
+Remove from left
+Check again
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+## Critical limitation
+
+This standard solution assumes:
+
+```text
+All numbers are positive or non-negative.
+```
+
+With negative numbers, removing an element from the left does not predictably decrease the sum.
+
+For example:
+
+```text
+[5, -10, 8]
+```
+
+Therefore, for arbitrary positive and negative numbers, you may need:
+
+```text
+Prefix Sum + HashMap
+Prefix Sum + Monotonic Deque
+Other specialized approach
+```
+
+---
+
+# 16. Pattern 4: Longest Window with At Most K Violations
+
+Many problems are secretly the same pattern:
+
+```text
+Longest window with at most K bad elements
+```
+
+Examples:
+
+```text
+Maximum consecutive ones after flipping at most K zeroes
+Longest substring after replacing at most K characters
+Longest subarray containing at most K distinct elements
+```
+
+Mental model:
+
+```text
+Right adds a violation
+If violations > K:
+    remove from left
+When violations <= K:
+    window is valid
+```
+
+---
+
+# 17. Example 4: Max Consecutive Ones III
+
+## Problem
+
+You can flip at most `k` zeroes. Find the longest sequence of ones.
+
+```text
+nums = [1,1,1,0,0,0,1,1,1,1,0]
+k = 2
+
+Answer = 6
+```
+
+## Window invariant
+
+```text
+Number of zeroes inside window <= k
+```
+
+## Code
+
+```java
+public int longestOnes(int[] nums, int k) {
+    int left = 0;
+    int zeroCount = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < nums.length; right++) {
+        if (nums[right] == 0) {
+            zeroCount++;
+        }
+
+        while (zeroCount > k) {
+            if (nums[left] == 0) {
+                zeroCount--;
+            }
+            left++;
+        }
+
+        maxLength = Math.max(
+                maxLength,
+                right - left + 1
+        );
+    }
+
+    return maxLength;
+}
+```
+
+Pattern translation:
+
+```text
+At most K zeroes
+→ Track zeroCount
+→ Invalid when zeroCount > K
+→ Shrink until zeroCount <= K
+```
+
+---
+
+# 18. Pattern 5: At Most K Distinct Elements
+
+Example problem:
+
+```text
+Longest substring with at most K distinct characters
+```
+
+## Window state
+
+```text
+Frequency Map<Character, Count>
+```
+
+Why not only a HashSet?
+
+Because when removing a character, another occurrence may still remain inside the window.
+
+Example:
+
+```text
+Window = "aab"
+
+Remove first 'a'
+'a' is still present
+```
+
+Therefore, maintain counts.
+
+## Code
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public int longestSubstringAtMostKDistinct(String s, int k) {
+    if (s == null || s.isEmpty() || k <= 0) {
+        return 0;
+    }
+
+    Map<Character, Integer> frequency = new HashMap<>();
+
+    int left = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < s.length(); right++) {
+        char current = s.charAt(right);
+
+        frequency.put(
+                current,
+                frequency.getOrDefault(current, 0) + 1
+        );
+
+        while (frequency.size() > k) {
+            char outgoing = s.charAt(left);
+
+            frequency.put(
+                    outgoing,
+                    frequency.get(outgoing) - 1
+            );
+
+            if (frequency.get(outgoing) == 0) {
+                frequency.remove(outgoing);
+            }
+
+            left++;
+        }
+
+        maxLength = Math.max(
+                maxLength,
+                right - left + 1
+        );
+    }
+
+    return maxLength;
+}
+```
+
+The map size represents:
+
+```text
+Current number of distinct characters
+```
+
+---
+
+# 19. Pattern 6: Count Valid Subarrays
+
+This is a different use of Sliding Window.
+
+Suppose after shrinking, the current valid window is:
+
+```text
+[left ... right]
+```
+
+Then all subarrays ending at `right` and starting between `left` and `right` are valid:
+
+```text
+[right]
+[right-1 ... right]
+[right-2 ... right]
+...
+[left ... right]
+```
+
+Number of such subarrays:
+
+```java
+right - left + 1
+```
+
+Therefore:
+
+```java
+count += right - left + 1;
+```
+
+## Generic template
+
+```java
+public long countValidSubarrays(int[] nums) {
+    int left = 0;
+    long count = 0;
+
+    for (int right = 0; right < nums.length; right++) {
+        // Add nums[right]
+
+        while (/* window invalid */) {
+            // Remove nums[left]
+            left++;
+        }
+
+        count += right - left + 1;
+    }
+
+    return count;
+}
+```
+
+This is commonly used for:
+
+```text
+Subarrays with at most K distinct integers
+Subarrays with product less than K
+Subarrays with at most K odd numbers
+Binary subarrays under a constraint
+```
+
+---
+
+# 20. Exactly K Using At Most K
+
+Counting exactly K is often difficult directly.
+
+Use:
+
+```text
+Exactly K = AtMost(K) - AtMost(K - 1)
+```
+
+Example:
+
+```text
+Subarrays with exactly 2 distinct values
+=
+Subarrays with at most 2 distinct
+-
+Subarrays with at most 1 distinct
+```
+
+Why?
+
+```text
+AtMost(2) includes windows with:
+0, 1 or 2 distinct values
+
+AtMost(1) includes windows with:
+0 or 1 distinct values
+
+Difference leaves:
+exactly 2 distinct values
+```
+
+## Java structure
+
+```java
+public int subarraysWithKDistinct(int[] nums, int k) {
+    return atMostKDistinct(nums, k)
+            - atMostKDistinct(nums, k - 1);
+}
+```
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+private int atMostKDistinct(int[] nums, int k) {
+    if (k < 0) {
+        return 0;
+    }
+
+    Map<Integer, Integer> frequency = new HashMap<>();
+
+    int left = 0;
+    int count = 0;
+
+    for (int right = 0; right < nums.length; right++) {
+        frequency.put(
+                nums[right],
+                frequency.getOrDefault(nums[right], 0) + 1
+        );
+
+        while (frequency.size() > k) {
+            int outgoing = nums[left];
+
+            frequency.put(
+                    outgoing,
+                    frequency.get(outgoing) - 1
+            );
+
+            if (frequency.get(outgoing) == 0) {
+                frequency.remove(outgoing);
+            }
+
+            left++;
+        }
+
+        count += right - left + 1;
+    }
+
+    return count;
+}
+```
+
+---
+
+# 21. Pattern 7: Minimum Window with Frequency Matching
+
+This is the advanced form of Sliding Window.
+
+Example:
+
+```text
+Minimum Window Substring
+```
+
+Input:
+
+```text
+s = "ADOBECODEBANC"
+t = "ABC"
+```
+
+Output:
+
+```text
+"BANC"
+```
+
+## Mental model
+
+```text
+Need frequency = target character requirements
+Window frequency = current characters
+formed = number of requirements currently satisfied
+required = number of different required characters
+```
+
+## Flow
+
+```mermaid
+flowchart TD
+    A[Build required frequency] --> B[Expand right]
+    B --> C[Add character to window]
+    C --> D{Did a required frequency become satisfied?}
+    D -- Yes --> E[Increment formed]
+    D -- No --> F[Continue]
+
+    E --> G{formed == required?}
+    F --> G
+
+    G -- No --> B
+    G -- Yes --> H[Update minimum answer]
+    H --> I[Remove left character]
+    I --> J{Did a requirement become unsatisfied?}
+    J -- Yes --> K[Decrement formed]
+    J -- No --> H
+    K --> B
+```
+
+## Code
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public String minWindow(String s, String t) {
+    if (s == null || t == null || s.length() < t.length()) {
+        return "";
+    }
+
+    Map<Character, Integer> requiredFrequency = new HashMap<>();
+
+    for (char ch : t.toCharArray()) {
+        requiredFrequency.put(
+                ch,
+                requiredFrequency.getOrDefault(ch, 0) + 1
+        );
+    }
+
+    Map<Character, Integer> windowFrequency = new HashMap<>();
+
+    int required = requiredFrequency.size();
+    int formed = 0;
+
+    int left = 0;
+    int bestStart = 0;
+    int minLength = Integer.MAX_VALUE;
+
+    for (int right = 0; right < s.length(); right++) {
+        char incoming = s.charAt(right);
+
+        windowFrequency.put(
+                incoming,
+                windowFrequency.getOrDefault(incoming, 0) + 1
+        );
+
+        if (requiredFrequency.containsKey(incoming)
+                && windowFrequency.get(incoming)
+                .intValue() == requiredFrequency.get(incoming).intValue()) {
+            formed++;
+        }
+
+        while (formed == required) {
+            int currentLength = right - left + 1;
+
+            if (currentLength < minLength) {
+                minLength = currentLength;
+                bestStart = left;
+            }
+
+            char outgoing = s.charAt(left);
+
+            windowFrequency.put(
+                    outgoing,
+                    windowFrequency.get(outgoing) - 1
+            );
+
+            if (requiredFrequency.containsKey(outgoing)
+                    && windowFrequency.get(outgoing)
+                    < requiredFrequency.get(outgoing)) {
+                formed--;
+            }
+
+            left++;
+        }
+    }
+
+    return minLength == Integer.MAX_VALUE
+            ? ""
+            : s.substring(bestStart, bestStart + minLength);
+}
+```
+
+This is a P1/P2 problem. First master simpler variable windows.
+
+---
+
+# 22. Pattern 8: Sliding Window Maximum Using Monotonic Deque
+
+Problem:
+
+```text
+Find maximum value in every window of size K.
+```
+
+A running sum can be updated easily:
+
+```text
+Add incoming
+Remove outgoing
+```
+
+But maximum cannot be updated that easily.
+
+Suppose the outgoing element was the current maximum. We need to know the next maximum.
+
+A monotonic deque solves this.
+
+## Deque invariant
+
+```text
+Indexes inside deque are maintained in decreasing value order.
+```
+
+The front always contains the maximum element’s index.
+
+## Code
+
+```java
+import java.util.ArrayDeque;
+import java.util.Deque;
+
+public int[] maxSlidingWindow(int[] nums, int k) {
+    if (nums == null || nums.length == 0 || k <= 0) {
+        return new int[0];
+    }
+
+    int[] result = new int[nums.length - k + 1];
+    int resultIndex = 0;
+
+    Deque<Integer> deque = new ArrayDeque<>();
+
+    for (int right = 0; right < nums.length; right++) {
+
+        // Remove indexes outside the current window
+        while (!deque.isEmpty()
+                && deque.peekFirst() < right - k + 1) {
+            deque.pollFirst();
+        }
+
+        // Remove smaller values from the back
+        while (!deque.isEmpty()
+                && nums[deque.peekLast()] <= nums[right]) {
+            deque.pollLast();
+        }
+
+        deque.offerLast(right);
+
+        if (right >= k - 1) {
+            result[resultIndex++] = nums[deque.peekFirst()];
+        }
+    }
+
+    return result;
+}
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(k)
+```
+
+Each index enters and leaves the deque at most once.
+
+---
+
+# 23. The Three Most Important Templates
+
+## Template A: Fixed Size
+
+```java
+int left = 0;
+
+for (int right = 0; right < n; right++) {
+    add(right);
+
+    if (right - left + 1 == k) {
+        updateAnswer();
+
+        remove(left);
+        left++;
+    }
+}
+```
+
+---
+
+## Template B: Longest Valid Window
+
+```java
+int left = 0;
+int maxLength = 0;
+
+for (int right = 0; right < n; right++) {
+    add(right);
+
+    while (windowIsInvalid()) {
+        remove(left);
+        left++;
+    }
+
+    maxLength = Math.max(
+            maxLength,
+            right - left + 1
+    );
+}
+```
+
+Remember:
+
+```text
+Shrink invalid → update maximum
+```
+
+---
+
+## Template C: Smallest Satisfying Window
+
+```java
+int left = 0;
+int minLength = Integer.MAX_VALUE;
+
+for (int right = 0; right < n; right++) {
+    add(right);
+
+    while (windowIsValid()) {
+        minLength = Math.min(
+                minLength,
+                right - left + 1
+        );
+
+        remove(left);
+        left++;
+    }
+}
+```
+
+Remember:
+
+```text
+While valid → update minimum → shrink
+```
+
+---
+
+# 24. How to Decide What State to Store
+
+| Problem Condition           | Window State              |
+| --------------------------- | ------------------------- |
+| Sum of elements             | Running sum               |
+| Number of zeroes            | Integer counter           |
+| Number of odd values        | Integer counter           |
+| Unique characters           | HashSet                   |
+| Character frequencies       | HashMap or array          |
+| Distinct characters         | Frequency map size        |
+| Required pattern characters | Required map + window map |
+| Maximum/minimum per window  | Monotonic deque           |
+| Product                     | Running product           |
+| Last seen position          | HashMap of value → index  |
+
+Mental question:
+
+```text
+What information about [left...right] tells me whether the window is valid?
+```
+
+That information becomes your window state.
+
+---
+
+# 25. Sliding Window vs Two Pointers
+
+Sliding Window is a specialized form of two pointers, but not every two-pointer problem is Sliding Window.
+
+| Two Pointers                            | Sliding Window                 |
+| --------------------------------------- | ------------------------------ |
+| Two positions are maintained            | Two boundaries define a range  |
+| May move toward each other              | Usually both move forward      |
+| Window state may not exist              | Window state is central        |
+| Used for pairs, partition, linked lists | Used for contiguous ranges     |
+| Example: Two Sum sorted                 | Example: longest substring     |
+| Example: palindrome                     | Example: minimum subarray sum  |
+| Example: cycle detection                | Example: maximum sum of size K |
+
+Examples:
+
+```text
+Palindrome:
+left and right compare individual positions
+No maintained contiguous state
+→ Two Pointers
+
+Longest substring:
+left and right define current substring
+HashSet describes current substring
+→ Sliding Window
+```
+
+Memory shortcut:
+
+```text
+Two Pointers = Manage two positions
+Sliding Window = Manage everything between two positions
+```
+
+---
+
+# 26. Sliding Window vs HashMap
+
+HashMap is a data structure. Sliding Window is an algorithmic pattern.
+
+They are frequently combined.
+
+```text
+Sliding Window decides:
+Which contiguous elements are currently active?
+
+HashMap decides:
+What frequency/index/state exists inside that active range?
+```
+
+Example:
+
+```text
+Longest substring without repetition
+Sliding Window → current substring
+HashSet/HashMap → duplicate tracking
+```
+
+Another example:
+
+```text
+At most K distinct characters
+Sliding Window → current substring
+HashMap → character frequencies
+```
+
+---
+
+# 27. Sliding Window vs Prefix Sum
+
+Both are used for contiguous subarray problems, but their use differs.
+
+| Sliding Window                        | Prefix Sum                                |
+| ------------------------------------- | ----------------------------------------- |
+| Maintains an active range             | Stores cumulative history                 |
+| Usually online movement               | Often calculates range sum mathematically |
+| Best when condition is monotonic      | Works with positive and negative values   |
+| Excellent for longest/minimum windows | Excellent for exact sum/count queries     |
+| Usually O(1) or O(k) state            | Usually O(n) map/array state              |
+
+Example:
+
+```text
+Minimum subarray sum >= target
+Positive values
+→ Sliding Window
+
+Count subarrays whose sum equals K
+Positive and negative values
+→ Prefix Sum + HashMap
+```
+
+Why does regular Sliding Window fail for exact sum with negative numbers?
+
+Because window sum does not move predictably:
+
+```text
+Adding an element may decrease the sum.
+Removing an element may increase the sum.
+```
+
+---
+
+# 28. Sliding Window vs Kadane’s Algorithm
+
+Both work on contiguous arrays.
+
+| Sliding Window                     | Kadane                                     |
+| ---------------------------------- | ------------------------------------------ |
+| Maintains `[left...right]`         | Maintains best sum ending at current index |
+| Usually controlled by a constraint | Restarts when previous sum becomes harmful |
+| Often fixed size or validity based | Specifically maximum/minimum subarray sum  |
+| Example: size K                    | Example: maximum sum of any size           |
+
+Problem:
+
+```text
+Maximum sum subarray of fixed size K
+→ Sliding Window
+
+Maximum sum subarray of any size
+→ Kadane
+```
+
+---
+
+# 29. Sliding Window vs Brute Force
+
+## Brute force
+
+```java
+for (int start = 0; start < n; start++) {
+    for (int end = start; end < n; end++) {
+        // Process subarray start...end
+    }
+}
+```
+
+Possible complexities:
+
+```text
+O(n²)
+O(n³) if each subarray is recalculated
+```
+
+## Sliding Window
+
+```java
+for (int right = 0; right < n; right++) {
+    add(right);
+
+    while (invalid) {
+        remove(left);
+        left++;
+    }
+}
+```
+
+Complexity:
+
+```text
+O(n)
+```
+
+---
+
+# 30. Why Nested `while` Still Gives O(n)
+
+Sliding Window often contains:
+
+```java
+for (...) {
+    while (...) {
+        left++;
+    }
+}
+```
+
+It looks like O(n²), but usually it is O(n).
+
+Why?
+
+```text
+right moves from 0 to n-1 only once
+left moves from 0 to n-1 only once
+```
+
+Total pointer movements:
+
+```text
+right: at most n
+left:  at most n
+
+Total: at most 2n
+Therefore: O(n)
+```
+
+The `left` pointer never moves backwards.
+
+Interview answer:
+
+> “Although there is a while loop inside the for loop, the complexity remains O(n) because each element enters the window once and leaves the window at most once.”
+
+---
+
+# 31. When Sliding Window Does Not Work
+
+Do not force Sliding Window merely because the question mentions a subarray.
+
+## Case 1: Not contiguous
+
+```text
+Longest increasing subsequence
+Subset sum
+```
+
+These are not standard Sliding Window problems.
+
+---
+
+## Case 2: No monotonic validity
+
+Sliding Window works best when:
+
+```text
+Expanding makes the condition progressively harder/easier
+Shrinking can restore validity
+```
+
+For positive sums:
+
+```text
+Adding elements increases sum
+Removing elements decreases sum
+```
+
+This is predictable.
+
+With arbitrary negative values:
+
+```text
+Adding can decrease sum
+Removing can increase sum
+```
+
+The pointer decision becomes unreliable.
+
+---
+
+## Case 3: Need all arbitrary pairs
+
+Example:
+
+```text
+Two Sum in unsorted array
+```
+
+Use:
+
+```text
+HashMap
+```
+
+not Sliding Window, because the answer is not necessarily a contiguous range.
+
+---
+
+## Case 4: Need maximum subarray with any length and negative values
+
+Use:
+
+```text
+Kadane’s algorithm
+```
+
+---
+
+## Case 5: Exact sum/count with negative values
+
+Use:
+
+```text
+Prefix Sum + HashMap
+```
+
+---
+
+# 32. Common Mistakes
+
+## Mistake 1: Confusing substring with subsequence
+
+```text
+Substring  → contiguous → Sliding Window possible
+Subsequence → may skip elements → usually not Sliding Window
+```
+
+---
+
+## Mistake 2: Wrong window length
+
+Wrong:
+
+```java
+right - left
+```
+
+Correct:
+
+```java
+right - left + 1
+```
+
+---
+
+## Mistake 3: Using `if` instead of `while`
+
+Wrong:
+
+```java
+if (windowIsInvalid()) {
+    left++;
+}
+```
+
+One removal may not restore validity.
+
+Correct:
+
+```java
+while (windowIsInvalid()) {
+    remove(left);
+    left++;
+}
+```
+
+---
+
+## Mistake 4: Moving left without removing its state
+
+Wrong:
+
+```java
+left++;
+```
+
+Correct:
+
+```java
+windowSum -= nums[left];
+left++;
+```
+
+Or:
+
+```java
+frequency.put(value, frequency.get(value) - 1);
+left++;
+```
+
+The state must always match `[left...right]`.
+
+---
+
+## Mistake 5: Updating answer at the wrong position
+
+For longest valid window:
+
+```text
+First restore validity
+Then update maximum
+```
+
+For minimum satisfying window:
+
+```text
+While valid:
+    update minimum
+    shrink
+```
+
+---
+
+## Mistake 6: Removing a map key too early
+
+Wrong:
+
+```java
+frequency.remove(outgoing);
+```
+
+Correct:
+
+```java
+frequency.put(outgoing, frequency.get(outgoing) - 1);
+
+if (frequency.get(outgoing) == 0) {
+    frequency.remove(outgoing);
+}
+```
+
+---
+
+## Mistake 7: Not distinguishing fixed and variable windows
+
+Fixed:
+
+```text
+Window size decides movement
+```
+
+Variable:
+
+```text
+Validity condition decides movement
+```
+
+---
+
+## Mistake 8: Applying positive-sum logic to negative numbers
+
+This can produce incorrect results.
+
+Always inspect constraints:
+
+```text
+nums[i] > 0?
+nums[i] >= 0?
+Can nums[i] be negative?
+```
+
+---
+
+## Mistake 9: Forgetting no-answer handling
+
+For minimum window problems:
+
+```java
+int minLength = Integer.MAX_VALUE;
+```
+
+Final result:
+
+```java
+return minLength == Integer.MAX_VALUE ? 0 : minLength;
+```
+
+---
+
+## Mistake 10: Rebuilding state for every window
+
+This defeats the purpose of Sliding Window.
+
+Wrong:
+
+```java
+for every window:
+    rebuild HashMap
+```
+
+Correct:
+
+```text
+Add incoming
+Remove outgoing
+```
+
+---
+
+# 33. Sliding Window Debugging Flow
+
+```mermaid
+flowchart TD
+    A[Sliding Window answer is wrong] --> B{Window boundaries correct?}
+    B -- No --> B1[Check left/right and +1 length]
+    B -- Yes --> C{State matches current window?}
+
+    C -- No --> C1[Check add/remove operations]
+    C -- Yes --> D{Validity condition correct?}
+
+    D -- No --> D1[Clearly define valid vs invalid]
+    D -- Yes --> E{Using while or if?}
+
+    E -- If --> E1[Use while if multiple removals may be needed]
+    E -- While --> F{Answer updated at correct location?}
+
+    F -- No --> F1[Longest: after valid, Minimum: while valid]
+    F -- Yes --> G{Negative values involved?}
+
+    G -- Yes --> G1[Sliding Window may not apply]
+    G -- No --> H[Dry run left/right/state table]
+```
+
+---
+
+# 34. How to Approach a New Sliding Window Problem
+
+Use this seven-question checklist.
+
+## Question 1
+
+```text
+Is the answer based on a contiguous subarray or substring?
+```
+
+If no, Sliding Window is unlikely.
+
+## Question 2
+
+```text
+Is the window size fixed or variable?
+```
+
+## Question 3
+
+```text
+What makes the window valid?
+```
+
+Examples:
+
+```text
+No duplicates
+At most K zeroes
+At most K distinct values
+Sum >= target
+All required characters present
+```
+
+## Question 4
+
+```text
+What state tells me whether it is valid?
+```
+
+Examples:
+
+```text
+sum
+zeroCount
+HashSet
+frequency Map
+formed/required
+```
+
+## Question 5
+
+```text
+What happens when right moves?
+```
+
+Add incoming element.
+
+## Question 6
+
+```text
+What happens when left moves?
+```
+
+Remove outgoing element.
+
+## Question 7
+
+```text
+When should the answer be updated?
+```
+
+```text
+Fixed window        → when size == K
+Longest valid       → after shrinking invalid window
+Smallest satisfying → while window is valid
+Count valid         → add right-left+1 after validity
+```
+
+---
+
+# 35. Problem Statement Translation Table
+
+| Problem Wording                    | Translate It Into                        |
+| ---------------------------------- | ---------------------------------------- |
+| “Maximum sum of size K”            | Fixed window + running sum               |
+| “Longest without repeating”        | Variable window + HashSet                |
+| “Longest with at most K distinct”  | Variable window + frequency map          |
+| “Longest after K flips”            | Variable window + violation count        |
+| “Minimum length with sum ≥ target” | Smallest satisfying + running sum        |
+| “Find all anagrams”                | Fixed window + frequency comparison      |
+| “Minimum substring containing T”   | Smallest satisfying + frequency matching |
+| “Exactly K distinct”               | AtMost(K) − AtMost(K−1)                  |
+| “Maximum of every K elements”      | Fixed window + monotonic deque           |
+| “Count product less than K”        | Variable counting window                 |
+
+---
+
+# 36. Important Problems to Prepare
+
+## P0 — Must Complete First
+
+| Problem                                        | Sliding Window Type | State           |
+| ---------------------------------------------- | ------------------- | --------------- |
+| Maximum Sum Subarray of Size K                 | Fixed               | Running sum     |
+| Maximum Average Subarray                       | Fixed               | Running sum     |
+| Longest Substring Without Repeating Characters | Longest valid       | Set/last index  |
+| Minimum Size Subarray Sum                      | Smallest satisfying | Running sum     |
+| Max Consecutive Ones III                       | Longest valid       | Zero count      |
+| Permutation in String                          | Fixed               | Frequency array |
+| Find All Anagrams in a String                  | Fixed               | Frequency array |
+| Fruit Into Baskets                             | At most K distinct  | Frequency map   |
+
+## P1 — Very Important
+
+| Problem                                   | Sliding Window Type              | State                     |
+| ----------------------------------------- | -------------------------------- | ------------------------- |
+| Longest Repeating Character Replacement   | Longest valid                    | Frequency + max frequency |
+| Longest Substring with At Most K Distinct | Longest valid                    | Frequency map             |
+| Minimum Window Substring                  | Smallest satisfying              | Two frequency maps        |
+| Subarray Product Less Than K              | Counting                         | Running product           |
+| Binary Subarrays with Sum                 | AtMost transformation/prefix sum | Count                     |
+| Subarrays with K Distinct Integers        | Exactly K transformation         | Frequency map             |
+| Count Number of Nice Subarrays            | Exactly K transformation         | Odd count                 |
+| Sliding Window Maximum                    | Fixed advanced                   | Monotonic deque           |
+
+## P2 — After Interviews Start
+
+```text
+Minimum Size Subarray Sum with negative values
+Shortest Subarray with Sum at Least K
+Longest Continuous Subarray with absolute difference limit
+Frequency of Most Frequent Element
+Maximum Erasure Value
+Substring with Concatenation of All Words
+```
+
+---
+
+# 37. Recommended Practice Order
+
+Follow this sequence:
+
+```text
+1. Maximum Sum Subarray of Size K
+2. Maximum Average Subarray
+3. Longest Substring Without Repeating Characters
+4. Minimum Size Subarray Sum
+5. Max Consecutive Ones III
+6. Fruit Into Baskets
+7. Permutation in String
+8. Find All Anagrams in a String
+9. Longest Repeating Character Replacement
+10. Longest Substring with At Most K Distinct
+11. Subarray Product Less Than K
+12. Minimum Window Substring
+13. Subarrays with Exactly K Distinct
+14. Sliding Window Maximum
+```
+
+After the first eight problems, your core Sliding Window recognition should be strong.
+
+---
+
+# 38. Project Usage Mapping
+
+Sliding Window appears less directly in CRUD code than HashMap, but its underlying concept is used in backend systems.
+
+| Concept                   | Realistic Project Usage                  | Interview Line                                                      |
+| ------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| Time-based sliding window | API rate limiting                        | “Requests are tracked for the most recent time interval.”           |
+| Rolling metrics           | Last 5-minute request/error rate         | “Old events leave the window and new events enter it.”              |
+| Log monitoring            | Count failures in recent period          | “We can maintain recent failures without rescanning all logs.”      |
+| Kafka stream processing   | Events in a time window                  | “Stream processors group events into tumbling or sliding windows.”  |
+| Fraud detection           | Number of transactions in recent minutes | “We can detect unusually high activity in a moving period.”         |
+| Session analytics         | Recent user activity                     | “The active window contains only recent events.”                    |
+| Circuit-breaker metrics   | Recent failure percentage                | “A recent-call window can help decide whether to open the circuit.” |
+
+Important professional wording:
+
+> “I understand Sliding Window mainly as an algorithmic pattern. Similar window-based thinking is also used in rate limiting and streaming metrics, although production implementations generally use Redis, distributed counters, time buckets, or stream-processing frameworks rather than a simple in-memory array.”
+
+This avoids falsely claiming production experience.
+
+---
+
+# 39. API Rate Limiter Mental Model
+
+```mermaid
+flowchart TD
+    A[Incoming API Request] --> B[Identify user/IP/API key]
+    B --> C[Load recent request timestamps or buckets]
+    C --> D[Remove requests older than configured window]
+    D --> E{Requests in current window below limit?}
+
+    E -- Yes --> F[Add current request]
+    F --> G[Allow Request]
+
+    E -- No --> H[Reject with HTTP 429]
+```
+
+Array-style Sliding Window:
+
+```text
+Remove outgoing element
+Add incoming element
+```
+
+Time-based rate limiter:
+
+```text
+Remove expired timestamps
+Add current timestamp
+```
+
+The mental model is the same.
+
+---
+
+# 40. Interview Answer Templates
+
+## General Identification Answer
+
+> “The problem asks for a contiguous subarray or substring, and neighbouring ranges overlap significantly. Therefore, instead of recalculating every range, I can maintain a window using left and right pointers and incrementally update its state.”
+
+---
+
+## Fixed Window Answer
+
+> “Since the problem gives a fixed size K, I maintain exactly K elements. For each new element, I add it to the current state, process the window when its size becomes K, and remove the outgoing left element before moving forward.”
+
+---
+
+## Longest Window Answer
+
+> “I expand the right boundary and maintain the required state. Whenever the window becomes invalid, I shrink it from the left until the invariant is restored. I then update the maximum valid window length.”
+
+---
+
+## Minimum Window Answer
+
+> “I expand the window until it satisfies the requirement. Once valid, I update the minimum answer and continue shrinking from the left to find the smallest possible valid window.”
+
+---
+
+## Complexity Answer
+
+> “The complexity is O(n), even though there is a while loop inside the for loop, because each element enters the window once and exits the window at most once.”
+
+---
+
+## HashMap Combination Answer
+
+> “Sliding Window controls the active contiguous range, while HashMap stores the frequency state inside that range. When a character enters or leaves, I increment or decrement its count.”
+
+---
+
+## Negative Numbers Answer
+
+> “This sum-based Sliding Window works because the input values are positive, so expanding increases the sum and shrinking decreases it. With negative values, that monotonic property breaks, so I would consider Prefix Sum or another approach.”
+
+---
+
+## Exact K Answer
+
+> “Counting exactly K directly is difficult, so I transform it into `atMost(K) - atMost(K-1)`. The difference removes all windows containing fewer than K distinct values.”
+
+---
+
+# 41. Quick Revision Card
+
+## Master shortcut
+
+```text
+Sliding Window =
+Contiguous range
+→ Add right
+→ Update state
+→ Shrink left based on condition
+→ Update answer
+```
+
+## Fixed Window
+
+```text
+Add right
+If size == K:
+    process
+    remove left
+    left++
+```
+
+## Longest Valid
+
+```text
+Add right
+While invalid:
+    remove left
+    left++
+Update max
+```
+
+## Smallest Satisfying
+
+```text
+Add right
+While valid:
+    update min
+    remove left
+    left++
+```
+
+## Count Valid
+
+```text
+Add right
+While invalid:
+    shrink
+count += right-left+1
+```
+
+## Exactly K
+
+```text
+Exactly(K) = AtMost(K) - AtMost(K-1)
+```
+
+---
+
+# 42. Ten Must-Remember Points
+
+1. Sliding Window normally works on contiguous subarrays or substrings.
+2. A window is represented by inclusive indexes `[left...right]`.
+3. Window length is `right - left + 1`.
+4. `right` adds an element; `left` removes an element.
+5. Fixed window movement is controlled by size.
+6. Variable window movement is controlled by validity.
+7. For longest valid problems, shrink while invalid.
+8. For minimum satisfying problems, shrink while valid.
+9. Each element enters and leaves at most once, producing O(n).
+10. Sum-based variable windows may fail when negative numbers destroy monotonicity.
+
+---
+
+# 43. Final Pattern Map
+
+```text
+Contiguous?
+│
+├── No
+│   └── Not normally Sliding Window
+│
+└── Yes
+    │
+    ├── Fixed size K?
+    │   └── Fixed Window
+    │       ├── Sum/Average → Running Sum
+    │       ├── Anagram → Frequency Array
+    │       └── Maximum → Monotonic Deque
+    │
+    └── Variable size
+        │
+        ├── Longest valid?
+        │   └── Shrink While Invalid
+        │       ├── No duplicate → Set
+        │       ├── At most K distinct → Frequency Map
+        │       ├── At most K zeroes → Counter
+        │       └── At most K replacements → Frequency
+        │
+        ├── Smallest satisfying?
+        │   └── Shrink While Valid
+        │       ├── Sum >= target → Running Sum
+        │       └── Contains pattern → Frequency Maps
+        │
+        └── Count windows?
+            ├── At most K → right-left+1
+            └── Exactly K → AtMost(K)-AtMost(K-1)
+```
+
+# Final Mental Model
+
+```text
+Sliding Window is not simply moving two pointers.
+
+It is:
+
+1. Define a contiguous window.
+2. Define the state of that window.
+3. Define what valid means.
+4. Expand right to explore.
+5. Shrink left to restore or optimize.
+6. Reuse previous state instead of recalculating.
+7. Update max, min, or count at the correct position.
+```
+
+For interview recognition, remember this sentence:
+
+> “When the problem asks for the longest, shortest, maximum, minimum, or count of a contiguous range—and I can update the range by adding one element and removing one element—I should strongly consider Sliding Window.”
