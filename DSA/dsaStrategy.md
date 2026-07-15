@@ -6,6 +6,7 @@
 3. [HashMap Problems](#master-hashmap-pattern-map)
 4. [2-Pointers](#2-pointers-complete-postmortem-for-dsa-interviews)
 5. [Sliding Window](#sliding-window--complete-postmortem-for-dsa-interviews)
+6. [Sliding Window Problems](#sliding-window-problems-using-only-3-templates)
 
 
 # Prompt
@@ -10607,3 +10608,1276 @@ It is:
 For interview recognition, remember this sentence:
 
 > “When the problem asks for the longest, shortest, maximum, minimum, or count of a contiguous range—and I can update the range by adding one element and removing one element—I should strongly consider Sliding Window.”
+
+# Sliding Window Problems Using Only 3 Templates
+
+We will solve the P0/P1 problems from the earlier list using only:
+
+```text
+1. Fixed-Size Window
+2. Longest Valid Window
+3. Smallest Satisfying Window
+```
+
+This follows the pattern-first preparation strategy in your DSA notes. 
+
+## Problems covered
+
+| Template            | Problems                                                                                                                     |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Fixed Size          | Maximum Sum Size K, Maximum Average, Permutation in String, Find All Anagrams, Sliding Window Maximum                        |
+| Longest Valid       | Longest Substring Without Repeating, Max Consecutive Ones III, Fruit Into Baskets, Character Replacement, At Most K Distinct |
+| Smallest Satisfying | Minimum Size Subarray Sum, Minimum Window Substring                                                                          |
+
+Problems such as **Subarray Product Less Than K**, **Exactly K Distinct**, **Binary Subarrays with Sum**, and **Nice Subarrays** need the separate **counting-window template**, so they are intentionally not included here.
+
+---
+
+# Template 1: Fixed-Size Window
+
+## Mental model
+
+```text
+Add right
+→ If window becomes larger than K, remove left
+→ When size == K, calculate answer
+```
+
+## Master template
+
+```java
+int left = 0;
+
+for (int right = 0; right < n; right++) {
+
+    // 1. Add incoming element
+    add(right);
+
+    // 2. Keep window size at most K
+    if (right - left + 1 > k) {
+        remove(left);
+        left++;
+    }
+
+    // 3. Process complete window
+    if (right - left + 1 == k) {
+        updateAnswer();
+    }
+}
+```
+
+---
+
+# 1. Maximum Sum Subarray of Size K
+
+## Problem
+
+```text
+nums = [2, 1, 5, 1, 3, 2]
+k = 3
+
+Answer = 9
+Window = [5, 1, 3]
+```
+
+## Window state
+
+```text
+Running sum
+```
+
+## Solution
+
+```java
+public int maxSumSubarrayOfSizeK(int[] nums, int k) {
+    if (nums == null || k <= 0 || k > nums.length) {
+        throw new IllegalArgumentException("Invalid input");
+    }
+
+    int left = 0;
+    int windowSum = 0;
+    int maxSum = Integer.MIN_VALUE;
+
+    for (int right = 0; right < nums.length; right++) {
+
+        // Add incoming element
+        windowSum += nums[right];
+
+        // Process exact-size window
+        if (right - left + 1 == k) {
+            maxSum = Math.max(maxSum, windowSum);
+
+            // Remove outgoing element
+            windowSum -= nums[left];
+            left++;
+        }
+    }
+
+    return maxSum;
+}
+```
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 2. Maximum Average Subarray of Size K
+
+This is the same problem as maximum sum. Calculate the maximum sum first, then divide by `k`.
+
+## Solution
+
+```java
+public double findMaxAverage(int[] nums, int k) {
+    if (nums == null || k <= 0 || k > nums.length) {
+        throw new IllegalArgumentException("Invalid input");
+    }
+
+    int left = 0;
+    long windowSum = 0;
+    long maxSum = Long.MIN_VALUE;
+
+    for (int right = 0; right < nums.length; right++) {
+        windowSum += nums[right];
+
+        if (right - left + 1 == k) {
+            maxSum = Math.max(maxSum, windowSum);
+
+            windowSum -= nums[left];
+            left++;
+        }
+    }
+
+    return (double) maxSum / k;
+}
+```
+
+Why use `long`?
+
+```text
+The sum of many integer values may exceed the int range.
+```
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 3. Permutation in String
+
+## Problem
+
+Determine whether `s2` contains a permutation of `s1`.
+
+```text
+s1 = "ab"
+s2 = "eidbaooo"
+
+Answer = true
+Matching window = "ba"
+```
+
+## Identification
+
+The permutation length must equal `s1.length()`.
+
+Therefore:
+
+```text
+Fixed window size = s1.length()
+```
+
+## Window state
+
+```text
+Required character frequency
+Current window character frequency
+```
+
+## Solution
+
+Assumption: Strings contain lowercase English letters.
+
+```java
+import java.util.Arrays;
+
+public boolean checkInclusion(String s1, String s2) {
+    if (s1 == null || s2 == null || s1.length() > s2.length()) {
+        return false;
+    }
+
+    int[] requiredFrequency = new int[26];
+    int[] windowFrequency = new int[26];
+
+    for (char ch : s1.toCharArray()) {
+        requiredFrequency[ch - 'a']++;
+    }
+
+    int left = 0;
+    int k = s1.length();
+
+    for (int right = 0; right < s2.length(); right++) {
+
+        // Add incoming character
+        windowFrequency[s2.charAt(right) - 'a']++;
+
+        // Remove outgoing character if window is too large
+        if (right - left + 1 > k) {
+            windowFrequency[s2.charAt(left) - 'a']--;
+            left++;
+        }
+
+        // Compare exact-size window
+        if (right - left + 1 == k
+                && Arrays.equals(requiredFrequency, windowFrequency)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+```
+
+## Complexity
+
+```text
+Time:  O(26 × n) = O(n)
+Space: O(26) = O(1)
+```
+
+---
+
+# 4. Find All Anagrams in a String
+
+## Problem
+
+```text
+s = "cbaebabacd"
+p = "abc"
+
+Answer = [0, 6]
+
+Windows:
+"cba" at index 0
+"bac" at index 6
+```
+
+This is nearly identical to Permutation in String.
+
+Difference:
+
+```text
+Permutation in String → return true/false
+Find All Anagrams     → store every matching left index
+```
+
+## Solution
+
+```java
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public List<Integer> findAnagrams(String s, String p) {
+    List<Integer> result = new ArrayList<>();
+
+    if (s == null || p == null || p.length() > s.length()) {
+        return result;
+    }
+
+    int[] requiredFrequency = new int[26];
+    int[] windowFrequency = new int[26];
+
+    for (char ch : p.toCharArray()) {
+        requiredFrequency[ch - 'a']++;
+    }
+
+    int left = 0;
+    int k = p.length();
+
+    for (int right = 0; right < s.length(); right++) {
+
+        // Add incoming character
+        windowFrequency[s.charAt(right) - 'a']++;
+
+        // Remove outgoing character
+        if (right - left + 1 > k) {
+            windowFrequency[s.charAt(left) - 'a']--;
+            left++;
+        }
+
+        // Store matching window
+        if (right - left + 1 == k
+                && Arrays.equals(requiredFrequency, windowFrequency)) {
+            result.add(left);
+        }
+    }
+
+    return result;
+}
+```
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 5. Sliding Window Maximum
+
+## Problem
+
+Find the maximum value in every window of size `k`.
+
+```text
+nums = [1,3,-1,-3,5,3,6,7]
+k = 3
+
+Answer = [3,3,5,5,6,7]
+```
+
+## Why running maximum is insufficient
+
+Suppose the outgoing element was the current maximum.
+
+We then need to know the second-largest valid element. A simple variable cannot provide that.
+
+Therefore, use:
+
+```text
+Fixed-size window + Monotonic Deque
+```
+
+The deque stores indexes in decreasing order of their values.
+
+```text
+Deque front = maximum element’s index
+```
+
+## Solution
+
+```java
+import java.util.ArrayDeque;
+import java.util.Deque;
+
+public int[] maxSlidingWindow(int[] nums, int k) {
+    if (nums == null || nums.length == 0
+            || k <= 0 || k > nums.length) {
+        return new int[0];
+    }
+
+    int[] result = new int[nums.length - k + 1];
+    int resultIndex = 0;
+
+    Deque<Integer> deque = new ArrayDeque<>();
+
+    for (int right = 0; right < nums.length; right++) {
+
+        int left = right - k + 1;
+
+        // Remove indexes that left the window
+        while (!deque.isEmpty() && deque.peekFirst() < left) {
+            deque.pollFirst();
+        }
+
+        // Remove values smaller than incoming value
+        while (!deque.isEmpty()
+                && nums[deque.peekLast()] <= nums[right]) {
+            deque.pollLast();
+        }
+
+        deque.offerLast(right);
+
+        // Window has reached size K
+        if (right >= k - 1) {
+            result[resultIndex++] = nums[deque.peekFirst()];
+        }
+    }
+
+    return result;
+}
+```
+
+## Why remove smaller values?
+
+Suppose:
+
+```text
+Deque values = [5, 3, 2]
+Incoming value = 4
+```
+
+Values `3` and `2` can never become maximum while `4` remains in the window, so remove them.
+
+Result:
+
+```text
+[5, 4]
+```
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(k)
+```
+
+Each index is added and removed at most once.
+
+---
+
+# Template 2: Longest Valid Window
+
+## Mental model
+
+```text
+Add right
+→ If window is invalid, shrink left until valid
+→ Update maximum length
+```
+
+## Master template
+
+```java
+int left = 0;
+int maxLength = 0;
+
+for (int right = 0; right < n; right++) {
+
+    // Add incoming element
+    add(right);
+
+    // Restore validity
+    while (windowIsInvalid()) {
+        remove(left);
+        left++;
+    }
+
+    // Current window is valid
+    maxLength = Math.max(
+            maxLength,
+            right - left + 1
+    );
+}
+```
+
+Memory shortcut:
+
+```text
+Longest valid = Shrink while invalid → update maximum
+```
+
+---
+
+# 6. Longest Substring Without Repeating Characters
+
+## Problem
+
+```text
+Input: "abcabcbb"
+Output: 3
+Substring: "abc"
+```
+
+## Window invariant
+
+```text
+Every character in the current window must be unique.
+```
+
+## Window state
+
+```text
+HashSet<Character>
+```
+
+## Solution
+
+```java
+import java.util.HashSet;
+import java.util.Set;
+
+public int lengthOfLongestSubstring(String s) {
+    if (s == null || s.isEmpty()) {
+        return 0;
+    }
+
+    Set<Character> window = new HashSet<>();
+
+    int left = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < s.length(); right++) {
+        char incoming = s.charAt(right);
+
+        // Shrink until duplicate is removed
+        while (window.contains(incoming)) {
+            window.remove(s.charAt(left));
+            left++;
+        }
+
+        window.add(incoming);
+
+        maxLength = Math.max(
+                maxLength,
+                right - left + 1
+        );
+    }
+
+    return maxLength;
+}
+```
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(character set size)
+```
+
+---
+
+# 7. Max Consecutive Ones III
+
+## Problem
+
+You may convert at most `k` zeroes into ones.
+
+```text
+nums = [1,1,1,0,0,0,1,1,1,1,0]
+k = 2
+
+Answer = 6
+```
+
+## Window invariant
+
+```text
+Number of zeroes <= k
+```
+
+## Window state
+
+```text
+zeroCount
+```
+
+## Solution
+
+```java
+public int longestOnes(int[] nums, int k) {
+    int left = 0;
+    int zeroCount = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < nums.length; right++) {
+
+        // Add incoming violation
+        if (nums[right] == 0) {
+            zeroCount++;
+        }
+
+        // Invalid when zero count exceeds K
+        while (zeroCount > k) {
+            if (nums[left] == 0) {
+                zeroCount--;
+            }
+            left++;
+        }
+
+        maxLength = Math.max(
+                maxLength,
+                right - left + 1
+        );
+    }
+
+    return maxLength;
+}
+```
+
+## Translation
+
+```text
+At most K zeroes
+→ Track zeroCount
+→ Invalid when zeroCount > K
+```
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 8. Fruit Into Baskets
+
+## Problem interpretation
+
+You have two baskets. Each basket can store only one fruit type.
+
+Find the longest subarray containing at most two distinct values.
+
+```text
+fruits = [1,2,1]
+Answer = 3
+```
+
+## Translation
+
+```text
+Two baskets = At most 2 distinct values
+```
+
+## Window invariant
+
+```text
+Distinct fruit types <= 2
+```
+
+## Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public int totalFruit(int[] fruits) {
+    Map<Integer, Integer> frequency = new HashMap<>();
+
+    int left = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < fruits.length; right++) {
+
+        // Add incoming fruit
+        frequency.put(
+                fruits[right],
+                frequency.getOrDefault(fruits[right], 0) + 1
+        );
+
+        // Invalid when more than two fruit types
+        while (frequency.size() > 2) {
+            int outgoing = fruits[left];
+
+            frequency.put(
+                    outgoing,
+                    frequency.get(outgoing) - 1
+            );
+
+            if (frequency.get(outgoing) == 0) {
+                frequency.remove(outgoing);
+            }
+
+            left++;
+        }
+
+        maxLength = Math.max(
+                maxLength,
+                right - left + 1
+        );
+    }
+
+    return maxLength;
+}
+```
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(2), effectively O(1)
+```
+
+---
+
+# 9. Longest Substring with At Most K Distinct Characters
+
+This is the generic version of Fruit Into Baskets.
+
+## Window invariant
+
+```text
+frequency.size() <= k
+```
+
+## Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public int lengthOfLongestSubstringKDistinct(String s, int k) {
+    if (s == null || s.isEmpty() || k <= 0) {
+        return 0;
+    }
+
+    Map<Character, Integer> frequency = new HashMap<>();
+
+    int left = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < s.length(); right++) {
+        char incoming = s.charAt(right);
+
+        frequency.put(
+                incoming,
+                frequency.getOrDefault(incoming, 0) + 1
+        );
+
+        while (frequency.size() > k) {
+            char outgoing = s.charAt(left);
+
+            frequency.put(
+                    outgoing,
+                    frequency.get(outgoing) - 1
+            );
+
+            if (frequency.get(outgoing) == 0) {
+                frequency.remove(outgoing);
+            }
+
+            left++;
+        }
+
+        maxLength = Math.max(
+                maxLength,
+                right - left + 1
+        );
+    }
+
+    return maxLength;
+}
+```
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(k)
+```
+
+---
+
+# 10. Longest Repeating Character Replacement
+
+## Problem
+
+You can replace at most `k` characters so that the complete window contains the same character.
+
+```text
+s = "AABABBA"
+k = 1
+
+Answer = 4
+Example window = "AABA"
+```
+
+## Important formula
+
+Inside a window:
+
+```text
+Characters requiring replacement
+=
+Window length - Frequency of most common character
+```
+
+Example:
+
+```text
+Window = "AABA"
+
+Window length = 4
+Maximum character frequency = 3 for 'A'
+
+Required replacements = 4 - 3 = 1
+```
+
+## Window invariant
+
+```text
+windowLength - maxFrequency <= k
+```
+
+## Solution
+
+Assumption: Uppercase English letters.
+
+```java
+public int characterReplacement(String s, int k) {
+    int[] frequency = new int[26];
+
+    int left = 0;
+    int maxFrequency = 0;
+    int maxLength = 0;
+
+    for (int right = 0; right < s.length(); right++) {
+        int incomingIndex = s.charAt(right) - 'A';
+
+        frequency[incomingIndex]++;
+
+        maxFrequency = Math.max(
+                maxFrequency,
+                frequency[incomingIndex]
+        );
+
+        // More than K replacements required
+        while ((right - left + 1) - maxFrequency > k) {
+            frequency[s.charAt(left) - 'A']--;
+            left++;
+        }
+
+        maxLength = Math.max(
+                maxLength,
+                right - left + 1
+        );
+    }
+
+    return maxLength;
+}
+```
+
+## Why do we not decrease `maxFrequency`?
+
+`maxFrequency` represents the highest useful frequency encountered for a candidate window size.
+
+Even when the actual current frequency decreases, keeping the historical maximum does not create an incorrect larger answer. It only avoids unnecessary recomputation.
+
+Interview-friendly explanation:
+
+> “I track the highest frequency in the window. The remaining characters must be replaced. If replacements exceed K, I shrink the window.”
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(26) = O(1)
+```
+
+---
+
+# Template 3: Smallest Satisfying Window
+
+## Mental model
+
+```text
+Add right until valid
+→ While valid:
+      update minimum
+      remove left
+```
+
+## Master template
+
+```java
+int left = 0;
+int minLength = Integer.MAX_VALUE;
+
+for (int right = 0; right < n; right++) {
+
+    // Add incoming element
+    add(right);
+
+    // Current window satisfies requirement
+    while (windowIsValid()) {
+
+        minLength = Math.min(
+                minLength,
+                right - left + 1
+        );
+
+        // Try to make it smaller
+        remove(left);
+        left++;
+    }
+}
+```
+
+Memory shortcut:
+
+```text
+Smallest satisfying = While valid → update minimum → shrink
+```
+
+---
+
+# 11. Minimum Size Subarray Sum
+
+## Problem
+
+Find the minimum length of a contiguous subarray whose sum is at least `target`.
+
+```text
+target = 7
+nums = [2,3,1,2,4,3]
+
+Answer = 2
+Window = [4,3]
+```
+
+## Window condition
+
+```text
+Valid when windowSum >= target
+```
+
+## Solution
+
+```java
+public int minSubArrayLen(int target, int[] nums) {
+    int left = 0;
+    int windowSum = 0;
+    int minLength = Integer.MAX_VALUE;
+
+    for (int right = 0; right < nums.length; right++) {
+
+        // Add incoming element
+        windowSum += nums[right];
+
+        // While valid, try to make window smaller
+        while (windowSum >= target) {
+            minLength = Math.min(
+                    minLength,
+                    right - left + 1
+            );
+
+            windowSum -= nums[left];
+            left++;
+        }
+    }
+
+    return minLength == Integer.MAX_VALUE
+            ? 0
+            : minLength;
+}
+```
+
+## Important constraint
+
+This solution requires positive or non-negative numbers.
+
+Why?
+
+```text
+Positive numbers:
+Adding increases sum
+Removing decreases sum
+
+Negative numbers:
+Adding may decrease sum
+Removing may increase sum
+```
+
+With negative numbers, the window movement is not predictable.
+
+## Complexity
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 12. Minimum Window Substring
+
+## Problem
+
+Find the smallest substring in `s` containing all characters of `t`, including duplicate requirements.
+
+```text
+s = "ADOBECODEBANC"
+t = "ABC"
+
+Answer = "BANC"
+```
+
+## Window state
+
+```text
+Required frequency
+Current satisfied character count
+```
+
+## Mental model
+
+```text
+Expand until all required characters are present
+→ Record answer
+→ Remove left characters while requirement remains satisfied
+→ Stop when a required character becomes missing
+```
+
+## Solution
+
+The following version assumes standard ASCII characters.
+
+```java
+public String minWindow(String s, String t) {
+    if (s == null || t == null
+            || s.isEmpty() || t.isEmpty()
+            || s.length() < t.length()) {
+        return "";
+    }
+
+    int[] required = new int[128];
+
+    for (char ch : t.toCharArray()) {
+        required[ch]++;
+    }
+
+    int missingCharacters = t.length();
+
+    int left = 0;
+    int bestStart = 0;
+    int minLength = Integer.MAX_VALUE;
+
+    for (int right = 0; right < s.length(); right++) {
+        char incoming = s.charAt(right);
+
+        /*
+         * Positive value means this character
+         * was still required.
+         */
+        if (required[incoming] > 0) {
+            missingCharacters--;
+        }
+
+        required[incoming]--;
+
+        /*
+         * Window contains all required characters.
+         * Try to shrink it.
+         */
+        while (missingCharacters == 0) {
+            int currentLength = right - left + 1;
+
+            if (currentLength < minLength) {
+                minLength = currentLength;
+                bestStart = left;
+            }
+
+            char outgoing = s.charAt(left);
+            required[outgoing]++;
+
+            /*
+             * Positive again means a required
+             * character has become missing.
+             */
+            if (required[outgoing] > 0) {
+                missingCharacters++;
+            }
+
+            left++;
+        }
+    }
+
+    return minLength == Integer.MAX_VALUE
+            ? ""
+            : s.substring(bestStart, bestStart + minLength);
+}
+```
+
+## Understanding the frequency trick
+
+Initially:
+
+```text
+required['A'] = 1
+required['B'] = 1
+required['C'] = 1
+missingCharacters = 3
+```
+
+When a needed character enters:
+
+```text
+required[incoming] > 0
+→ decrease missingCharacters
+```
+
+Extra occurrences make frequency negative:
+
+```text
+Another unnecessary 'A'
+required['A'] may become -1
+```
+
+When removing from the left:
+
+```text
+required[outgoing]++
+```
+
+If it becomes positive:
+
+```text
+We removed a required occurrence
+→ window is no longer valid
+```
+
+## Complexity
+
+```text
+Time:  O(|s| + |t|)
+Space: O(character set size)
+```
+
+---
+
+# All Three Templates Side by Side
+
+## Fixed Size
+
+```java
+int left = 0;
+
+for (int right = 0; right < n; right++) {
+    add(right);
+
+    if (right - left + 1 > k) {
+        remove(left);
+        left++;
+    }
+
+    if (right - left + 1 == k) {
+        updateAnswer();
+    }
+}
+```
+
+Used for:
+
+```text
+Maximum Sum Size K
+Maximum Average
+Permutation in String
+Find All Anagrams
+Sliding Window Maximum
+```
+
+---
+
+## Longest Valid
+
+```java
+int left = 0;
+int maxLength = 0;
+
+for (int right = 0; right < n; right++) {
+    add(right);
+
+    while (windowIsInvalid()) {
+        remove(left);
+        left++;
+    }
+
+    maxLength = Math.max(
+            maxLength,
+            right - left + 1
+    );
+}
+```
+
+Used for:
+
+```text
+Longest Substring Without Repeating
+Max Consecutive Ones III
+Fruit Into Baskets
+At Most K Distinct
+Character Replacement
+```
+
+---
+
+## Smallest Satisfying
+
+```java
+int left = 0;
+int minLength = Integer.MAX_VALUE;
+
+for (int right = 0; right < n; right++) {
+    add(right);
+
+    while (windowIsValid()) {
+        minLength = Math.min(
+                minLength,
+                right - left + 1
+        );
+
+        remove(left);
+        left++;
+    }
+}
+```
+
+Used for:
+
+```text
+Minimum Size Subarray Sum
+Minimum Window Substring
+```
+
+---
+
+# Final Problem Recognition Table
+
+| Problem                        | Window Type | State                 | Invalid/Valid Condition          |
+| ------------------------------ | ----------- | --------------------- | -------------------------------- |
+| Maximum Sum Size K             | Fixed       | Running sum           | Size reaches K                   |
+| Maximum Average                | Fixed       | Running sum           | Size reaches K                   |
+| Permutation in String          | Fixed       | Frequency arrays      | Frequencies equal                |
+| Find All Anagrams              | Fixed       | Frequency arrays      | Frequencies equal                |
+| Sliding Window Maximum         | Fixed       | Monotonic deque       | Size reaches K                   |
+| Longest No-Repeating Substring | Longest     | HashSet               | Duplicate exists                 |
+| Max Consecutive Ones III       | Longest     | Zero count            | `zeroCount > k`                  |
+| Fruit Into Baskets             | Longest     | Frequency map         | Distinct count > 2               |
+| At Most K Distinct             | Longest     | Frequency map         | Distinct count > K               |
+| Character Replacement          | Longest     | Frequency array       | `length-maxFreq > k`             |
+| Minimum Size Subarray Sum      | Smallest    | Running sum           | Valid when `sum >= target`       |
+| Minimum Window Substring       | Smallest    | Frequency requirement | Valid when no characters missing |
+
+# One Final Shortcut
+
+```text
+Fixed Window:
+Size controls left.
+
+Longest Valid Window:
+Invalidity controls left.
+
+Smallest Satisfying Window:
+Validity controls left.
+```
+
+And the most important code-position rule:
+
+```text
+Fixed:
+Update when size == K
+
+Longest:
+Shrink while invalid
+Then update maximum
+
+Smallest:
+While valid
+Update minimum
+Then shrink
+```
+
