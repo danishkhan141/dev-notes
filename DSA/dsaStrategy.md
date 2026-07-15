@@ -8,6 +8,8 @@
 5. [Sliding Window](#sliding-window--complete-postmortem-for-dsa-interviews)
 6. [Sliding Window Problems](#sliding-window-problems-using-only-3-templates)
 7. [Prefix Sum](#prefix-sum--complete-postmortem-for-dsa-interviews)
+8. [Prefix Sum Problem](#prefix-sum-problems-using-only-3-important-templates)
+9. [Kadane's Algorithm](#kadanes-algorithm--complete-postmortem-for-dsa-interviews)
 
 
 # Prompt
@@ -15439,3 +15441,5216 @@ Accumulate History
 For interviews:
 
 > “Prefix Sum converts a contiguous-range problem into a relationship between two cumulative states. For range queries I subtract two prefix-array values. For exact subarray conditions I combine a running prefix with a HashMap, storing frequency for counting problems and earliest index for longest-length problems.”
+
+# Prefix Sum Problems Using Only 3 Important Templates
+
+# Master Problem Map
+
+```text
+Template 1: Prefix Array for Range Queries
+    → Precompute cumulative values
+    → Answer ranges using subtraction
+
+Template 2: Running Prefix + HashMap
+    → Current Prefix - Previous Prefix = Required Value
+    → Count, longest or existence problems
+
+Template 3: Prefix Transformation / Balance
+    → Convert the original condition into numbers
+    → Then apply Running Prefix + HashMap
+```
+
+## Quick identification
+
+| Problem wording               | Template   |
+| ----------------------------- | ---------- |
+| Sum between indexes L and R   | Template 1 |
+| Multiple range-sum queries    | Template 1 |
+| Left sum versus right sum     | Template 1 |
+| Count subarrays with sum K    | Template 2 |
+| Longest subarray with sum K   | Template 2 |
+| Zero-sum subarray             | Template 2 |
+| Sum divisible by K            | Template 2 |
+| Equal number of 0 and 1       | Template 3 |
+| Exactly K odd numbers         | Template 3 |
+| Binary array sum equals goal  | Template 3 |
+| Equal count of two categories | Template 3 |
+
+---
+
+# Template 1: Prefix Array for Range Queries
+
+# Core Mental Model
+
+```text
+Build cumulative sum once.
+
+Range Sum(L...R)
+=
+prefix[R + 1] - prefix[L]
+```
+
+## Master Template
+
+```java
+long[] prefix = new long[nums.length + 1];
+
+for (int i = 0; i < nums.length; i++) {
+    prefix[i + 1] = prefix[i] + nums[i];
+}
+
+long rangeSum = prefix[right + 1] - prefix[left];
+```
+
+The extra zero means:
+
+```text
+prefix[0] = sum of zero elements
+```
+
+Therefore, no special handling is required when `left == 0`.
+
+---
+
+# Problem 1: Range Sum Query – Immutable
+
+## Problem
+
+Given an integer array, answer multiple queries:
+
+```text
+sumRange(left, right)
+```
+
+Example:
+
+```text
+nums = [-2, 0, 3, -5, 2, -1]
+
+sumRange(0, 2) = 1
+sumRange(2, 5) = -1
+sumRange(0, 5) = -3
+```
+
+## Identification
+
+```text
+Multiple range-sum queries
+Array does not change
+```
+
+Therefore:
+
+```text
+Template 1: Prefix Array
+```
+
+## Java Solution
+
+```java
+public class NumArray {
+
+    private final long[] prefix;
+
+    public NumArray(int[] nums) {
+        prefix = new long[nums.length + 1];
+
+        for (int i = 0; i < nums.length; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+    }
+
+    public long sumRange(int left, int right) {
+        return prefix[right + 1] - prefix[left];
+    }
+}
+```
+
+## Dry Run
+
+```text
+nums   = [-2, 0, 3, -5, 2, -1]
+prefix = [ 0,-2,-2, 1,-4,-2,-3]
+```
+
+Query:
+
+```text
+sumRange(2, 5)
+```
+
+Calculation:
+
+```text
+prefix[6] - prefix[2]
+= -3 - (-2)
+= -1
+```
+
+## Complexity
+
+```text
+Construction: O(n)
+Each query: O(1)
+Space: O(n)
+```
+
+## Interview Line
+
+> “Since the array is immutable and there are multiple range queries, I preprocess a prefix array in O(n), after which every range sum is calculated in O(1).”
+
+---
+
+# Problem 2: Find Pivot Index
+
+## Problem
+
+Find an index where:
+
+```text
+Sum of elements on the left
+=
+Sum of elements on the right
+```
+
+Example:
+
+```text
+nums = [1, 7, 3, 6, 5, 6]
+
+Pivot index = 3
+```
+
+At index `3`:
+
+```text
+Left sum  = 1 + 7 + 3 = 11
+Right sum = 5 + 6     = 11
+```
+
+## Identification
+
+The problem compares:
+
+```text
+Prefix before current index
+Suffix after current index
+```
+
+We can calculate:
+
+```text
+rightSum = totalSum - leftSum - nums[i]
+```
+
+## Java Solution
+
+```java
+public class PivotIndex {
+
+    public int pivotIndex(int[] nums) {
+        long totalSum = 0;
+
+        for (int num : nums) {
+            totalSum += num;
+        }
+
+        long leftSum = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            long rightSum = totalSum - leftSum - nums[i];
+
+            if (leftSum == rightSum) {
+                return i;
+            }
+
+            leftSum += nums[i];
+        }
+
+        return -1;
+    }
+}
+```
+
+## Execution Flow
+
+```text
+totalSum = sum of complete array
+leftSum  = sum before current index
+rightSum = totalSum - leftSum - current element
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+## Interview Line
+
+> “I calculate the total sum first. During traversal, I maintain the left prefix sum and derive the right sum as total minus left minus the current element.”
+
+---
+
+# Problem 3: Number of Ways to Split Array
+
+## Problem
+
+Count indexes where the array can be split such that:
+
+```text
+Left-part sum >= Right-part sum
+```
+
+Both parts must be non-empty.
+
+Example:
+
+```text
+nums = [10, 4, -8, 7]
+```
+
+Possible splits:
+
+```text
+[10] | [4, -8, 7]
+
+left  = 10
+right = 3
+Valid
+```
+
+```text
+[10, 4] | [-8, 7]
+
+left  = 14
+right = -1
+Valid
+```
+
+Answer:
+
+```text
+2
+```
+
+## Identification
+
+This is another:
+
+```text
+Left prefix versus remaining suffix
+```
+
+problem.
+
+## Java Solution
+
+```java
+public class WaysToSplitArray {
+
+    public int waysToSplitArray(int[] nums) {
+        long totalSum = 0;
+
+        for (int num : nums) {
+            totalSum += num;
+        }
+
+        long leftSum = 0;
+        int count = 0;
+
+        // Stop at n - 2 because the right part must be non-empty.
+        for (int i = 0; i < nums.length - 1; i++) {
+            leftSum += nums[i];
+
+            long rightSum = totalSum - leftSum;
+
+            if (leftSum >= rightSum) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+## Interview Line
+
+> “I maintain a running prefix sum for the left part and derive the right part from the total sum, so every split is checked in O(1).”
+
+---
+
+# Problem 4: Range Sum Query 2D – Immutable
+
+This is the matrix extension of Template 1.
+
+## Problem
+
+Given a matrix, repeatedly calculate the sum of a rectangular region.
+
+```text
+(row1, col1) to (row2, col2)
+```
+
+## 2D Formula
+
+```text
+Rectangle Sum
+=
+Whole area until bottom-right
+- Area above
+- Area on the left
++ Double-subtracted top-left overlap
+```
+
+Formula:
+
+```text
+prefix[row2 + 1][col2 + 1]
+- prefix[row1][col2 + 1]
+- prefix[row2 + 1][col1]
++ prefix[row1][col1]
+```
+
+## Java Solution
+
+```java
+public class NumMatrix {
+
+    private final long[][] prefix;
+
+    public NumMatrix(int[][] matrix) {
+        int rows = matrix.length;
+        int columns = rows == 0 ? 0 : matrix[0].length;
+
+        prefix = new long[rows + 1][columns + 1];
+
+        for (int row = 0; row < rows; row++) {
+            for (int column = 0; column < columns; column++) {
+                prefix[row + 1][column + 1] =
+                        matrix[row][column]
+                        + prefix[row][column + 1]
+                        + prefix[row + 1][column]
+                        - prefix[row][column];
+            }
+        }
+    }
+
+    public long sumRegion(
+            int row1,
+            int column1,
+            int row2,
+            int column2
+    ) {
+        return prefix[row2 + 1][column2 + 1]
+                - prefix[row1][column2 + 1]
+                - prefix[row2 + 1][column1]
+                + prefix[row1][column1];
+    }
+}
+```
+
+## Complexity
+
+```text
+Construction: O(rows × columns)
+Each query: O(1)
+Space: O(rows × columns)
+```
+
+## Interview Line
+
+> “A 2D prefix matrix extends the same range-subtraction idea using inclusion-exclusion: whole minus top minus left plus overlap.”
+
+---
+
+# Template 1 Summary
+
+```text
+Problem 1: Range Sum Query
+    → prefix[R + 1] - prefix[L]
+
+Problem 2: Pivot Index
+    → right = total - left - current
+
+Problem 3: Ways to Split Array
+    → right = total - runningLeft
+
+Problem 4: Matrix Range Sum
+    → whole - top - left + overlap
+```
+
+---
+
+# Template 2: Running Prefix + HashMap
+
+# Core Mental Model
+
+Suppose:
+
+```text
+Current Prefix = P
+Required subarray sum = K
+```
+
+We need a previous prefix `X` such that:
+
+```text
+P - X = K
+```
+
+Therefore:
+
+```text
+X = P - K
+```
+
+At every index:
+
+```text
+1. Update running prefix.
+2. Find prefixSum - target.
+3. Use its frequency or index.
+4. Store the current prefix.
+```
+
+---
+
+# Two Important Variants
+
+## Count Variant
+
+Use:
+
+```java
+Map<Long, Integer> prefixFrequency = new HashMap<>();
+prefixFrequency.put(0L, 1);
+```
+
+Map meaning:
+
+```text
+Prefix Sum → Number of occurrences
+```
+
+## Longest Variant
+
+Use:
+
+```java
+Map<Long, Integer> firstIndex = new HashMap<>();
+firstIndex.put(0L, -1);
+```
+
+Map meaning:
+
+```text
+Prefix Sum → Earliest index
+```
+
+---
+
+# Problem 5: Subarray Sum Equals K
+
+## Problem
+
+Count contiguous subarrays whose sum equals `k`.
+
+Example:
+
+```text
+nums = [1, 1, 1]
+k = 2
+
+Valid:
+[1,1] from indexes 0 to 1
+[1,1] from indexes 1 to 2
+
+Answer = 2
+```
+
+## Identification
+
+```text
+Count subarrays
+Exact sum K
+Negative values may be possible
+```
+
+Therefore:
+
+```text
+Running Prefix + Frequency Map
+```
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class SubarraySumEqualsK {
+
+    public int subarraySum(int[] nums, int k) {
+        Map<Long, Integer> prefixFrequency = new HashMap<>();
+
+        prefixFrequency.put(0L, 1);
+
+        long prefixSum = 0;
+        int count = 0;
+
+        for (int num : nums) {
+            prefixSum += num;
+
+            long requiredPrefix = prefixSum - k;
+
+            count += prefixFrequency.getOrDefault(requiredPrefix, 0);
+
+            prefixFrequency.put(
+                    prefixSum,
+                    prefixFrequency.getOrDefault(prefixSum, 0) + 1
+            );
+        }
+
+        return count;
+    }
+}
+```
+
+## Dry Run
+
+```text
+nums = [1, 1, 1]
+k = 2
+```
+
+| Number | Prefix | Required `prefix-k` | Found | Count |
+| -----: | -----: | ------------------: | ----: | ----: |
+|      1 |      1 |                  -1 |     0 |     0 |
+|      1 |      2 |                   0 |     1 |     1 |
+|      1 |      3 |                   1 |     1 |     2 |
+
+## Why `0 → 1`?
+
+It represents the empty prefix before index `0`.
+
+Example:
+
+```text
+nums = [3]
+k = 3
+
+prefix = 3
+required = 3 - 3 = 0
+```
+
+The previous zero prefix allows `[3]` to be counted.
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview Line
+
+> “For each current prefix sum, I search for `prefixSum - k`. Every occurrence of that previous prefix represents a valid subarray ending at the current index.”
+
+---
+
+# Problem 6: Longest Subarray with Sum K
+
+## Problem
+
+Find the maximum length of a contiguous subarray whose sum equals `k`.
+
+Example:
+
+```text
+nums = [10, 5, 2, 7, 1, 9]
+k = 15
+```
+
+Longest valid subarray:
+
+```text
+[5, 2, 7, 1]
+
+Sum = 15
+Length = 4
+```
+
+## Identification
+
+```text
+Longest subarray
+Exact sum K
+Negative values may exist
+```
+
+Therefore:
+
+```text
+Running Prefix + Earliest Index Map
+```
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class LongestSubarraySumK {
+
+    public int longestSubarray(int[] nums, long k) {
+        Map<Long, Integer> firstIndex = new HashMap<>();
+
+        firstIndex.put(0L, -1);
+
+        long prefixSum = 0;
+        int maxLength = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum += nums[i];
+
+            long requiredPrefix = prefixSum - k;
+
+            if (firstIndex.containsKey(requiredPrefix)) {
+                int previousIndex = firstIndex.get(requiredPrefix);
+                int currentLength = i - previousIndex;
+
+                maxLength = Math.max(maxLength, currentLength);
+            }
+
+            firstIndex.putIfAbsent(prefixSum, i);
+        }
+
+        return maxLength;
+    }
+}
+```
+
+## Why Store the Earliest Index?
+
+Length is:
+
+```text
+currentIndex - previousIndex
+```
+
+To maximize length, we need the smallest possible previous index.
+
+Therefore:
+
+```java
+firstIndex.putIfAbsent(prefixSum, i);
+```
+
+We do not overwrite an earlier index.
+
+## Why `0 → -1`?
+
+If the complete range from index `0` to `i` has sum `k`:
+
+```text
+prefixSum - k = 0
+```
+
+Length becomes:
+
+```text
+i - (-1) = i + 1
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview Line
+
+> “For the longest subarray, I store the earliest index of each prefix sum. The earliest matching prefix produces the maximum possible length.”
+
+---
+
+# Problem 7: Longest Zero-Sum Subarray
+
+## Problem
+
+Find the longest contiguous subarray whose sum is zero.
+
+Example:
+
+```text
+nums = [15, -2, 2, -8, 1, 7, 10, 23]
+```
+
+Longest zero-sum subarray:
+
+```text
+[-2, 2, -8, 1, 7]
+
+Length = 5
+```
+
+## Core Observation
+
+For target zero:
+
+```text
+currentPrefix - previousPrefix = 0
+```
+
+Therefore:
+
+```text
+currentPrefix = previousPrefix
+```
+
+Repeated Prefix Sum means the range between the two indexes has sum zero.
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class LongestZeroSumSubarray {
+
+    public int maxLength(int[] nums) {
+        Map<Long, Integer> firstIndex = new HashMap<>();
+
+        firstIndex.put(0L, -1);
+
+        long prefixSum = 0;
+        int maxLength = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum += nums[i];
+
+            if (firstIndex.containsKey(prefixSum)) {
+                int length = i - firstIndex.get(prefixSum);
+                maxLength = Math.max(maxLength, length);
+            } else {
+                firstIndex.put(prefixSum, i);
+            }
+        }
+
+        return maxLength;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview Line
+
+> “If the same prefix sum occurs at two indexes, the elements between those indexes contribute a net sum of zero.”
+
+---
+
+# Problem 8: Subarray Sums Divisible by K
+
+## Problem
+
+Count contiguous subarrays whose sum is divisible by `k`.
+
+Example:
+
+```text
+nums = [4, 5, 0, -2, -3, 1]
+k = 5
+
+Answer = 7
+```
+
+## Core Observation
+
+Suppose two prefix sums have the same remainder:
+
+```text
+prefixA % k = prefixB % k
+```
+
+Then:
+
+```text
+(prefixB - prefixA) % k = 0
+```
+
+Therefore, the subarray between them is divisible by `k`.
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class SubarraySumsDivisibleByK {
+
+    public int subarraysDivByK(int[] nums, int k) {
+        Map<Integer, Integer> remainderFrequency = new HashMap<>();
+
+        remainderFrequency.put(0, 1);
+
+        long prefixSum = 0;
+        int count = 0;
+
+        for (int num : nums) {
+            prefixSum += num;
+
+            int remainder = (int) ((prefixSum % k + k) % k);
+
+            count += remainderFrequency.getOrDefault(remainder, 0);
+
+            remainderFrequency.put(
+                    remainder,
+                    remainderFrequency.getOrDefault(remainder, 0) + 1
+            );
+        }
+
+        return count;
+    }
+}
+```
+
+## Why Normalize the Remainder?
+
+In Java:
+
+```java
+-2 % 5 == -2
+```
+
+We want equivalent remainders to use the same key:
+
+```java
+int remainder = (int) ((prefixSum % k + k) % k);
+```
+
+This converts the remainder into:
+
+```text
+0 to k - 1
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(k)
+```
+
+## Interview Line
+
+> “Two equal prefix remainders mean their difference is divisible by K, so I store the frequency of every normalized remainder.”
+
+---
+
+# Problem 9: Continuous Subarray Sum
+
+## Problem
+
+Check whether the array contains a subarray:
+
+```text
+Length >= 2
+Sum is a multiple of K
+```
+
+Example:
+
+```text
+nums = [23, 2, 4, 6, 7]
+k = 6
+
+[2,4] has sum 6
+Answer = true
+```
+
+## Identification
+
+This is:
+
+```text
+Divisibility
+Existence
+Minimum length constraint
+```
+
+We store:
+
+```text
+Remainder → Earliest index
+```
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class ContinuousSubarraySum {
+
+    public boolean checkSubarraySum(int[] nums, int k) {
+        Map<Integer, Integer> firstIndex = new HashMap<>();
+
+        firstIndex.put(0, -1);
+
+        long prefixSum = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum += nums[i];
+
+            int remainder;
+
+            if (k == 0) {
+                remainder = (int) prefixSum;
+            } else {
+                remainder = (int) ((prefixSum % k + k) % k);
+            }
+
+            if (firstIndex.containsKey(remainder)) {
+                if (i - firstIndex.get(remainder) >= 2) {
+                    return true;
+                }
+            } else {
+                firstIndex.put(remainder, i);
+            }
+        }
+
+        return false;
+    }
+}
+```
+
+## Why Store Earliest Index?
+
+We need a range of length at least two.
+
+Keeping the earliest occurrence gives the greatest distance.
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+---
+
+# Template 2 Summary
+
+```text
+Count exact sum
+    → Map<Prefix, Frequency>
+    → Initial: 0 → 1
+
+Longest exact sum
+    → Map<Prefix, Earliest Index>
+    → Initial: 0 → -1
+
+Zero-sum range
+    → Repeated prefix value
+
+Divisible by K
+    → Repeated prefix remainder
+```
+
+---
+
+# Template 3: Prefix Transformation / Balance
+
+# Core Mental Model
+
+The problem may not directly mention sums.
+
+We transform categories into numbers.
+
+Example:
+
+```text
+Category A → +1
+Category B → -1
+```
+
+Then:
+
+```text
+Equal number of A and B
+=
+Subarray sum is zero
+```
+
+Or:
+
+```text
+Condition satisfied → 1
+Condition not satisfied → 0
+```
+
+Then:
+
+```text
+Exactly K satisfying elements
+=
+Subarray sum equals K
+```
+
+After transformation, use Template 2.
+
+---
+
+# Problem 10: Contiguous Array
+
+## Problem
+
+Given a binary array, find the longest contiguous subarray containing an equal number of `0` and `1`.
+
+Example:
+
+```text
+nums = [0, 1, 0]
+
+Answer = 2
+```
+
+Valid ranges:
+
+```text
+[0,1]
+[1,0]
+```
+
+## Transformation
+
+```text
+0 → -1
+1 → +1
+```
+
+Now:
+
+```text
+Equal number of zeroes and ones
+=
+Subarray sum equals zero
+```
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class ContiguousArray {
+
+    public int findMaxLength(int[] nums) {
+        Map<Integer, Integer> firstIndex = new HashMap<>();
+
+        firstIndex.put(0, -1);
+
+        int balance = 0;
+        int maxLength = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            balance += nums[i] == 0 ? -1 : 1;
+
+            if (firstIndex.containsKey(balance)) {
+                int length = i - firstIndex.get(balance);
+                maxLength = Math.max(maxLength, length);
+            } else {
+                firstIndex.put(balance, i);
+            }
+        }
+
+        return maxLength;
+    }
+}
+```
+
+## Why Repeated Balance Works
+
+If balance is `2` at two different indexes:
+
+```text
+Current balance - Previous balance
+= 2 - 2
+= 0
+```
+
+The middle range has an equal number of `+1` and `-1`.
+
+Therefore, it has equal zeroes and ones.
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview Line
+
+> “I transform zero into minus one and one into plus one. An equal number of zeroes and ones then produces a zero-sum range, identified by a repeated prefix balance.”
+
+---
+
+# Problem 11: Count Subarrays with Equal 0 and 1
+
+## Problem
+
+Count all contiguous subarrays containing an equal number of zeroes and ones.
+
+Example:
+
+```text
+nums = [0, 1, 0]
+
+Valid subarrays:
+[0,1]
+[1,0]
+
+Answer = 2
+```
+
+## Transformation
+
+```text
+0 → -1
+1 → +1
+```
+
+Equal counts mean:
+
+```text
+Subarray sum = 0
+```
+
+Because this is a count problem:
+
+```text
+Map<Balance, Frequency>
+```
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class CountEqualZeroOneSubarrays {
+
+    public int countSubarrays(int[] nums) {
+        Map<Integer, Integer> balanceFrequency = new HashMap<>();
+
+        balanceFrequency.put(0, 1);
+
+        int balance = 0;
+        int count = 0;
+
+        for (int num : nums) {
+            balance += num == 0 ? -1 : 1;
+
+            count += balanceFrequency.getOrDefault(balance, 0);
+
+            balanceFrequency.put(
+                    balance,
+                    balanceFrequency.getOrDefault(balance, 0) + 1
+            );
+        }
+
+        return count;
+    }
+}
+```
+
+## Why Search the Same Balance?
+
+Target is zero:
+
+```text
+currentBalance - previousBalance = 0
+```
+
+Therefore:
+
+```text
+currentBalance = previousBalance
+```
+
+Every previous occurrence creates another valid subarray.
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Important Difference
+
+```text
+Longest equal 0/1
+→ Store earliest index
+
+Count equal 0/1
+→ Store frequency
+```
+
+---
+
+# Problem 12: Binary Subarrays with Sum
+
+## Problem
+
+Given a binary array, count subarrays whose sum equals `goal`.
+
+Example:
+
+```text
+nums = [1, 0, 1, 0, 1]
+goal = 2
+
+Answer = 4
+```
+
+## Transformation
+
+The array is already transformed:
+
+```text
+1 = contributes one
+0 = contributes zero
+```
+
+Therefore, the problem becomes:
+
+```text
+Count subarrays with sum = goal
+```
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class BinarySubarraysWithSum {
+
+    public int numSubarraysWithSum(int[] nums, int goal) {
+        Map<Integer, Integer> prefixFrequency = new HashMap<>();
+
+        prefixFrequency.put(0, 1);
+
+        int prefixSum = 0;
+        int count = 0;
+
+        for (int num : nums) {
+            prefixSum += num;
+
+            count += prefixFrequency.getOrDefault(
+                    prefixSum - goal,
+                    0
+            );
+
+            prefixFrequency.put(
+                    prefixSum,
+                    prefixFrequency.getOrDefault(prefixSum, 0) + 1
+            );
+        }
+
+        return count;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview Line
+
+> “Because the array contains only zero and one, the running prefix directly represents the number of ones seen so far. I then use the exact-target Prefix Sum template.”
+
+---
+
+# Problem 13: Count Number of Nice Subarrays
+
+## Problem
+
+Count contiguous subarrays containing exactly `k` odd numbers.
+
+Example:
+
+```text
+nums = [1, 1, 2, 1, 1]
+k = 3
+
+Answer = 2
+```
+
+Valid subarrays:
+
+```text
+[1,1,2,1]
+[1,2,1,1]
+```
+
+## Transformation
+
+```text
+Odd  → 1
+Even → 0
+```
+
+Now:
+
+```text
+Exactly K odd numbers
+=
+Subarray sum equals K
+```
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class NiceSubarrays {
+
+    public int numberOfSubarrays(int[] nums, int k) {
+        Map<Integer, Integer> prefixFrequency = new HashMap<>();
+
+        prefixFrequency.put(0, 1);
+
+        int oddCount = 0;
+        int result = 0;
+
+        for (int num : nums) {
+            if ((num & 1) != 0) {
+                oddCount++;
+            }
+
+            result += prefixFrequency.getOrDefault(
+                    oddCount - k,
+                    0
+            );
+
+            prefixFrequency.put(
+                    oddCount,
+                    prefixFrequency.getOrDefault(oddCount, 0) + 1
+            );
+        }
+
+        return result;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview Line
+
+> “I transform every odd number into one and every even number into zero. Then the problem becomes counting subarrays with sum K.”
+
+---
+
+# Problem 14: Longest Subarray with Equal Even and Odd Numbers
+
+This is a common interview variation.
+
+## Problem
+
+Find the longest contiguous subarray having an equal number of even and odd values.
+
+Example:
+
+```text
+nums = [2, 3, 4, 7, 8, 9]
+```
+
+The complete array contains:
+
+```text
+Even = 3
+Odd  = 3
+```
+
+Answer:
+
+```text
+6
+```
+
+## Transformation
+
+```text
+Even → +1
+Odd  → -1
+```
+
+Equal even and odd counts mean:
+
+```text
+Balance = 0
+```
+
+## Java Solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class EqualEvenOddSubarray {
+
+    public int longestEqualEvenOdd(int[] nums) {
+        Map<Integer, Integer> firstIndex = new HashMap<>();
+
+        firstIndex.put(0, -1);
+
+        int balance = 0;
+        int maxLength = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            if ((nums[i] & 1) == 0) {
+                balance++;
+            } else {
+                balance--;
+            }
+
+            if (firstIndex.containsKey(balance)) {
+                int length = i - firstIndex.get(balance);
+                maxLength = Math.max(maxLength, length);
+            } else {
+                firstIndex.put(balance, i);
+            }
+        }
+
+        return maxLength;
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview Line
+
+> “I convert even values to plus one and odd values to minus one. Repeated balance means the middle subarray contributes equal numbers of both categories.”
+
+---
+
+# Template 3 Summary
+
+```text
+Equal 0 and 1
+    → 0 becomes -1
+    → 1 becomes +1
+
+Exactly K odd numbers
+    → Odd becomes 1
+    → Even becomes 0
+
+Binary sum equals goal
+    → Existing 0/1 values act as contributions
+
+Equal even and odd
+    → Even becomes +1
+    → Odd becomes -1
+```
+
+---
+
+# The Three Templates Side by Side
+
+| Template                 | State                           | Storage                     | Main Formula                       |
+| ------------------------ | ------------------------------- | --------------------------- | ---------------------------------- |
+| Prefix Array             | Cumulative sum by index         | Array                       | `prefix[R+1] - prefix[L]`          |
+| Running Prefix + HashMap | Running sum/remainder           | Frequency or earliest index | `required = current - target`      |
+| Transformation / Balance | Converted category contribution | Frequency or earliest index | Same balance or transformed target |
+
+---
+
+# The Most Important Map Decision
+
+Whenever Template 2 or Template 3 uses HashMap, ask:
+
+```text
+What does the question want?
+```
+
+## If the question asks for count
+
+Store:
+
+```java
+Map<State, Frequency>
+```
+
+Initialization:
+
+```java
+map.put(0, 1);
+```
+
+Example:
+
+```text
+Count subarrays sum K
+Count equal zero-one subarrays
+Count subarrays divisible by K
+```
+
+## If the question asks for longest
+
+Store:
+
+```java
+Map<State, EarliestIndex>
+```
+
+Initialization:
+
+```java
+map.put(0, -1);
+```
+
+Example:
+
+```text
+Longest subarray sum K
+Longest zero-sum subarray
+Longest equal zero-one subarray
+```
+
+## If the question asks for existence
+
+Store:
+
+```java
+Set<State>
+```
+
+or:
+
+```java
+Map<State, EarliestIndex>
+```
+
+Example:
+
+```text
+Does a subarray with sum K exist?
+Continuous Subarray Sum
+```
+
+---
+
+# Universal Template for Count Problems
+
+```java
+Map<Long, Integer> frequency = new HashMap<>();
+frequency.put(0L, 1);
+
+long state = 0;
+int count = 0;
+
+for (int num : nums) {
+    state += num;
+
+    long requiredState = state - target;
+
+    count += frequency.getOrDefault(requiredState, 0);
+
+    frequency.put(
+            state,
+            frequency.getOrDefault(state, 0) + 1
+    );
+}
+```
+
+Change only:
+
+```text
+How state is updated
+What target means
+```
+
+Examples:
+
+```text
+Normal sum:
+state += num
+
+Odd count:
+state += num is odd ? 1 : 0
+
+Zero-one balance:
+state += num == 0 ? -1 : 1
+
+Even-odd balance:
+state += num is even ? 1 : -1
+```
+
+---
+
+# Universal Template for Longest Problems
+
+```java
+Map<Long, Integer> firstIndex = new HashMap<>();
+firstIndex.put(0L, -1);
+
+long state = 0;
+int maxLength = 0;
+
+for (int i = 0; i < nums.length; i++) {
+    state += nums[i];
+
+    long requiredState = state - target;
+
+    if (firstIndex.containsKey(requiredState)) {
+        int length = i - firstIndex.get(requiredState);
+        maxLength = Math.max(maxLength, length);
+    }
+
+    firstIndex.putIfAbsent(state, i);
+}
+```
+
+For a balance problem where target is zero:
+
+```text
+requiredState = state
+```
+
+Therefore, check whether the same state appeared before.
+
+---
+
+# Top Problems to Practice First
+
+## Priority P0
+
+```text
+1. Range Sum Query – Immutable
+2. Find Pivot Index
+3. Subarray Sum Equals K
+4. Longest Subarray with Sum K
+5. Longest Zero-Sum Subarray
+6. Contiguous Array
+7. Count Number of Nice Subarrays
+8. Subarray Sums Divisible by K
+```
+
+## Priority P1
+
+```text
+9. Number of Ways to Split Array
+10. Binary Subarrays with Sum
+11. Count Subarrays with Equal 0 and 1
+12. Continuous Subarray Sum
+13. Range Sum Query 2D
+14. Equal Even-Odd Subarray
+```
+
+---
+
+# Final Revision Sheet
+
+## Template 1
+
+```text
+Prefix Array for Range Queries
+
+prefix[i + 1] = prefix[i] + nums[i]
+
+sum(L...R)
+=
+prefix[R + 1] - prefix[L]
+```
+
+Use for:
+
+```text
+Range Sum Query
+Pivot Index
+Ways to Split Array
+2D Range Sum
+```
+
+---
+
+## Template 2
+
+```text
+Running Prefix + HashMap
+
+Current Prefix - Old Prefix = Target
+
+Old Prefix = Current Prefix - Target
+```
+
+Use for:
+
+```text
+Subarray Sum Equals K
+Longest Subarray Sum K
+Longest Zero-Sum Subarray
+Subarray Sums Divisible by K
+```
+
+---
+
+## Template 3
+
+```text
+Transform the original condition into numeric contributions.
+
+Category A → +1
+Category B → -1
+
+Condition true  → 1
+Condition false → 0
+```
+
+Use for:
+
+```text
+Equal zeroes and ones
+Equal even and odd
+Exactly K odd values
+Binary subarrays with target sum
+```
+
+---
+
+# Final Mental Shortcut
+
+```text
+Range queries
+→ Prefix Array
+
+Exact sum/count/longest
+→ Running Prefix + HashMap
+
+Equal categories or hidden counting condition
+→ Transform first, then use Prefix + HashMap
+```
+
+The single most important decision is:
+
+```text
+Count   → Store Frequency
+Longest → Store Earliest Index
+Range   → Store Prefix Array
+```
+
+# Kadane’s Algorithm — Complete Postmortem for DSA Interviews
+
+# 1. Kadane’s Algorithm Mental Model
+
+The simplest mental model is:
+
+```text
+Kadane = Keep extending the current subarray while it helps;
+otherwise, discard it and start fresh.
+```
+
+At every element, Kadane asks only one question:
+
+```text
+Is it better to:
+
+1. Extend the previous subarray?
+2. Start a new subarray from the current element?
+```
+
+Mathematically:
+
+```text
+currentBest = max(currentElement, previousCurrentBest + currentElement)
+```
+
+Then:
+
+```text
+globalBest = max(globalBest, currentBest)
+```
+
+## One-line shortcut
+
+```text
+Kadane = Extend or Restart → Keep the best answer seen so far
+```
+
+## Stronger mental model
+
+```text
+currentBest = Best subarray ending exactly at the current index
+globalBest  = Best subarray found anywhere until the current index
+```
+
+These two variables are the heart of Kadane’s Algorithm.
+
+---
+
+# 2. Why Kadane’s Algorithm Exists
+
+Suppose:
+
+```text
+nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
+```
+
+We need the maximum sum of a contiguous subarray.
+
+The answer is:
+
+```text
+[4, -1, 2, 1]
+
+Sum = 6
+```
+
+A brute-force solution generates every possible subarray.
+
+For an array of size `n`:
+
+```text
+Number of subarrays = n × (n + 1) / 2
+```
+
+Possible complexities:
+
+```text
+Three loops: O(n³)
+Two loops + running sum: O(n²)
+Prefix Sum + two loops: O(n²)
+Kadane: O(n)
+```
+
+Kadane exists because we do not need to remember every subarray.
+
+We only need:
+
+```text
+1. The best subarray ending at the previous index.
+2. The best answer found anywhere so far.
+```
+
+The main optimization is:
+
+```text
+Discard any previous running subarray that makes the future sum worse.
+```
+
+---
+
+# 3. Master Kadane Diagram
+
+```mermaid
+flowchart TD
+    A[Contiguous Array Problem] --> B{Need maximum or minimum value?}
+
+    B -- No --> C[Consider another pattern]
+    B -- Yes --> D{Can answer at index i depend on best ending at i-1?}
+
+    D -- No --> C
+    D -- Yes --> E[Define Current State]
+
+    E --> F[Option 1: Start from current element]
+    E --> G[Option 2: Extend previous segment]
+
+    F --> H[currentBest = max current, previousCurrent + current]
+    G --> H
+
+    H --> I[Update globalBest]
+
+    I --> J{More elements?}
+    J -- Yes --> E
+    J -- No --> K[Return globalBest]
+
+    C --> L[Sliding Window / Prefix Sum / DP / Greedy]
+```
+
+---
+
+# 4. The Fundamental Decision
+
+At index `i`, assume:
+
+```text
+nums[i] = x
+```
+
+The maximum subarray ending exactly at index `i` has only two possibilities.
+
+## Possibility 1: Start a new subarray
+
+```text
+[x]
+```
+
+Sum:
+
+```text
+x
+```
+
+## Possibility 2: Extend the previous subarray
+
+```text
+Previous best subarray ending at i - 1 + x
+```
+
+Sum:
+
+```text
+currentBest + x
+```
+
+Therefore:
+
+```text
+currentBest = max(x, currentBest + x)
+```
+
+After calculating the best ending at index `i`, compare it with the overall answer:
+
+```text
+globalBest = max(globalBest, currentBest)
+```
+
+This gives the complete recurrence:
+
+```text
+bestEndingAt[i] =
+    max(
+        nums[i],
+        bestEndingAt[i - 1] + nums[i]
+    )
+```
+
+And:
+
+```text
+answer = maximum value among all bestEndingAt[i]
+```
+
+---
+
+# 5. The Two-State Mental Model
+
+Kadane can be remembered using two states.
+
+| State         | Meaning                                                  |
+| ------------- | -------------------------------------------------------- |
+| `currentBest` | Maximum subarray sum ending exactly at the current index |
+| `globalBest`  | Maximum subarray sum found anywhere so far               |
+
+Example:
+
+```text
+nums = [4, -1, 2]
+```
+
+At `4`:
+
+```text
+currentBest = 4
+globalBest = 4
+```
+
+At `-1`:
+
+```text
+Start new:     -1
+Extend old: 4 + -1 = 3
+
+currentBest = 3
+globalBest = 4
+```
+
+At `2`:
+
+```text
+Start new:   2
+Extend old: 3 + 2 = 5
+
+currentBest = 5
+globalBest = 5
+```
+
+Final answer:
+
+```text
+5
+```
+
+---
+
+# 6. What Does “Ending at Current Index” Mean?
+
+This phrase is extremely important.
+
+Suppose:
+
+```text
+nums = [5, -2, 3]
+```
+
+At index `2`, the subarray must include `nums[2]`.
+
+Possible subarrays ending at index `2` are:
+
+```text
+[3]
+[-2, 3]
+[5, -2, 3]
+```
+
+Their sums are:
+
+```text
+3
+1
+6
+```
+
+Therefore:
+
+```text
+Best subarray ending at index 2 = [5, -2, 3]
+Sum = 6
+```
+
+Kadane does not compare all these subarrays directly.
+
+It uses:
+
+```text
+Best ending at index 1 = 3
+```
+
+Then:
+
+```text
+max(
+    nums[2],
+    bestEndingAtIndex1 + nums[2]
+)
+
+= max(3, 3 + 3)
+= 6
+```
+
+The previous state already summarizes all useful history.
+
+---
+
+# 7. Why a Negative Running Sum Should Be Discarded
+
+Suppose the running subarray has sum:
+
+```text
+-5
+```
+
+The next element is:
+
+```text
+8
+```
+
+You have two choices:
+
+```text
+Extend previous: -5 + 8 = 3
+Start fresh:      8
+```
+
+Starting fresh is better.
+
+More generally, when:
+
+```text
+previousCurrentBest < 0
+```
+
+Then:
+
+```text
+previousCurrentBest + nums[i] < nums[i]
+```
+
+Therefore, a negative previous sum can never help a future maximum-sum subarray.
+
+This is the greedy intuition behind Kadane:
+
+```text
+Negative baggage should be discarded.
+```
+
+However, the safest implementation is not to manually reset blindly.
+
+Use:
+
+```java
+currentBest = Math.max(nums[i], currentBest + nums[i]);
+```
+
+This automatically decides whether to extend or restart.
+
+---
+
+# 8. How to Identify Kadane’s Algorithm Problems
+
+Look for a combination of these signals.
+
+## Signal 1: Contiguous Segment
+
+Problem words:
+
+```text
+Subarray
+Contiguous segment
+Consecutive elements
+Continuous sequence
+Range of adjacent elements
+```
+
+Kadane only works directly on contiguous selections.
+
+It is not for arbitrary subsequences.
+
+---
+
+## Signal 2: Maximum or Minimum Aggregate
+
+Problem asks for:
+
+```text
+Maximum subarray sum
+Minimum subarray sum
+Maximum profit over a continuous period
+Maximum gain
+Maximum score from consecutive elements
+Largest continuous total
+Best continuous streak
+Maximum absolute subarray sum
+```
+
+Think:
+
+```text
+Kadane or a Kadane variation
+```
+
+---
+
+## Signal 3: At Every Index, Extend or Restart
+
+Ask:
+
+```text
+Can the best segment ending here be calculated from:
+
+1. The current element alone?
+2. The best segment ending at the previous index plus the current element?
+```
+
+If yes, Kadane is a strong possibility.
+
+---
+
+## Signal 4: Previous Bad Segment Can Be Discarded
+
+If a previous running result makes every future answer worse, it can be discarded.
+
+For maximum sum:
+
+```text
+Negative running sum is harmful.
+```
+
+For minimum sum:
+
+```text
+Positive running sum is harmful.
+```
+
+---
+
+## Signal 5: Need Only the Best Value, Not Every Range
+
+Kadane is useful when the problem asks for:
+
+```text
+One maximum/minimum answer
+One best contiguous segment
+```
+
+If the problem asks for many arbitrary range queries, Prefix Sum may be more suitable.
+
+---
+
+# 9. Kadane Identification Decision Tree
+
+```mermaid
+flowchart TD
+    A[Array Problem] --> B{Selection must be contiguous?}
+
+    B -- No --> C[Not classic Kadane]
+    B -- Yes --> D{Need maximum/minimum aggregate?}
+
+    D -- No --> E[Sliding Window / Prefix Sum / Other]
+    D -- Yes --> F{Fixed window size?}
+
+    F -- Yes --> G[Fixed Sliding Window]
+    F -- No --> H{Need exact target or count?}
+
+    H -- Yes --> I[Prefix Sum + HashMap]
+    H -- No --> J{Can each index choose extend or restart?}
+
+    J -- Yes --> K[Kadane]
+    J -- No --> L[General DP / Other Pattern]
+
+    K --> M{Variation?}
+    M --> M1[Maximum Sum]
+    M --> M2[Minimum Sum]
+    M --> M3[Circular Array]
+    M --> M4[Maximum Product]
+    M --> M5[One Deletion]
+    M --> M6[2D Matrix]
+```
+
+---
+
+# 10. Kadane vs Previously Covered Patterns
+
+You have already covered:
+
+```text
+HashMap
+Two Pointers
+Sliding Window
+Prefix Sum
+```
+
+Kadane is closely related to all of them, but its purpose is different.
+
+## Comparison Table
+
+| Pattern        | Main Question                                               | Typical Use                                    |
+| -------------- | ----------------------------------------------------------- | ---------------------------------------------- |
+| HashMap        | What have I seen before?                                    | Lookup, frequency, complement, grouping        |
+| Two Pointers   | Which pointer should move?                                  | Pair, partition, sorted arrays, opposite ends  |
+| Sliding Window | How do I maintain a valid window?                           | Longest/shortest window satisfying a condition |
+| Prefix Sum     | Which previous cumulative state creates the required range? | Exact sum, count, range query                  |
+| Kadane         | Should I extend the current segment or restart?             | Best maximum/minimum contiguous segment        |
+
+---
+
+# 11. Kadane vs Sliding Window
+
+Both process contiguous ranges, but they solve different problem shapes.
+
+## Sliding Window
+
+Sliding Window maintains explicit boundaries:
+
+```text
+left
+right
+```
+
+It usually has a validity condition:
+
+```text
+While window is invalid:
+    shrink from left
+```
+
+Example:
+
+```text
+Longest substring without repeating characters
+Minimum size subarray sum
+Maximum sum subarray of fixed size K
+```
+
+## Kadane
+
+Kadane normally does not maintain a validity condition.
+
+It maintains the best score ending at the current index:
+
+```text
+currentBest = max(start fresh, extend previous)
+```
+
+Example:
+
+```text
+Maximum subarray sum
+Minimum subarray sum
+Maximum product subarray
+```
+
+## Quick Difference
+
+```text
+Sliding Window:
+Expand → Check validity → Shrink
+
+Kadane:
+Extend → Compare with restart → Keep best
+```
+
+## Identification Rule
+
+```text
+Fixed size K
+→ Fixed Sliding Window
+
+Longest/smallest window satisfying a condition
+→ Variable Sliding Window
+
+Maximum unrestricted contiguous sum
+→ Kadane
+```
+
+---
+
+# 12. Kadane vs Prefix Sum
+
+Prefix Sum calculates the value of a chosen range.
+
+Kadane discovers which range is best.
+
+## Prefix Sum
+
+```text
+sum(L...R) = prefix[R + 1] - prefix[L]
+```
+
+Useful when:
+
+```text
+L and R are given
+Many range queries exist
+Need exact target
+Need number of subarrays
+Need longest subarray with exact sum
+```
+
+## Kadane
+
+```text
+currentBest = max(nums[i], currentBest + nums[i])
+```
+
+Useful when:
+
+```text
+L and R are unknown
+Need the maximum/minimum range
+Only the best answer matters
+```
+
+## Important Relationship
+
+Maximum subarray can also be expressed using Prefix Sum:
+
+```text
+Subarray sum ending at i
+=
+currentPrefix - minimumPrefixSeenEarlier
+```
+
+Therefore:
+
+```text
+Maximum Subarray Sum
+=
+Maximum of currentPrefix - minimumPreviousPrefix
+```
+
+Kadane compresses this idea into a simpler local-state transition.
+
+---
+
+# 13. Kadane vs Dynamic Programming
+
+Kadane is technically a one-dimensional Dynamic Programming optimization.
+
+The full DP definition is:
+
+```text
+dp[i] = Maximum subarray sum ending exactly at index i
+```
+
+Transition:
+
+```text
+dp[i] = max(nums[i], dp[i - 1] + nums[i])
+```
+
+Answer:
+
+```text
+max(dp[i])
+```
+
+Space using DP array:
+
+```text
+O(n)
+```
+
+But `dp[i]` depends only on `dp[i - 1]`.
+
+Therefore, replace the array with one variable:
+
+```text
+currentBest
+```
+
+Space becomes:
+
+```text
+O(1)
+```
+
+So:
+
+```text
+Kadane = Space-optimized one-dimensional DP
+```
+
+It also has greedy intuition because it discards harmful negative history.
+
+## Interview Answer
+
+> “Kadane’s Algorithm can be viewed as a one-dimensional DP. The state represents the maximum subarray sum ending at the current index. Since the state depends only on the previous index, the DP array can be optimized to constant space.”
+
+---
+
+# 14. Brute Force to Kadane Evolution
+
+Understanding the optimization journey is important in interviews.
+
+## Approach 1: Generate Every Subarray
+
+```java
+public static int maxSubArrayBruteForce(int[] nums) {
+    int maximum = Integer.MIN_VALUE;
+
+    for (int left = 0; left < nums.length; left++) {
+        for (int right = left; right < nums.length; right++) {
+            int sum = 0;
+
+            for (int i = left; i <= right; i++) {
+                sum += nums[i];
+            }
+
+            maximum = Math.max(maximum, sum);
+        }
+    }
+
+    return maximum;
+}
+```
+
+Complexity:
+
+```text
+Time:  O(n³)
+Space: O(1)
+```
+
+---
+
+## Approach 2: Maintain Running Sum
+
+```java
+public static int maxSubArrayQuadratic(int[] nums) {
+    int maximum = Integer.MIN_VALUE;
+
+    for (int left = 0; left < nums.length; left++) {
+        int sum = 0;
+
+        for (int right = left; right < nums.length; right++) {
+            sum += nums[right];
+            maximum = Math.max(maximum, sum);
+        }
+    }
+
+    return maximum;
+}
+```
+
+Complexity:
+
+```text
+Time:  O(n²)
+Space: O(1)
+```
+
+---
+
+## Approach 3: Prefix Sum
+
+Build prefix once and calculate each range in constant time.
+
+However, there are still O(n²) possible ranges.
+
+```text
+Time:  O(n²)
+Space: O(n)
+```
+
+---
+
+## Approach 4: Dynamic Programming
+
+```text
+dp[i] = best sum ending at i
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(n)
+```
+
+---
+
+## Approach 5: Space-Optimized DP — Kadane
+
+Store only the previous state.
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 15. Classic Kadane Dry Run
+
+Input:
+
+```text
+nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
+```
+
+Initialize:
+
+```text
+currentBest = -2
+globalBest  = -2
+```
+
+| Index | Element | Start New | Extend Previous | `currentBest` | `globalBest` |
+| ----: | ------: | --------: | --------------: | ------------: | -----------: |
+|     0 |      -2 |        -2 |               — |            -2 |           -2 |
+|     1 |       1 |         1 |     -2 + 1 = -1 |             1 |            1 |
+|     2 |      -3 |        -3 |      1 - 3 = -2 |            -2 |            1 |
+|     3 |       4 |         4 |      -2 + 4 = 2 |             4 |            4 |
+|     4 |      -1 |        -1 |       4 - 1 = 3 |             3 |            4 |
+|     5 |       2 |         2 |       3 + 2 = 5 |             5 |            5 |
+|     6 |       1 |         1 |       5 + 1 = 6 |             6 |            6 |
+|     7 |      -5 |        -5 |       6 - 5 = 1 |             1 |            6 |
+|     8 |       4 |         4 |       1 + 4 = 5 |             5 |            6 |
+
+Final answer:
+
+```text
+6
+```
+
+Subarray:
+
+```text
+[4, -1, 2, 1]
+```
+
+---
+
+# 16. Visual Dry Run
+
+```mermaid
+flowchart LR
+    A[-2] --> B[Restart at 1]
+    B --> C[Extend with -3: current -2]
+    C --> D[Restart at 4]
+    D --> E[Extend with -1: current 3]
+    E --> F[Extend with 2: current 5]
+    F --> G[Extend with 1: current 6]
+    G --> H[Extend with -5: current 1]
+    H --> I[Extend with 4: current 5]
+
+    G --> J[Global Best = 6]
+```
+
+---
+
+# 17. Most Important Kadane Template
+
+```java
+public static int maxSubArray(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        throw new IllegalArgumentException("Array must not be empty");
+    }
+
+    int currentBest = nums[0];
+    int globalBest = nums[0];
+
+    for (int i = 1; i < nums.length; i++) {
+        currentBest = Math.max(
+                nums[i],
+                currentBest + nums[i]
+        );
+
+        globalBest = Math.max(globalBest, currentBest);
+    }
+
+    return globalBest;
+}
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+## Template to Memorize
+
+```java
+current = nums[0];
+answer = nums[0];
+
+for (int i = 1; i < nums.length; i++) {
+    current = Math.max(nums[i], current + nums[i]);
+    answer = Math.max(answer, current);
+}
+```
+
+Mental shortcut:
+
+```text
+Current = Best ending here
+Answer  = Best found anywhere
+```
+
+---
+
+# 18. Why Initialize with `nums[0]`?
+
+A common incorrect implementation is:
+
+```java
+int current = 0;
+int maximum = 0;
+```
+
+This fails for an all-negative array.
+
+Example:
+
+```text
+nums = [-8, -3, -6, -2, -5]
+```
+
+The correct answer is:
+
+```text
+-2
+```
+
+But initialization with zero may return:
+
+```text
+0
+```
+
+There is no subarray with sum zero unless an empty subarray is allowed.
+
+Classic Maximum Subarray requires a non-empty subarray.
+
+Therefore use:
+
+```java
+int currentBest = nums[0];
+int globalBest = nums[0];
+```
+
+---
+
+# 19. All-Negative Array Dry Run
+
+Input:
+
+```text
+[-8, -3, -6, -2, -5]
+```
+
+| Element | Start New | Extend | Current | Global |
+| ------: | --------: | -----: | ------: | -----: |
+|      -8 |        -8 |      — |      -8 |     -8 |
+|      -3 |        -3 |    -11 |      -3 |     -3 |
+|      -6 |        -6 |     -9 |      -6 |     -3 |
+|      -2 |        -2 |     -8 |      -2 |     -2 |
+|      -5 |        -5 |     -7 |      -5 |     -2 |
+
+Answer:
+
+```text
+-2
+```
+
+Kadane automatically selects the least-negative element.
+
+---
+
+# 20. Alternative Reset-to-Zero Template
+
+You may also see:
+
+```java
+public static int maxSubArrayResetStyle(int[] nums) {
+    int runningSum = 0;
+    int maximum = Integer.MIN_VALUE;
+
+    for (int num : nums) {
+        runningSum += num;
+        maximum = Math.max(maximum, runningSum);
+
+        if (runningSum < 0) {
+            runningSum = 0;
+        }
+    }
+
+    return maximum;
+}
+```
+
+This works because:
+
+```text
+1. Update maximum before resetting.
+2. Maximum starts from Integer.MIN_VALUE.
+```
+
+However, the extend-or-restart version is better for interviews:
+
+```java
+current = Math.max(num, current + num);
+```
+
+Why?
+
+```text
+It directly expresses the recurrence.
+It handles all-negative input naturally.
+It generalizes more easily to Kadane variations.
+It is easier to explain as DP.
+```
+
+---
+
+# 21. Finding the Actual Subarray Indices
+
+Sometimes the interviewer asks:
+
+```text
+Return the maximum sum along with the start and end indices.
+```
+
+We need three types of tracking:
+
+```text
+candidateStart = Where the current candidate subarray starts
+bestStart      = Start of the global best
+bestEnd        = End of the global best
+```
+
+## Java Implementation
+
+```java
+public class KadaneWithIndices {
+
+    public static final class Result {
+        private final int maxSum;
+        private final int startIndex;
+        private final int endIndex;
+
+        public Result(int maxSum, int startIndex, int endIndex) {
+            this.maxSum = maxSum;
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
+        }
+
+        public int getMaxSum() {
+            return maxSum;
+        }
+
+        public int getStartIndex() {
+            return startIndex;
+        }
+
+        public int getEndIndex() {
+            return endIndex;
+        }
+
+        @Override
+        public String toString() {
+            return "Result{" +
+                    "maxSum=" + maxSum +
+                    ", startIndex=" + startIndex +
+                    ", endIndex=" + endIndex +
+                    '}';
+        }
+    }
+
+    public static Result maxSubArray(int[] nums) {
+        if (nums == null || nums.length == 0) {
+            throw new IllegalArgumentException("Array must not be empty");
+        }
+
+        int currentSum = nums[0];
+        int maxSum = nums[0];
+
+        int candidateStart = 0;
+        int bestStart = 0;
+        int bestEnd = 0;
+
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] > currentSum + nums[i]) {
+                currentSum = nums[i];
+                candidateStart = i;
+            } else {
+                currentSum += nums[i];
+            }
+
+            if (currentSum > maxSum) {
+                maxSum = currentSum;
+                bestStart = candidateStart;
+                bestEnd = i;
+            }
+        }
+
+        return new Result(maxSum, bestStart, bestEnd);
+    }
+}
+```
+
+For:
+
+```text
+[-2, 1, -3, 4, -1, 2, 1, -5, 4]
+```
+
+Result:
+
+```text
+maxSum    = 6
+startIndex = 3
+endIndex   = 6
+```
+
+Subarray:
+
+```text
+[4, -1, 2, 1]
+```
+
+---
+
+# 22. Index Tracking Mental Model
+
+```mermaid
+flowchart TD
+    A[Process nums i] --> B{Start new is better?}
+
+    B -- Yes --> C[currentSum = nums i]
+    C --> D[candidateStart = i]
+
+    B -- No --> E[currentSum += nums i]
+
+    D --> F{currentSum beats globalBest?}
+    E --> F
+
+    F -- Yes --> G[bestStart = candidateStart]
+    G --> H[bestEnd = i]
+    H --> I[Update globalBest]
+
+    F -- No --> J[Continue]
+    I --> J
+```
+
+---
+
+# 23. Tie-Breaking Rules
+
+Sometimes multiple subarrays have the same maximum sum.
+
+Example:
+
+```text
+[1, -1, 1]
+```
+
+Maximum sum:
+
+```text
+1
+```
+
+Possible answers:
+
+```text
+[1] at index 0
+[1, -1, 1] from index 0 to 2
+[1] at index 2
+```
+
+The problem may require:
+
+```text
+Earliest subarray
+Shortest subarray
+Longest subarray
+Smallest starting index
+Smallest ending index
+```
+
+Tie-breaking must be added explicitly.
+
+## Preserve the First Maximum
+
+Update only when:
+
+```java
+if (currentSum > maxSum)
+```
+
+Not:
+
+```java
+if (currentSum >= maxSum)
+```
+
+## Prefer the Latest Maximum
+
+Use:
+
+```java
+if (currentSum >= maxSum)
+```
+
+## Prefer the Shortest Maximum Subarray
+
+When sums are equal, compare lengths:
+
+```java
+int currentLength = i - candidateStart + 1;
+int bestLength = bestEnd - bestStart + 1;
+
+if (currentSum > maxSum ||
+        (currentSum == maxSum && currentLength < bestLength)) {
+    maxSum = currentSum;
+    bestStart = candidateStart;
+    bestEnd = i;
+}
+```
+
+Always clarify tie-breaking requirements with the interviewer.
+
+---
+
+# 24. Correctness Invariant
+
+An invariant is a statement that remains true after every iteration.
+
+For Kadane:
+
+```text
+After processing index i:
+
+currentBest =
+maximum sum of every non-empty subarray ending exactly at i.
+
+globalBest =
+maximum sum of every non-empty subarray contained within indices 0...i.
+```
+
+## Why `currentBest` Is Correct
+
+Every subarray ending at index `i` is either:
+
+```text
+1. Only nums[i]
+2. A subarray ending at i - 1, extended by nums[i]
+```
+
+Among all subarrays from category 2, only the best one ending at `i - 1` matters.
+
+Therefore:
+
+```text
+currentBest =
+max(nums[i], previousCurrentBest + nums[i])
+```
+
+## Why `globalBest` Is Correct
+
+Once `currentBest` is calculated, the global answer is either:
+
+```text
+1. The old global answer
+2. The new best subarray ending at i
+```
+
+Therefore:
+
+```text
+globalBest = max(globalBest, currentBest)
+```
+
+---
+
+# 25. Three Most Important Kadane Templates
+
+Most Kadane-family problems can be understood using three templates.
+
+## Template 1: Single-State Kadane
+
+Used for:
+
+```text
+Maximum subarray sum
+Minimum subarray sum
+Best continuous gain
+Maximum alternating state when only one previous state is needed
+```
+
+Shape:
+
+```java
+current = best(startNew, extendPrevious);
+answer = best(answer, current);
+```
+
+---
+
+## Template 2: Dual-State Kadane
+
+Track two states simultaneously.
+
+Used for:
+
+```text
+Maximum product subarray
+Maximum absolute subarray sum
+Circular maximum subarray
+```
+
+Examples:
+
+```text
+Track maximum and minimum ending here.
+Track maximum and minimum total.
+```
+
+Shape:
+
+```java
+newMax = ...
+newMin = ...
+
+globalMax = ...
+globalMin = ...
+```
+
+---
+
+## Template 3: Multi-State Kadane
+
+Track whether a special operation has been used.
+
+Used for:
+
+```text
+Maximum subarray with one deletion
+Maximum subarray with one replacement
+Maximum subarray with one multiplication
+Maximum subarray with at most K modifications
+```
+
+Shape:
+
+```text
+stateWithoutOperation
+stateWithOperation
+```
+
+Transition:
+
+```text
+Continue same state
+or
+Use the special operation now
+```
+
+---
+
+# 26. Template 1 — Minimum Subarray Sum
+
+For maximum sum:
+
+```java
+currentMax = Math.max(num, currentMax + num);
+```
+
+For minimum sum, reverse `max` to `min`:
+
+```java
+currentMin = Math.min(num, currentMin + num);
+```
+
+## Java Code
+
+```java
+public static int minSubArray(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        throw new IllegalArgumentException("Array must not be empty");
+    }
+
+    int currentMin = nums[0];
+    int globalMin = nums[0];
+
+    for (int i = 1; i < nums.length; i++) {
+        currentMin = Math.min(nums[i], currentMin + nums[i]);
+        globalMin = Math.min(globalMin, currentMin);
+    }
+
+    return globalMin;
+}
+```
+
+Mental model:
+
+```text
+For minimum sum:
+
+A positive previous segment is harmful.
+A negative previous segment is helpful.
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 27. Maximum Circular Subarray Sum
+
+In a circular array, a valid subarray may wrap from the end to the beginning.
+
+Example:
+
+```text
+nums = [5, -3, 5]
+```
+
+Normal maximum:
+
+```text
+[5, -3, 5] = 7
+```
+
+Circular maximum:
+
+```text
+[5 from end] + [5 from beginning] = 10
+```
+
+## Core Idea
+
+There are two cases.
+
+### Case 1: Non-Wrapping Maximum
+
+Use normal Kadane:
+
+```text
+normalMaximum = maxSubArray(nums)
+```
+
+### Case 2: Wrapping Maximum
+
+A wrapping maximum contains:
+
+```text
+Suffix + Prefix
+```
+
+Equivalently, remove the minimum subarray from the middle:
+
+```text
+wrappingMaximum = totalSum - minimumSubarraySum
+```
+
+Final answer:
+
+```text
+max(normalMaximum, totalSum - minimumSubarraySum)
+```
+
+---
+
+# 28. Circular Array Visual Model
+
+```mermaid
+flowchart TD
+    A[Circular Maximum Subarray] --> B[Case 1: Does not wrap]
+    A --> C[Case 2: Wraps]
+
+    B --> D[Normal Maximum Kadane]
+
+    C --> E[Take Whole Array]
+    E --> F[Remove Minimum Middle Subarray]
+    F --> G[Wrapping Maximum = Total - Minimum]
+
+    D --> H[Answer = max Normal, Wrapping]
+    G --> H
+```
+
+---
+
+# 29. Circular Array All-Negative Trap
+
+Consider:
+
+```text
+[-3, -2, -5]
+```
+
+Total:
+
+```text
+-10
+```
+
+Minimum subarray:
+
+```text
+-10
+```
+
+Then:
+
+```text
+total - minimum = -10 - (-10) = 0
+```
+
+But zero represents removing the entire array, leaving an empty subarray.
+
+A non-empty subarray is required.
+
+Therefore:
+
+```text
+If normalMaximum < 0:
+    return normalMaximum
+```
+
+---
+
+# 30. Maximum Circular Subarray Java Code
+
+```java
+public static int maxSubarraySumCircular(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        throw new IllegalArgumentException("Array must not be empty");
+    }
+
+    int totalSum = nums[0];
+
+    int currentMax = nums[0];
+    int globalMax = nums[0];
+
+    int currentMin = nums[0];
+    int globalMin = nums[0];
+
+    for (int i = 1; i < nums.length; i++) {
+        int num = nums[i];
+
+        currentMax = Math.max(num, currentMax + num);
+        globalMax = Math.max(globalMax, currentMax);
+
+        currentMin = Math.min(num, currentMin + num);
+        globalMin = Math.min(globalMin, currentMin);
+
+        totalSum += num;
+    }
+
+    if (globalMax < 0) {
+        return globalMax;
+    }
+
+    int wrappingMax = totalSum - globalMin;
+
+    return Math.max(globalMax, wrappingMax);
+}
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 31. Maximum Product Subarray
+
+Maximum Product Subarray looks similar to Maximum Sum, but multiplication introduces a complication:
+
+```text
+Negative × Negative = Positive
+```
+
+A very small negative product can become the largest positive product after multiplying by another negative number.
+
+Therefore, we must track:
+
+```text
+currentMaxProduct
+currentMinProduct
+```
+
+## Why Track Minimum?
+
+Suppose:
+
+```text
+currentMin = -12
+currentElement = -3
+```
+
+Then:
+
+```text
+-12 × -3 = 36
+```
+
+The previous minimum becomes the new maximum.
+
+---
+
+# 32. Maximum Product Transition
+
+At each element `num`, the new maximum can be:
+
+```text
+1. num
+2. previousMax × num
+3. previousMin × num
+```
+
+Similarly, the new minimum can be:
+
+```text
+1. num
+2. previousMax × num
+3. previousMin × num
+```
+
+Formulas:
+
+```text
+newMax = max(num, previousMax × num, previousMin × num)
+newMin = min(num, previousMax × num, previousMin × num)
+```
+
+---
+
+# 33. Maximum Product Subarray Java Code
+
+```java
+public static int maxProductSubArray(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        throw new IllegalArgumentException("Array must not be empty");
+    }
+
+    int currentMax = nums[0];
+    int currentMin = nums[0];
+    int globalMax = nums[0];
+
+    for (int i = 1; i < nums.length; i++) {
+        int num = nums[i];
+
+        int previousMax = currentMax;
+        int previousMin = currentMin;
+
+        currentMax = Math.max(
+                num,
+                Math.max(previousMax * num, previousMin * num)
+        );
+
+        currentMin = Math.min(
+                num,
+                Math.min(previousMax * num, previousMin * num)
+        );
+
+        globalMax = Math.max(globalMax, currentMax);
+    }
+
+    return globalMax;
+}
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 34. Maximum Product Shortcut
+
+```text
+Maximum Sum:
+Track one current maximum.
+
+Maximum Product:
+Track current maximum and current minimum,
+because a negative minimum may become a positive maximum.
+```
+
+---
+
+# 35. Maximum Subarray Sum with One Deletion
+
+Problem shape:
+
+```text
+Find the maximum contiguous subarray sum.
+You may delete at most one element.
+The remaining subarray must be non-empty.
+```
+
+Example:
+
+```text
+[1, -2, 0, 3]
+```
+
+Without deletion:
+
+```text
+[0, 3] = 3
+```
+
+Delete `-2`:
+
+```text
+[1, 0, 3] = 4
+```
+
+We need two states.
+
+```text
+keep = Best sum ending here without deletion
+drop = Best sum ending here after using one deletion
+```
+
+## Transitions
+
+Without deletion:
+
+```text
+newKeep = max(num, keep + num)
+```
+
+After one deletion:
+
+```text
+newDrop = max(
+    oldDrop + num,  // deletion was used earlier
+    oldKeep         // delete the current element
+)
+```
+
+---
+
+# 36. One-Deletion State Diagram
+
+```mermaid
+flowchart TD
+    A[Process current number] --> B[State: No deletion used]
+    A --> C[State: One deletion used]
+
+    B --> D[Start new at current]
+    B --> E[Extend without deletion]
+
+    C --> F[Extend state where deletion was used earlier]
+    C --> G[Delete current element using previous no-deletion state]
+
+    D --> H[newKeep]
+    E --> H
+
+    F --> I[newDrop]
+    G --> I
+
+    H --> J[Update answer]
+    I --> J
+```
+
+---
+
+# 37. Maximum Subarray with One Deletion Java Code
+
+```java
+public static int maximumSumWithOneDeletion(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        throw new IllegalArgumentException("Array must not be empty");
+    }
+
+    int keep = nums[0];
+    int drop = Integer.MIN_VALUE;
+    int answer = nums[0];
+
+    for (int i = 1; i < nums.length; i++) {
+        int num = nums[i];
+
+        int previousKeep = keep;
+        int previousDrop = drop;
+
+        keep = Math.max(num, previousKeep + num);
+
+        drop = Math.max(
+                previousKeep,
+                previousDrop == Integer.MIN_VALUE
+                        ? Integer.MIN_VALUE
+                        : previousDrop + num
+        );
+
+        answer = Math.max(answer, Math.max(keep, drop));
+    }
+
+    return answer;
+}
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+This is Kadane extended with multiple DP states.
+
+---
+
+# 38. Maximum Absolute Subarray Sum
+
+The absolute value of a subarray sum is:
+
+```text
+abs(sum)
+```
+
+The largest absolute value can come from:
+
+```text
+1. A very large positive subarray sum
+2. A very large negative subarray sum
+```
+
+Therefore:
+
+```text
+answer = max(
+    maximumSubarraySum,
+    absoluteValue(minimumSubarraySum)
+)
+```
+
+## Java Code
+
+```java
+public static int maxAbsoluteSubarraySum(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        throw new IllegalArgumentException("Array must not be empty");
+    }
+
+    int currentMax = 0;
+    int globalMax = 0;
+
+    int currentMin = 0;
+    int globalMin = 0;
+
+    for (int num : nums) {
+        currentMax = Math.max(0, currentMax + num);
+        globalMax = Math.max(globalMax, currentMax);
+
+        currentMin = Math.min(0, currentMin + num);
+        globalMin = Math.min(globalMin, currentMin);
+    }
+
+    return Math.max(globalMax, Math.abs(globalMin));
+}
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+---
+
+# 39. Maximum Sum Submatrix
+
+Kadane can be extended from a one-dimensional array to a two-dimensional matrix.
+
+Problem:
+
+```text
+Find the rectangular submatrix with the maximum sum.
+```
+
+## Brute Force Problem
+
+A matrix has many possible rectangles.
+
+Checking every rectangle directly can become extremely expensive.
+
+## Optimization
+
+Fix two column boundaries:
+
+```text
+leftColumn
+rightColumn
+```
+
+Compress all values between those columns into a one-dimensional row-sum array.
+
+Then run Kadane on the compressed array.
+
+---
+
+# 40. Maximum Sum Submatrix Visual Model
+
+```mermaid
+flowchart TD
+    A[2D Matrix] --> B[Choose left column]
+    B --> C[Expand right column]
+
+    C --> D[Compress values between left and right]
+    D --> E[Create rowSum array]
+    E --> F[Run 1D Kadane]
+    F --> G[Update global rectangle maximum]
+
+    G --> H{More right columns?}
+    H -- Yes --> C
+    H -- No --> I{More left columns?}
+    I -- Yes --> B
+    I -- No --> J[Return answer]
+```
+
+---
+
+# 41. Maximum Sum Submatrix Java Code
+
+```java
+public static int maxSumSubmatrix(int[][] matrix) {
+    if (matrix == null ||
+            matrix.length == 0 ||
+            matrix[0].length == 0) {
+        throw new IllegalArgumentException("Matrix must not be empty");
+    }
+
+    int rows = matrix.length;
+    int columns = matrix[0].length;
+    int maximum = Integer.MIN_VALUE;
+
+    for (int left = 0; left < columns; left++) {
+        int[] compressedRows = new int[rows];
+
+        for (int right = left; right < columns; right++) {
+            for (int row = 0; row < rows; row++) {
+                compressedRows[row] += matrix[row][right];
+            }
+
+            maximum = Math.max(
+                    maximum,
+                    maxSubArray(compressedRows)
+            );
+        }
+    }
+
+    return maximum;
+}
+
+private static int maxSubArray(int[] nums) {
+    int current = nums[0];
+    int maximum = nums[0];
+
+    for (int i = 1; i < nums.length; i++) {
+        current = Math.max(nums[i], current + nums[i]);
+        maximum = Math.max(maximum, current);
+    }
+
+    return maximum;
+}
+```
+
+Complexity when iterating column pairs:
+
+```text
+Time:  O(columns² × rows)
+Space: O(rows)
+```
+
+To optimize based on matrix dimensions, square the smaller dimension when possible.
+
+---
+
+# 42. Best Time to Buy and Sell Stock Connection
+
+Stock Buy and Sell with one transaction can be solved using a minimum-price approach.
+
+However, it can also be transformed into Kadane.
+
+Prices:
+
+```text
+[7, 1, 5, 3, 6, 4]
+```
+
+Daily differences:
+
+```text
+[-6, 4, -2, 3, -2]
+```
+
+Any buy-and-sell profit is the sum of a contiguous range of daily differences.
+
+Example:
+
+```text
+Buy at 1
+Sell at 6
+
+Profit = 5
+```
+
+Corresponding differences:
+
+```text
+4 + -2 + 3 = 5
+```
+
+Therefore:
+
+```text
+Maximum one-transaction stock profit
+=
+Maximum subarray sum of daily differences
+```
+
+---
+
+# 43. Stock Difference Diagram
+
+```mermaid
+flowchart LR
+    A[Stock Prices] --> B[Calculate Daily Differences]
+    B --> C[Find Best Consecutive Gain]
+    C --> D[Run Kadane]
+    D --> E[Maximum Profit]
+```
+
+This connection helps recognize hidden Kadane transformations.
+
+---
+
+# 44. Maximum Stock Profit Using Kadane
+
+```java
+public static int maxProfitUsingKadane(int[] prices) {
+    if (prices == null || prices.length < 2) {
+        return 0;
+    }
+
+    int currentProfit = 0;
+    int maximumProfit = 0;
+
+    for (int i = 1; i < prices.length; i++) {
+        int dailyDifference = prices[i] - prices[i - 1];
+
+        currentProfit = Math.max(
+                0,
+                currentProfit + dailyDifference
+        );
+
+        maximumProfit = Math.max(
+                maximumProfit,
+                currentProfit
+        );
+    }
+
+    return maximumProfit;
+}
+```
+
+Notice that an empty transaction is allowed here.
+
+Therefore, zero is a valid answer when prices only decrease.
+
+That is why initialization with zero is correct for this specific problem.
+
+---
+
+# 45. Hidden Kadane Transformation
+
+Kadane is not limited to arrays directly containing gains and losses.
+
+Sometimes the original problem can be transformed.
+
+## Common Transformations
+
+| Original Problem                   | Transformation                             |
+| ---------------------------------- | ------------------------------------------ |
+| Stock prices                       | Convert to daily differences               |
+| Two strings/arrays comparison      | Convert match/mismatch into scores         |
+| Maximum zero-one difference        | Convert `0 → -1`, `1 → +1`                 |
+| Best continuous performance period | Convert each period into gain/loss         |
+| Maximum beneficial replacement     | Convert improvement into difference array  |
+| Flip bits to maximize ones         | Convert flipping benefit into `+1/-1` gain |
+
+Mental model:
+
+```text
+Original values
+→ Convert each decision into gain/loss
+→ Find the best contiguous gain using Kadane
+```
+
+---
+
+# 46. Flip Bits to Maximize Ones
+
+Suppose a binary array allows flipping one contiguous segment:
+
+```text
+0 becomes 1
+1 becomes 0
+```
+
+The benefit of flipping each value is:
+
+```text
+0 → Gain +1
+1 → Loss -1
+```
+
+Transform:
+
+```text
+Original: [1, 0, 0, 1, 0]
+Gain:     [-1, 1, 1, -1, 1]
+```
+
+Now find the maximum contiguous gain using Kadane.
+
+Final answer:
+
+```text
+Original number of ones + maximum flipping gain
+```
+
+This is a classic hidden Kadane pattern.
+
+---
+
+# 47. Prefix-Minimum Version of Maximum Subarray
+
+Kadane can also be derived through Prefix Sum.
+
+Let:
+
+```text
+prefix[i] = sum of elements before index i
+```
+
+Then:
+
+```text
+sum(L...R) = prefix[R + 1] - prefix[L]
+```
+
+For each right boundary, maximize:
+
+```text
+currentPrefix - minimumPrefixSeenEarlier
+```
+
+## Java Code
+
+```java
+public static int maxSubArrayUsingPrefixMinimum(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        throw new IllegalArgumentException("Array must not be empty");
+    }
+
+    int prefixSum = 0;
+    int minimumPrefix = 0;
+    int maximum = Integer.MIN_VALUE;
+
+    for (int num : nums) {
+        prefixSum += num;
+
+        maximum = Math.max(
+                maximum,
+                prefixSum - minimumPrefix
+        );
+
+        minimumPrefix = Math.min(
+                minimumPrefix,
+                prefixSum
+        );
+    }
+
+    return maximum;
+}
+```
+
+Complexity:
+
+```text
+Time:  O(n)
+Space: O(1)
+```
+
+This is useful because it connects your Prefix Sum knowledge with Kadane.
+
+---
+
+# 48. Kadane and Prefix Sum Relationship
+
+```text
+Prefix Sum asks:
+
+Which old prefix should I subtract from the current prefix?
+
+Kadane asks:
+
+Is the previous running segment still worth carrying forward?
+```
+
+For maximum subarray:
+
+```text
+Kadane drops a harmful negative running segment.
+
+Prefix-Minimum keeps the smallest prefix seen so far.
+```
+
+These are two views of the same optimization.
+
+---
+
+# 49. Kadane Problem Pattern Map
+
+```mermaid
+flowchart TD
+    A[Kadane Family] --> B[Single State]
+    A --> C[Dual State]
+    A --> D[Multiple States]
+    A --> E[Dimension Compression]
+    A --> F[Transformation]
+
+    B --> B1[Maximum Subarray Sum]
+    B --> B2[Minimum Subarray Sum]
+    B --> B3[Maximum Continuous Gain]
+
+    C --> C1[Maximum Product]
+    C --> C2[Circular Maximum]
+    C --> C3[Maximum Absolute Sum]
+
+    D --> D1[One Deletion]
+    D --> D2[One Modification]
+    D --> D3[Operation Used or Not Used]
+
+    E --> E1[Maximum Sum Submatrix]
+    E --> E2[Compress Rows or Columns]
+
+    F --> F1[Stock Difference]
+    F --> F2[Bit Flip Gain]
+    F --> F3[Match/Mismatch Score]
+```
+
+---
+
+# 50. Core Kadane Problems for Interviews
+
+## P0 — Must Solve
+
+| Problem                         | Main Concept                              |
+| ------------------------------- | ----------------------------------------- |
+| Maximum Subarray                | Classic Kadane                            |
+| Maximum Subarray with indices   | Boundary tracking                         |
+| Best Time to Buy and Sell Stock | Gain/loss transformation or minimum price |
+| Maximum Product Subarray        | Track maximum and minimum                 |
+| Maximum Sum Circular Subarray   | Maximum + minimum Kadane                  |
+
+## P1 — Very Important
+
+| Problem                                | Main Concept                 |
+| -------------------------------------- | ---------------------------- |
+| Maximum Absolute Sum of Any Subarray   | Maximum and minimum subarray |
+| Maximum Subarray Sum with One Deletion | Two DP states                |
+| Minimum Subarray Sum                   | Reverse Kadane               |
+| Maximum Difference of Zeros and Ones   | Transform to `+1/-1`         |
+| K-Concatenation Maximum Sum            | Kadane + total sum           |
+
+## P2 — Learn Later
+
+| Problem                                      | Main Concept                            |
+| -------------------------------------------- | --------------------------------------- |
+| Maximum Sum Rectangle                        | 2D compression + Kadane                 |
+| Maximum Alternating Subarray Sum             | Modified states                         |
+| Maximum Subarray with one multiplication     | Multi-state DP                          |
+| Maximum Subarray with K modifications        | Generalized DP                          |
+| Maximum Sum Subarray with length constraints | Prefix Sum + deque, not ordinary Kadane |
+
+---
+
+# 51. Problems That Look Like Kadane but Are Not Classic Kadane
+
+## Maximum Sum Subarray of Size K
+
+This has a fixed size.
+
+Use:
+
+```text
+Fixed Sliding Window
+```
+
+Not ordinary Kadane.
+
+---
+
+## Subarray Sum Equals K
+
+This asks for an exact target and possibly a count.
+
+Use:
+
+```text
+Prefix Sum + HashMap
+```
+
+Not Kadane.
+
+---
+
+## Minimum Size Subarray Sum at Least K
+
+For positive numbers:
+
+```text
+Variable Sliding Window
+```
+
+For negative numbers:
+
+```text
+Prefix Sum + Monotonic Deque
+```
+
+Not ordinary Kadane.
+
+---
+
+## Longest Subarray with Sum K
+
+Use:
+
+```text
+Prefix Sum + earliest index map
+```
+
+Not Kadane.
+
+---
+
+## Maximum Sum Non-Adjacent Elements
+
+Elements are not required to be contiguous.
+
+Use:
+
+```text
+House Robber DP
+```
+
+Not Kadane.
+
+---
+
+## Maximum Subsequence Sum
+
+A subsequence can skip arbitrary elements.
+
+Usually:
+
+```text
+Take all positive elements
+```
+
+Not Kadane.
+
+---
+
+# 52. Subarray vs Subsequence
+
+This distinction is essential.
+
+## Subarray
+
+```text
+Elements must be contiguous.
+```
+
+Example from:
+
+```text
+[2, -5, 4, 3]
+```
+
+Valid subarray:
+
+```text
+[4, 3]
+```
+
+Invalid subarray:
+
+```text
+[2, 4, 3]
+```
+
+because `-5` was skipped.
+
+## Subsequence
+
+```text
+Elements maintain order but may skip elements.
+```
+
+Valid subsequence:
+
+```text
+[2, 4, 3]
+```
+
+Kadane solves contiguous subarray problems.
+
+It does not solve general subsequence problems.
+
+---
+
+# 53. Common Kadane Mistakes
+
+## Mistake 1: Initializing the Answer to Zero
+
+Wrong for all-negative arrays.
+
+```java
+int maxSum = 0;
+```
+
+Better:
+
+```java
+int maxSum = nums[0];
+```
+
+---
+
+## Mistake 2: Returning `currentBest`
+
+At the end:
+
+```java
+return currentBest;
+```
+
+is incorrect.
+
+`currentBest` means:
+
+```text
+Best subarray ending at the last index
+```
+
+It may not be the best anywhere.
+
+Return:
+
+```java
+return globalBest;
+```
+
+---
+
+## Mistake 3: Confusing Subarray and Subsequence
+
+Kadane requires contiguity.
+
+---
+
+## Mistake 4: Using Fixed Sliding Window
+
+Maximum subarray length is unknown.
+
+A fixed window cannot solve classic Maximum Subarray.
+
+---
+
+## Mistake 5: Resetting Before Updating the Answer
+
+Incorrect order:
+
+```java
+runningSum += num;
+
+if (runningSum < 0) {
+    runningSum = 0;
+}
+
+maximum = Math.max(maximum, runningSum);
+```
+
+This can lose all-negative answers.
+
+Correct reset-style order:
+
+```java
+runningSum += num;
+maximum = Math.max(maximum, runningSum);
+
+if (runningSum < 0) {
+    runningSum = 0;
+}
+```
+
+---
+
+## Mistake 6: Not Saving Previous States
+
+In Maximum Product Subarray or one-deletion problems, updating one state may destroy a value needed for another transition.
+
+Use:
+
+```java
+int previousMax = currentMax;
+int previousMin = currentMin;
+```
+
+---
+
+## Mistake 7: Ignoring Integer Overflow
+
+If:
+
+```text
+n is large
+values are large
+```
+
+Use:
+
+```java
+long
+```
+
+instead of `int`.
+
+---
+
+## Mistake 8: Returning Zero for an Empty Input Without Clarifying
+
+The classic problem normally assumes a non-empty array.
+
+In production-style code, either:
+
+```text
+Throw an exception
+Return Optional
+Follow the API contract
+```
+
+Do not silently invent an answer.
+
+---
+
+# 54. Integer Overflow-Safe Version
+
+```java
+public static long maxSubArrayLong(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        throw new IllegalArgumentException("Array must not be empty");
+    }
+
+    long currentBest = nums[0];
+    long globalBest = nums[0];
+
+    for (int i = 1; i < nums.length; i++) {
+        long value = nums[i];
+
+        currentBest = Math.max(
+                value,
+                currentBest + value
+        );
+
+        globalBest = Math.max(
+                globalBest,
+                currentBest
+        );
+    }
+
+    return globalBest;
+}
+```
+
+---
+
+# 55. Edge Cases Checklist
+
+Always dry run these cases.
+
+## Case 1: One Element
+
+```text
+[5] → 5
+[-5] → -5
+```
+
+## Case 2: All Positive
+
+```text
+[1, 2, 3, 4] → 10
+```
+
+The whole array is selected.
+
+## Case 3: All Negative
+
+```text
+[-4, -2, -7] → -2
+```
+
+The least-negative element is selected.
+
+## Case 4: Mixed Values
+
+```text
+[-2, 3, -1, 4, -5] → 6
+```
+
+## Case 5: Zeros
+
+```text
+[-2, 0, -1] → 0
+```
+
+## Case 6: Maximum at Beginning
+
+```text
+[5, 4, -20, 1] → 9
+```
+
+## Case 7: Maximum at End
+
+```text
+[-10, 2, 3, 4] → 9
+```
+
+## Case 8: Multiple Equal Answers
+
+Clarify tie-breaking.
+
+## Case 9: Large Values
+
+Use `long` if needed.
+
+## Case 10: Empty or Null Input
+
+Follow the stated contract.
+
+---
+
+# 56. Debugging Mental Model
+
+```mermaid
+flowchart TD
+    A[Kadane Answer Is Wrong] --> B{All-negative case failing?}
+
+    B -- Yes --> C[Check initialization]
+    C --> C1[Use nums 0, not zero]
+
+    B -- No --> D{Returning wrong value?}
+    D -- Yes --> E[Return globalBest, not currentBest]
+
+    D -- No --> F{Indices incorrect?}
+    F -- Yes --> G[Reset candidateStart only when starting fresh]
+
+    F -- No --> H{Variation uses multiple states?}
+    H -- Yes --> I[Save previous state before updating]
+
+    H -- No --> J{Overflow possible?}
+    J -- Yes --> K[Use long]
+
+    J -- No --> L[Dry run extend-vs-restart decision]
+```
+
+---
+
+# 57. Troubleshooting Table
+
+| Issue                           | Possible Cause                | Where to Check     | Fix                                       |
+| ------------------------------- | ----------------------------- | ------------------ | ----------------------------------------- |
+| Returns zero for negative input | Initialized with zero         | Initial variables  | Initialize using `nums[0]`                |
+| Misses earlier maximum          | Returning current state       | Return statement   | Return global maximum                     |
+| Wrong start index               | Candidate start not reset     | Restart branch     | Set candidate start to current index      |
+| Wrong circular result           | All-negative case ignored     | Circular formula   | Return normal maximum when it is negative |
+| Wrong product result            | Minimum product not tracked   | Product transition | Track current max and min                 |
+| One-deletion result wrong       | States updated in wrong order | DP transition      | Save previous states                      |
+| Overflow                        | Sum exceeds `int`             | Constraints        | Use `long`                                |
+| Fixed-size answer expected      | Wrong pattern selected        | Problem statement  | Use Sliding Window                        |
+| Exact target/count expected     | Wrong pattern selected        | Problem statement  | Use Prefix Sum + HashMap                  |
+
+---
+
+# 58. Time and Space Complexity
+
+## Classic Kadane
+
+```text
+Time: O(n)
+```
+
+Every element is processed once.
+
+```text
+Space: O(1)
+```
+
+Only a constant number of variables are maintained.
+
+## Why It Cannot Generally Be Better Than O(n)
+
+Every element may affect the answer.
+
+Therefore, an algorithm must inspect all elements at least once:
+
+```text
+Lower bound: Ω(n)
+```
+
+Kadane runs in:
+
+```text
+O(n)
+```
+
+Therefore, it is asymptotically optimal.
+
+---
+
+# 59. Real-Project Usage Mapping
+
+Kadane itself is more common in interviews and analytical systems than in ordinary CRUD code.
+
+Do not claim that you used Kadane in production unless you actually did.
+
+Instead, explain realistic conceptual usage.
+
+| Concept                 | Realistic Project Connection                                     | Interview Line                                                                                    |
+| ----------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Maximum continuous gain | Analyze consecutive daily traffic/revenue changes                | “Kadane can identify the most beneficial continuous period in a time series.”                     |
+| Negative-state discard  | Stop carrying a harmful accumulated state                        | “The algorithm keeps only history that can improve future results.”                               |
+| Daily differences       | Stock, request volume, latency or revenue changes                | “A time series can be converted into a gain/loss array before applying Kadane.”                   |
+| Maximum error spike     | Find consecutive intervals with the largest cumulative deviation | “It can detect the most significant continuous degradation window.”                               |
+| API latency analysis    | Analyze continuous positive/negative deviation from baseline     | “We can transform each interval into deviation from an SLA and find the worst continuous period.” |
+| Log analytics           | Find the highest-scoring continuous sequence of events           | “Events can be mapped to positive and negative scores before applying Kadane.”                    |
+| Matrix analytics        | Maximum-performing region in tabular data                        | “Two-dimensional Kadane can identify a maximum-sum rectangular region.”                           |
+| Space-optimized DP      | Reduce previous-state storage                                    | “Kadane demonstrates how a DP array can be optimized to constant space.”                          |
+
+---
+
+# 60. Spring Boot / Microservices Project Mapping
+
+## Scenario: API Traffic Deviation
+
+Suppose you collect hourly API traffic:
+
+```text
+Actual requests - expected requests
+```
+
+Values:
+
+```text
+[-20, 10, 15, -5, 30, -40, 5]
+```
+
+Kadane can identify the continuous period with the greatest positive traffic deviation.
+
+Professional explanation:
+
+> “In a monitoring or analytics module, request counts can be transformed into deviations from a baseline. Kadane’s Algorithm can then identify the continuous interval with the highest cumulative increase.”
+
+---
+
+## Scenario: Latency Degradation
+
+For every minute:
+
+```text
+latency - acceptableLatency
+```
+
+A positive number means degradation.
+
+Kadane can find:
+
+```text
+The continuous period with the maximum accumulated latency degradation.
+```
+
+This is an analytical use case, not a normal request-processing use case.
+
+---
+
+## Scenario: Microservice Error Score
+
+Map each time interval to:
+
+```text
+High error count    → positive penalty
+Healthy interval    → negative recovery
+```
+
+Kadane can locate the worst continuous incident window.
+
+Interview line:
+
+> “Kadane is useful when operational data can be represented as a sequence of gains and losses and we need the highest-scoring contiguous period.”
+
+---
+
+# 61. Scenario-Based Interview Flow
+
+## Scenario 1: Maximum Subarray Sum
+
+### Flow
+
+```text
+At each element:
+Start fresh or extend previous
+Update global maximum
+```
+
+### Problem
+
+Brute force checks every subarray.
+
+### Root Cause
+
+There are O(n²) possible subarrays.
+
+### Fix
+
+Keep only the best subarray ending at the previous index.
+
+### Interview Explanation
+
+> “I define the state as the maximum subarray sum ending at the current index. At each element, I either start a new subarray or extend the previous one. I separately maintain the best answer found globally.”
+
+---
+
+## Scenario 2: All Values Are Negative
+
+### Problem
+
+A zero-initialized solution returns zero.
+
+### Root Cause
+
+It accidentally allows an empty subarray.
+
+### Fix
+
+Initialize both states using the first element.
+
+### Interview Explanation
+
+> “Since the problem requires a non-empty subarray, I initialize from the first element rather than zero. This correctly handles all-negative arrays.”
+
+---
+
+## Scenario 3: Circular Array
+
+### Flow
+
+```text
+Answer =
+max(
+    normal maximum,
+    total sum - minimum subarray
+)
+```
+
+### Problem
+
+The best subarray may wrap.
+
+### Root Cause
+
+Classic Kadane considers only linear segments.
+
+### Fix
+
+Remove the minimum middle segment.
+
+### Interview Explanation
+
+> “A wrapping maximum contains a suffix and a prefix. This is equivalent to taking the whole array and removing the minimum-sum middle subarray.”
+
+---
+
+## Scenario 4: Maximum Product
+
+### Problem
+
+Tracking only maximum fails with negative values.
+
+### Root Cause
+
+A negative minimum can become a positive maximum after multiplication.
+
+### Fix
+
+Track both current maximum and current minimum.
+
+### Interview Explanation
+
+> “For products, sign changes matter. Therefore, I maintain both the maximum and minimum products ending at each index.”
+
+---
+
+## Scenario 5: One Deletion
+
+### Problem
+
+A single current state cannot represent whether deletion was used.
+
+### Root Cause
+
+The future answer depends on operation history.
+
+### Fix
+
+Track one state without deletion and one state with deletion.
+
+### Interview Explanation
+
+> “I extend Kadane using two DP states: the best sum ending here without deletion and the best sum ending here after one deletion.”
+
+---
+
+# 62. Interview Questions and Answers
+
+## Q1. What is Kadane’s Algorithm?
+
+> Kadane’s Algorithm finds the maximum sum of a non-empty contiguous subarray in O(n) time and O(1) space. At every index, it decides whether to start a new subarray from the current element or extend the best subarray ending at the previous index.
+
+---
+
+## Q2. What does `currentBest` represent?
+
+> It represents the maximum sum of a subarray that must end exactly at the current index.
+
+---
+
+## Q3. What does `globalBest` represent?
+
+> It represents the maximum subarray sum found anywhere in the portion of the array processed so far.
+
+---
+
+## Q4. Is Kadane greedy or Dynamic Programming?
+
+> It can be viewed as both. Formally, it is a space-optimized one-dimensional DP where `dp[i]` stores the best subarray ending at index `i`. It also has a greedy interpretation because a harmful negative running sum is discarded.
+
+---
+
+## Q5. Why not initialize the maximum to zero?
+
+> Because the array may contain only negative values. Initializing to zero incorrectly allows an empty subarray and may return zero even though the correct non-empty answer is negative.
+
+---
+
+## Q6. Can Kadane return the subarray itself?
+
+> Yes. We maintain a candidate start index whenever starting fresh becomes better. When the current sum beats the global maximum, we store the candidate start and current end index.
+
+---
+
+## Q7. How is Kadane different from Sliding Window?
+
+> Sliding Window maintains explicit left and right boundaries based on a validity condition. Kadane maintains the best score ending at the current index and decides whether to extend or restart.
+
+---
+
+## Q8. How is Kadane related to Prefix Sum?
+
+> Maximum subarray can be written as the current prefix sum minus the minimum previous prefix. Kadane represents the same optimization through a local extend-or-restart recurrence.
+
+---
+
+## Q9. How do you solve Maximum Product Subarray?
+
+> Track both the maximum and minimum products ending at the current index because multiplying by a negative number can swap their roles.
+
+---
+
+## Q10. How do you solve Maximum Circular Subarray?
+
+> Calculate the normal maximum using Kadane. For the wrapping case, subtract the minimum subarray sum from the total sum. If all elements are negative, return the normal maximum.
+
+---
+
+## Q11. Can Kadane be used in two dimensions?
+
+> Yes. Fix a pair of columns or rows, compress the values between them into a one-dimensional array, and run Kadane on that compressed array.
+
+---
+
+## Q12. What is the complexity?
+
+> Classic Kadane runs in O(n) time and O(1) auxiliary space.
+
+---
+
+# 63. Ready-Made Interview Answer
+
+> “Since the problem asks for the maximum sum of a contiguous subarray and the length is not fixed, I would use Kadane’s Algorithm. I define the current state as the maximum subarray sum ending at the current index. At each element, I decide whether to start a new subarray or extend the previous one using `max(nums[i], current + nums[i])`. I also maintain a global maximum. This gives O(n) time and O(1) space, and initializing from the first element correctly handles all-negative arrays.”
+
+---
+
+# 64. Senior-Level Interview Explanation
+
+> “Kadane’s Algorithm is a space-optimized one-dimensional DP. The state `dp[i]` represents the best non-empty subarray ending at index `i`. Such a subarray either consists only of `nums[i]` or extends the best subarray ending at `i - 1`, giving the transition `dp[i] = max(nums[i], dp[i - 1] + nums[i])`. Since only the previous state is required, the DP array is reduced to one variable. A separate global state tracks the best result over all ending positions.”
+
+---
+
+# 65. Ten Must-Remember Points
+
+1. Kadane works on contiguous subarrays.
+2. The main decision is extend or restart.
+3. `currentBest` means best subarray ending exactly here.
+4. `globalBest` means best subarray found anywhere.
+5. Initialize from the first element for non-empty subarrays.
+6. Kadane is a space-optimized one-dimensional DP.
+7. A negative running sum cannot help a future maximum-sum segment.
+8. Circular maximum uses total sum minus minimum subarray.
+9. Maximum product requires both maximum and minimum states.
+10. Special operations such as deletion require additional DP states.
+
+---
+
+# 66. Ten Common Interview Lines
+
+1. “The problem asks for a contiguous segment, so I am considering Kadane’s Algorithm.”
+2. “The window size is unrestricted, so this is not a fixed Sliding Window problem.”
+3. “My current state represents the best subarray ending at the current index.”
+4. “At every index, I either extend the previous segment or start fresh.”
+5. “I maintain a separate global answer because the best segment may end before the final index.”
+6. “I initialize from the first element to handle all-negative input.”
+7. “This is a one-dimensional DP optimized from O(n) space to O(1).”
+8. “For the circular case, I remove the minimum middle subarray from the total.”
+9. “For products, I track both the current maximum and minimum because of negative values.”
+10. “The final complexity is O(n) time and O(1) auxiliary space.”
+
+---
+
+# 67. Ten Common Mistakes
+
+1. Initializing the maximum to zero.
+2. Returning `currentBest` instead of `globalBest`.
+3. Forgetting that the subarray must be contiguous.
+4. Using a fixed Sliding Window for an unrestricted length.
+5. Resetting the running sum before updating the answer.
+6. Not handling all-negative circular arrays.
+7. Tracking only maximum in Maximum Product Subarray.
+8. Updating multi-state DP variables without saving old values.
+9. Ignoring index tie-breaking requirements.
+10. Using `int` when cumulative values may overflow.
+
+---
+
+# 68. Five Quick Debugging Flows
+
+```text
+All-negative case fails
+→ Check initialization
+→ Use nums[0]
+```
+
+```text
+Maximum occurs before last index but answer is wrong
+→ Check return value
+→ Return globalBest
+```
+
+```text
+Subarray indices are wrong
+→ Update candidateStart only when restarting
+```
+
+```text
+Maximum Product fails on negative values
+→ Track both current maximum and minimum
+```
+
+```text
+Circular result becomes zero for all-negative input
+→ Return normal maximum when global maximum is negative
+```
+
+---
+
+# 69. Revision Cheat Sheet
+
+## Classic Kadane
+
+```java
+current = nums[0];
+answer = nums[0];
+
+for (int i = 1; i < nums.length; i++) {
+    current = Math.max(nums[i], current + nums[i]);
+    answer = Math.max(answer, current);
+}
+```
+
+## Minimum Kadane
+
+```java
+currentMin = Math.min(nums[i], currentMin + nums[i]);
+globalMin = Math.min(globalMin, currentMin);
+```
+
+## Circular Kadane
+
+```text
+normal = maximum subarray
+wrap   = total - minimum subarray
+
+If all negative:
+    return normal
+
+Answer:
+    max(normal, wrap)
+```
+
+## Product Kadane
+
+```text
+Track:
+currentMax
+currentMin
+globalMax
+```
+
+## One-Deletion Kadane
+
+```text
+keep = no deletion used
+drop = one deletion used
+```
+
+---
+
+# 70. Pattern Comparison Cheat Sheet
+
+```text
+Maximum sum of any contiguous subarray
+→ Kadane
+
+Maximum sum of a fixed-size K subarray
+→ Fixed Sliding Window
+
+Minimum-length subarray satisfying condition
+→ Variable Sliding Window
+
+Count subarrays with exact sum K
+→ Prefix Sum + HashMap
+
+Longest subarray with exact sum K
+→ Prefix Sum + earliest index
+
+Maximum sum of non-adjacent elements
+→ House Robber DP
+
+Maximum product contiguous subarray
+→ Dual-state Kadane
+
+Maximum circular subarray
+→ Maximum Kadane + Minimum Kadane
+```
+
+---
+
+# 71. Practice Order
+
+## Level 1: Understand the Classic State
+
+Solve:
+
+```text
+1. Maximum Subarray
+2. Maximum Subarray with start/end indices
+3. Minimum Subarray Sum
+```
+
+Goal:
+
+```text
+Understand current versus global.
+```
+
+## Level 2: Learn Dual-State Variations
+
+Solve:
+
+```text
+4. Maximum Product Subarray
+5. Maximum Circular Subarray
+6. Maximum Absolute Subarray Sum
+```
+
+Goal:
+
+```text
+Understand why one current state is sometimes insufficient.
+```
+
+## Level 3: Learn Multi-State Kadane
+
+Solve:
+
+```text
+7. Maximum Subarray Sum with One Deletion
+8. Maximum Subarray with One Modification
+```
+
+Goal:
+
+```text
+Understand operation-used and operation-not-used states.
+```
+
+## Level 4: Learn Transformations
+
+Solve:
+
+```text
+9. Best Time to Buy and Sell Stock using differences
+10. Flip bits to maximize ones
+11. Maximum zero-one difference
+```
+
+Goal:
+
+```text
+Convert the original problem into a gain/loss array.
+```
+
+## Level 5: Learn Higher Dimensions
+
+Solve:
+
+```text
+12. Maximum Sum Rectangle
+```
+
+Goal:
+
+```text
+Compress one dimension and run one-dimensional Kadane.
+```
+
+---
+
+# 72. What Is Enough for Interviews?
+
+For most mid-range product-based and Java Backend interviews, you should confidently know:
+
+```text
+P0:
+Maximum Subarray
+Return start/end indices
+All-negative handling
+Kadane vs Sliding Window
+Kadane vs Prefix Sum
+Time and space complexity
+
+P1:
+Maximum Product Subarray
+Maximum Circular Subarray
+Maximum Absolute Subarray Sum
+One-deletion concept
+```
+
+You can start interviews without mastering advanced matrix and K-modification variants.
+
+---
+
+# 73. Final Pattern Map
+
+```mermaid
+flowchart TD
+    A[Contiguous Optimization Problem] --> B{What is requested?}
+
+    B --> C[Maximum Sum]
+    C --> C1[Classic Kadane]
+    C1 --> C2[Extend or Restart]
+
+    B --> D[Minimum Sum]
+    D --> D1[Minimum Kadane]
+
+    B --> E[Circular Maximum]
+    E --> E1[Normal Maximum]
+    E --> E2[Total - Minimum]
+    E1 --> E3[Take Maximum]
+    E2 --> E3
+
+    B --> F[Maximum Product]
+    F --> F1[Track Current Max and Min]
+
+    B --> G[One Special Operation]
+    G --> G1[Multiple DP States]
+
+    B --> H[Maximum Absolute Sum]
+    H --> H1[Track Maximum and Minimum Sum]
+
+    B --> I[2D Rectangle]
+    I --> I1[Compress Rows or Columns]
+    I1 --> I2[Run 1D Kadane]
+
+    B --> J[Hidden Gain/Loss]
+    J --> J1[Transform Input]
+    J1 --> J2[Run Kadane]
+```
+
+---
+
+# 74. Final Mental Model
+
+Do not memorize Kadane only as:
+
+```text
+If sum becomes negative, reset it to zero.
+```
+
+That explanation is incomplete and causes all-negative-array mistakes.
+
+Memorize Kadane as:
+
+```text
+At every index:
+
+1. What is the best valid segment ending exactly here?
+2. Should I extend the previous segment or start a new one?
+3. Is this ending position better than every answer seen before?
+```
+
+The complete pattern is:
+
+```text
+Start with the first element
+→ Compare Restart vs Extend
+→ Store best ending here
+→ Update best anywhere
+→ Repeat
+```
+
+## Final Shortcut
+
+```text
+Kadane =
+Best Ending Here
+→ Extend or Restart
+→ Best Anywhere
+```
+
+## Final Interview Line
+
+> “Kadane’s Algorithm solves maximum or minimum contiguous-segment optimization by maintaining the best segment ending at each position. At every element, it decides between starting fresh and extending the previous segment, while a separate global state stores the best answer. It is a space-optimized one-dimensional DP with O(n) time and O(1) space.”
