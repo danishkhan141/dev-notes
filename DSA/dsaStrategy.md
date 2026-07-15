@@ -7,6 +7,7 @@
 4. [2-Pointers](#2-pointers-complete-postmortem-for-dsa-interviews)
 5. [Sliding Window](#sliding-window--complete-postmortem-for-dsa-interviews)
 6. [Sliding Window Problems](#sliding-window-problems-using-only-3-templates)
+7. [Prefix Sum](#prefix-sum--complete-postmortem-for-dsa-interviews)
 
 
 # Prompt
@@ -11881,3 +11882,3560 @@ Update minimum
 Then shrink
 ```
 
+# Prefix Sum — Complete Postmortem for DSA Interviews
+
+# 1. Prefix Sum Mental Model
+
+The simplest mental model is:
+
+```text
+Prefix Sum = Memory of everything accumulated before the current position
+```
+
+Instead of calculating a subarray sum repeatedly:
+
+```text
+sum(L...R)
+```
+
+we precompute cumulative sums and answer it using subtraction:
+
+```text
+sum(L...R) = prefix[R + 1] - prefix[L]
+```
+
+## One-line shortcut
+
+```text
+Prefix Sum = Accumulate once → subtract later → get any range result quickly
+```
+
+For subarray-sum problems:
+
+```text
+Current Prefix - Previous Prefix = Required Subarray Sum
+```
+
+For target `k`:
+
+```text
+Previous Prefix = Current Prefix - k
+```
+
+This single equation is the heart of most Prefix Sum interview problems.
+
+---
+
+# 2. Why Prefix Sum Exists
+
+Suppose:
+
+```text
+nums = [2, 4, 1, 3, 6]
+```
+
+You are repeatedly asked:
+
+```text
+Sum from index 1 to 3
+Sum from index 0 to 4
+Sum from index 2 to 4
+```
+
+A normal approach loops through every requested range.
+
+```text
+Each query: O(n)
+Q queries: O(Q × n)
+```
+
+With Prefix Sum:
+
+```text
+Build prefix array once: O(n)
+Each range query: O(1)
+Total: O(n + Q)
+```
+
+The main purpose is:
+
+```text
+Avoid recalculating overlapping ranges.
+```
+
+---
+
+# 3. Master Prefix Sum Diagram
+
+```mermaid
+flowchart TD
+    A[Array/String/Matrix Problem] --> B{Repeated range calculation?}
+
+    B -- Yes --> C[Build Prefix State]
+    B -- No --> D{Need exact subarray sum/count?}
+
+    D -- Yes --> E[Running Prefix + HashMap]
+    D -- No --> F{Need balance/equal categories?}
+
+    F -- Yes --> G[Transform values and use Prefix State]
+    F -- No --> H{Need many range updates?}
+
+    H -- Yes --> I[Difference Array]
+    H -- No --> J{2D Matrix range queries?}
+
+    J -- Yes --> K[2D Prefix Sum]
+    J -- No --> L[Consider Sliding Window / Two Pointers / DP]
+
+    C --> M[Range Sum = Prefix R+1 - Prefix L]
+    E --> N[Required Previous = Current Prefix - Target]
+    G --> O[Same Prefix State means balanced middle range]
+    I --> P[Mark boundaries then rebuild using Prefix Sum]
+    K --> Q[Rectangle Sum using inclusion-exclusion]
+```
+
+---
+
+# 4. The Mathematical Foundation
+
+Assume:
+
+```text
+nums = [2, 4, 1, 3, 6]
+```
+
+Use an extra leading zero:
+
+```text
+prefix[0] = 0
+prefix[i + 1] = prefix[i] + nums[i]
+```
+
+Therefore:
+
+```text
+prefix = [0, 2, 6, 7, 10, 16]
+```
+
+Meaning:
+
+```text
+prefix[0] = sum of first 0 elements = 0
+prefix[1] = sum of first 1 element  = 2
+prefix[2] = sum of first 2 elements = 6
+prefix[3] = sum of first 3 elements = 7
+```
+
+To find the sum from index `L` to `R`:
+
+```text
+sum(L...R) = prefix[R + 1] - prefix[L]
+```
+
+Example:
+
+```text
+L = 1
+R = 3
+
+Required subarray = [4, 1, 3]
+```
+
+Calculation:
+
+```text
+prefix[4] - prefix[1]
+= 10 - 2
+= 8
+```
+
+Why subtraction works:
+
+```text
+prefix[R + 1] = Sum before L + Sum from L to R
+prefix[L]     = Sum before L
+
+Subtracting removes everything before L.
+```
+
+---
+
+# 5. Recommended Prefix Array Convention
+
+There are two common conventions.
+
+## Convention 1: Inclusive Prefix
+
+```java
+prefix[i] = nums[0] + nums[1] + ... + nums[i];
+```
+
+Range formula:
+
+```text
+If L == 0:
+    sum = prefix[R]
+Else:
+    sum = prefix[R] - prefix[L - 1]
+```
+
+This needs a special case for `L == 0`.
+
+## Convention 2: Exclusive Prefix with Extra Zero
+
+```java
+prefix[i + 1] = prefix[i] + nums[i];
+```
+
+Range formula:
+
+```text
+sum(L...R) = prefix[R + 1] - prefix[L]
+```
+
+This is the recommended convention because:
+
+```text
+No special case for L = 0
+Cleaner indexing
+Works naturally for empty prefix
+Easier to use in 2D Prefix Sum
+```
+
+Use this in interviews unless the problem specifically suggests another format.
+
+---
+
+# 6. Prefix Sum Has Four Core Components
+
+Every Prefix Sum problem contains some combination of these components:
+
+| Component      | Meaning                                     | Example                         |
+| -------------- | ------------------------------------------- | ------------------------------- |
+| Prefix state   | Accumulated information until current index | Running sum                     |
+| Previous state | Accumulated information before a subarray   | `prefixSum - k`                 |
+| Difference     | Information inside a range                  | Current prefix minus old prefix |
+| Storage        | Array, HashMap, Set or variable             | Prefix array or frequency map   |
+
+Mental model:
+
+```text
+Current state
+-
+Old state
+=
+State of middle range
+```
+
+For sums:
+
+```text
+Current prefix sum - Previous prefix sum = Subarray sum
+```
+
+For equal counts:
+
+```text
+Current balance - Previous balance = 0
+```
+
+For divisibility:
+
+```text
+Same remainder at two positions
+→ difference is divisible by K
+```
+
+---
+
+# 7. How to Identify Prefix Sum Problems
+
+Look for the following signals.
+
+## Signal 1: Repeated Range Sum Queries
+
+Problem language:
+
+```text
+Find sum between L and R
+Multiple range queries
+Calculate total for different intervals
+Immutable array with many queries
+```
+
+Think:
+
+```text
+Prefix Array
+```
+
+Example:
+
+```text
+Range Sum Query – Immutable
+```
+
+---
+
+## Signal 2: Exact Subarray Sum
+
+Problem language:
+
+```text
+Find a subarray whose sum equals K
+Count subarrays with sum K
+Longest subarray with sum K
+Check whether a subarray sum exists
+```
+
+Think:
+
+```text
+Running Prefix Sum + HashMap
+```
+
+Especially when:
+
+```text
+Negative numbers are allowed
+```
+
+---
+
+## Signal 3: Count All Subarrays
+
+Problem language:
+
+```text
+How many subarrays...
+Count the number of contiguous ranges...
+Number of subarrays satisfying...
+```
+
+This is an important signal.
+
+Sliding Window often finds:
+
+```text
+Longest or shortest window
+```
+
+Prefix Sum + HashMap often finds:
+
+```text
+How many exact subarrays exist
+```
+
+---
+
+## Signal 4: Positive and Negative Numbers
+
+Suppose the problem asks for:
+
+```text
+Subarray sum equals K
+```
+
+and numbers may include:
+
+```text
+Positive
+Zero
+Negative
+```
+
+Standard Sliding Window usually cannot reliably solve it.
+
+Think:
+
+```text
+Prefix Sum + HashMap
+```
+
+---
+
+## Signal 5: Balance or Equal Counts
+
+Problem language:
+
+```text
+Equal number of zeroes and ones
+Equal vowels and consonants
+Equal positive and negative values
+Same number of two categories
+Net balance becomes zero
+```
+
+Think:
+
+```text
+Convert categories into +1 and -1
+Then use Prefix Sum
+```
+
+Example:
+
+```text
+0 → -1
+1 → +1
+```
+
+Now:
+
+```text
+Equal number of 0 and 1
+=
+Subarray sum equals 0
+```
+
+---
+
+## Signal 6: Divisibility or Remainders
+
+Problem language:
+
+```text
+Subarray sum divisible by K
+Sum is a multiple of K
+Count ranges having remainder condition
+```
+
+Think:
+
+```text
+Prefix Sum + Modulo + HashMap
+```
+
+Important equation:
+
+```text
+If two prefix sums have the same remainder modulo K,
+their difference is divisible by K.
+```
+
+---
+
+## Signal 7: Left Sum and Right Sum
+
+Problem language:
+
+```text
+Pivot index
+Equilibrium index
+Left sum equals right sum
+Find an index where both sides are balanced
+```
+
+Think:
+
+```text
+Total Sum + Running Prefix Sum
+```
+
+---
+
+## Signal 8: Many Rectangle Sum Queries
+
+Problem language:
+
+```text
+Matrix
+Rectangle sum
+Region sum
+Submatrix total
+Many 2D range queries
+```
+
+Think:
+
+```text
+2D Prefix Sum
+```
+
+---
+
+## Signal 9: Many Range Updates
+
+Problem language:
+
+```text
+Add X to every element from L to R
+Perform multiple interval updates
+Return final array after all range operations
+```
+
+Think:
+
+```text
+Difference Array + Prefix Sum
+```
+
+---
+
+# 8. Prefix Sum Identification Decision Tree
+
+```mermaid
+flowchart TD
+    A[New Array/String/Matrix Problem] --> B{Does it involve contiguous ranges?}
+
+    B -- No --> C[Think HashMap, Sorting, Two Pointers, DP]
+    B -- Yes --> D{Many fixed range queries?}
+
+    D -- Yes --> E[Prefix Array]
+    D -- No --> F{Need exact sum K?}
+
+    F -- Yes --> G{Only positive numbers and need min/max length?}
+    G -- Yes --> H[Sliding Window may work]
+    G -- No --> I[Prefix Sum + HashMap]
+
+    F -- No --> J{Need count of all valid subarrays?}
+    J -- Yes --> K[Prefix State + Frequency Map]
+    J -- No --> L{Need longest valid subarray?}
+
+    L -- Yes --> M[Prefix State + Earliest Index]
+    L -- No --> N{Equal categories or balance?}
+
+    N -- Yes --> O[Transform to +1/-1 then Prefix Sum]
+    N -- No --> P{Divisible by K?}
+
+    P -- Yes --> Q[Prefix Remainder + HashMap]
+    P -- No --> R{2D matrix ranges?}
+
+    R -- Yes --> S[2D Prefix Sum]
+    R -- No --> T{Many range updates?}
+
+    T -- Yes --> U[Difference Array]
+    T -- No --> V[Consider another pattern]
+```
+
+---
+
+# 9. Prefix Sum vs Sliding Window
+
+This distinction is extremely important.
+
+| Situation                             | Sliding Window                         | Prefix Sum                                    |
+| ------------------------------------- | -------------------------------------- | --------------------------------------------- |
+| Contiguous data                       | Yes                                    | Yes                                           |
+| Fixed-size window                     | Excellent                              | Possible, but usually unnecessary             |
+| Longest/shortest range                | Excellent when condition is monotonic  | Useful when negatives break monotonicity      |
+| Exact sum K                           | Works in limited positive-number cases | Works with positive, zero and negative values |
+| Count all exact-sum subarrays         | Usually difficult                      | Excellent                                     |
+| Many range queries                    | Not suitable                           | Excellent                                     |
+| Negative numbers                      | Often fails                            | Works                                         |
+| Need HashMap                          | Sometimes                              | Commonly                                      |
+| Window is actively maintained         | Yes                                    | No                                            |
+| Uses difference of accumulated states | No                                     | Yes                                           |
+
+## Mental shortcut
+
+```text
+Sliding Window = Maintain one changing range.
+
+Prefix Sum = Compare current accumulated state with a previous accumulated state.
+```
+
+---
+
+# 10. Why Sliding Window Fails with Negative Numbers
+
+Consider:
+
+```text
+nums = [3, -2, 5]
+target = 5
+```
+
+In a positive-only array:
+
+```text
+Adding right increases sum.
+Removing left decreases sum.
+```
+
+That gives Sliding Window predictable movement.
+
+With negative values:
+
+```text
+Adding an element may decrease the sum.
+Removing an element may increase the sum.
+```
+
+Example:
+
+```text
+Current window = [3, -2]
+Sum = 1
+
+Add 5:
+Sum = 6
+
+Remove 3:
+Sum = 3
+```
+
+But in another case, removing a negative value may increase the sum.
+
+Therefore, there is no reliable rule such as:
+
+```text
+Sum too large → always move left
+```
+
+Prefix Sum does not depend on monotonicity.
+
+It only uses:
+
+```text
+Current Prefix - Previous Prefix = Target
+```
+
+Therefore it works with negative numbers.
+
+---
+
+# 11. Three Core Prefix Sum Templates
+
+Most interview problems can be handled using three main templates.
+
+```text
+Template 1: Prefix Array for Range Queries
+Template 2: Running Prefix + HashMap
+Template 3: Prefix Transformation / Balance
+```
+
+Advanced extensions:
+
+```text
+2D Prefix Sum
+Difference Array
+Prefix/Suffix Accumulation
+```
+
+---
+
+# Template 1: Prefix Array for Range Queries
+
+## Use when
+
+```text
+Many queries ask sum from L to R
+The array does not change frequently
+```
+
+## Mental model
+
+```text
+Build cumulative history once.
+For every query, subtract unwanted history.
+```
+
+## Master template
+
+```java
+public class PrefixRangeSum {
+
+    private final long[] prefix;
+
+    public PrefixRangeSum(int[] nums) {
+        prefix = new long[nums.length + 1];
+
+        for (int i = 0; i < nums.length; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+    }
+
+    public long rangeSum(int left, int right) {
+        if (left < 0 || right >= prefix.length - 1 || left > right) {
+            throw new IllegalArgumentException("Invalid range");
+        }
+
+        return prefix[right + 1] - prefix[left];
+    }
+}
+```
+
+Complexity:
+
+```text
+Construction: O(n)
+Each query: O(1)
+Space: O(n)
+```
+
+---
+
+# 12. Problem 1: Range Sum Query – Immutable
+
+## Problem
+
+Given an integer array, answer multiple queries:
+
+```text
+sumRange(left, right)
+```
+
+Example:
+
+```text
+nums = [-2, 0, 3, -5, 2, -1]
+
+sumRange(0, 2) = 1
+sumRange(2, 5) = -1
+sumRange(0, 5) = -3
+```
+
+## Java solution
+
+```java
+public class NumArray {
+
+    private final long[] prefix;
+
+    public NumArray(int[] nums) {
+        prefix = new long[nums.length + 1];
+
+        for (int i = 0; i < nums.length; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+    }
+
+    public long sumRange(int left, int right) {
+        return prefix[right + 1] - prefix[left];
+    }
+}
+```
+
+## Dry run
+
+```text
+nums   = [-2, 0, 3, -5, 2, -1]
+prefix = [ 0,-2,-2, 1,-4,-2,-3]
+```
+
+Query:
+
+```text
+sumRange(2, 5)
+```
+
+Calculation:
+
+```text
+prefix[6] - prefix[2]
+= -3 - (-2)
+= -1
+```
+
+Complexity:
+
+```text
+Build: O(n)
+Query: O(1)
+Space: O(n)
+```
+
+## Interview line
+
+> “Since the array is immutable and there are multiple range-sum queries, I preprocess a prefix array in O(n), after which every query is answered in O(1).”
+
+---
+
+# 13. Can Prefix Sum Handle Updates?
+
+A normal Prefix Sum array is best when:
+
+```text
+The input is immutable
+Updates are rare
+Queries are frequent
+```
+
+If one element changes:
+
+```text
+nums[index] = newValue
+```
+
+all later prefix values may need updating.
+
+That would cost:
+
+```text
+O(n) per update
+```
+
+For frequent point updates and range queries, consider:
+
+```text
+Fenwick Tree
+Segment Tree
+```
+
+For frequent range updates with final reconstruction, consider:
+
+```text
+Difference Array
+```
+
+Interview distinction:
+
+```text
+Immutable range queries → Prefix Sum
+Point updates + range queries → Fenwick/Segment Tree
+Range updates + final array → Difference Array
+```
+
+---
+
+# Template 2: Running Prefix Sum + HashMap
+
+This is the most important Prefix Sum template for interviews.
+
+## Use when
+
+```text
+Count subarrays with exact sum K
+Find longest subarray with exact sum K
+Check whether such a subarray exists
+Negative values may be present
+```
+
+## Core equation
+
+Suppose:
+
+```text
+Current prefix sum = P
+Required subarray sum = K
+```
+
+We need an older prefix sum `X` such that:
+
+```text
+P - X = K
+```
+
+Rearrange:
+
+```text
+X = P - K
+```
+
+Therefore:
+
+```text
+At every index:
+Check whether prefixSum - K appeared previously.
+```
+
+---
+
+# 14. Visual Explanation of Prefix Difference
+
+Suppose:
+
+```text
+nums = [1, 2, 3]
+```
+
+Prefix sums:
+
+```text
+Index boundary: 0  1  2  3
+Prefix sum:     0  1  3  6
+```
+
+To find subarray sum from index `1` to `2`:
+
+```text
+[2, 3] = 5
+```
+
+Use:
+
+```text
+prefix[3] - prefix[1]
+= 6 - 1
+= 5
+```
+
+Visual model:
+
+```text
+[ Prefix before L ][ Required Subarray ]
+
+Current Prefix = Prefix before L + Subarray
+Subarray        = Current Prefix - Prefix before L
+```
+
+---
+
+# 15. HashMap Meaning Changes by Question
+
+The map does not always store the same thing.
+
+| Question Type     | Map Stores                               | Why                                                |
+| ----------------- | ---------------------------------------- | -------------------------------------------------- |
+| Count subarrays   | Prefix sum → frequency                   | Every previous occurrence creates another subarray |
+| Longest subarray  | Prefix sum → earliest index              | Earliest index gives maximum length                |
+| Existence         | Prefix sums in Set/Map                   | Only need to know whether state occurred           |
+| Shortest subarray | Prefix sums with ordered structure/deque | Need closest useful previous state                 |
+| Divisibility      | Remainder → frequency or earliest index  | Same remainder creates divisible difference        |
+
+This is one of the most important Prefix Sum distinctions.
+
+---
+
+# 16. Template 2A: Count Subarrays with Sum K
+
+## Master template
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public int countSubarraysWithSumK(int[] nums, int k) {
+    Map<Long, Integer> prefixFrequency = new HashMap<>();
+
+    prefixFrequency.put(0L, 1);
+
+    long prefixSum = 0;
+    int count = 0;
+
+    for (int num : nums) {
+        prefixSum += num;
+
+        long requiredPrefix = prefixSum - k;
+
+        count += prefixFrequency.getOrDefault(requiredPrefix, 0);
+
+        prefixFrequency.put(
+                prefixSum,
+                prefixFrequency.getOrDefault(prefixSum, 0) + 1
+        );
+    }
+
+    return count;
+}
+```
+
+---
+
+# 17. Why Do We Store `0 → 1`?
+
+This initialization is critical:
+
+```java
+prefixFrequency.put(0L, 1);
+```
+
+It represents:
+
+```text
+Before processing any element:
+Prefix sum = 0
+This state has occurred once.
+```
+
+Suppose:
+
+```text
+nums = [3]
+k = 3
+```
+
+At index `0`:
+
+```text
+prefixSum = 3
+requiredPrefix = 3 - 3 = 0
+```
+
+The required prefix `0` represents the empty prefix before the array.
+
+Because it exists once:
+
+```text
+Subarray [0...0] is counted.
+```
+
+Without:
+
+```java
+map.put(0, 1);
+```
+
+subarrays starting from index `0` would be missed.
+
+Mental shortcut:
+
+```text
+0 → 1 allows a valid subarray to start from index 0.
+```
+
+---
+
+# 18. Why Check Before Updating the Current Prefix?
+
+Correct order:
+
+```java
+count += map.getOrDefault(prefixSum - k, 0);
+map.put(prefixSum, map.getOrDefault(prefixSum, 0) + 1);
+```
+
+Why?
+
+The map should contain:
+
+```text
+Prefix states from positions before the current position.
+```
+
+If the current prefix is stored before checking, it may incorrectly use itself as a previous state.
+
+For `k = 0`, that can create incorrect counting depending on implementation.
+
+Correct flow:
+
+```text
+1. Add current element.
+2. Search previous required prefix.
+3. Count valid subarrays.
+4. Store current prefix for future indexes.
+```
+
+---
+
+# 19. Problem 2: Subarray Sum Equals K
+
+## Problem
+
+Count contiguous subarrays whose sum equals `k`.
+
+Example:
+
+```text
+nums = [1, 1, 1]
+k = 2
+
+Valid subarrays:
+indexes [0...1] → [1,1]
+indexes [1...2] → [1,1]
+
+Answer = 2
+```
+
+## Java solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class SubarraySumEqualsK {
+
+    public int subarraySum(int[] nums, int k) {
+        Map<Long, Integer> prefixFrequency = new HashMap<>();
+        prefixFrequency.put(0L, 1);
+
+        long prefixSum = 0;
+        int count = 0;
+
+        for (int num : nums) {
+            prefixSum += num;
+
+            long requiredPrefix = prefixSum - k;
+
+            count += prefixFrequency.getOrDefault(requiredPrefix, 0);
+
+            prefixFrequency.put(
+                    prefixSum,
+                    prefixFrequency.getOrDefault(prefixSum, 0) + 1
+            );
+        }
+
+        return count;
+    }
+}
+```
+
+## Dry run
+
+```text
+nums = [1, 1, 1]
+k = 2
+```
+
+Initial state:
+
+```text
+map = {0=1}
+prefixSum = 0
+count = 0
+```
+
+| Current Number | Prefix Sum | Required Prefix | Frequency Found | Count | Map After              |
+| -------------: | ---------: | --------------: | --------------: | ----: | ---------------------- |
+|              1 |          1 |              -1 |               0 |     0 | `{0=1, 1=1}`           |
+|              1 |          2 |               0 |               1 |     1 | `{0=1, 1=1, 2=1}`      |
+|              1 |          3 |               1 |               1 |     2 | `{0=1, 1=1, 2=1, 3=1}` |
+
+Answer:
+
+```text
+2
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview line
+
+> “For every current prefix sum, I look for `prefixSum - k`. Each previous occurrence of that value represents one subarray ending at the current index whose sum is K.”
+
+---
+
+# 20. Why Frequency Is Required Instead of Existence
+
+Consider:
+
+```text
+nums = [0, 0]
+k = 0
+```
+
+Valid subarrays:
+
+```text
+[0] at index 0
+[0] at index 1
+[0,0]
+```
+
+Answer:
+
+```text
+3
+```
+
+Prefix sum `0` occurs multiple times.
+
+If the map only stored:
+
+```text
+Does 0 exist?
+```
+
+we would lose information.
+
+We need:
+
+```text
+How many times has prefix 0 occurred?
+```
+
+Therefore:
+
+```java
+Map<PrefixSum, Frequency>
+```
+
+Mental shortcut:
+
+```text
+Count problem → Store frequency.
+```
+
+---
+
+# 21. Template 2B: Longest Subarray with Sum K
+
+For the longest subarray, frequency is not needed.
+
+We need:
+
+```text
+The earliest index where a prefix sum appeared.
+```
+
+Why earliest?
+
+Current length:
+
+```text
+currentIndex - previousIndex
+```
+
+To maximize length:
+
+```text
+Use the smallest previous index.
+```
+
+## Master template
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public int longestSubarrayWithSumK(int[] nums, long k) {
+    Map<Long, Integer> firstIndex = new HashMap<>();
+
+    firstIndex.put(0L, -1);
+
+    long prefixSum = 0;
+    int maxLength = 0;
+
+    for (int i = 0; i < nums.length; i++) {
+        prefixSum += nums[i];
+
+        long requiredPrefix = prefixSum - k;
+
+        if (firstIndex.containsKey(requiredPrefix)) {
+            int length = i - firstIndex.get(requiredPrefix);
+            maxLength = Math.max(maxLength, length);
+        }
+
+        firstIndex.putIfAbsent(prefixSum, i);
+    }
+
+    return maxLength;
+}
+```
+
+Important:
+
+```java
+firstIndex.putIfAbsent(prefixSum, i);
+```
+
+Do not overwrite an earlier index.
+
+---
+
+# 22. Why Store `0 → -1` for Length Problems?
+
+Suppose:
+
+```text
+nums = [1, 2, 3]
+k = 6
+```
+
+The entire array has sum `6`.
+
+At index `2`:
+
+```text
+prefixSum = 6
+requiredPrefix = 6 - 6 = 0
+```
+
+To calculate the full-array length:
+
+```text
+2 - (-1) = 3
+```
+
+Therefore:
+
+```java
+firstIndex.put(0L, -1);
+```
+
+represents the position before index `0`.
+
+Mental shortcut:
+
+```text
+Count problem  → 0 maps to frequency 1
+Length problem → 0 maps to index -1
+```
+
+---
+
+# 23. Problem 3: Longest Subarray with Sum K
+
+## Java solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class LongestSubarraySumK {
+
+    public int longestSubarray(int[] nums, long k) {
+        Map<Long, Integer> firstIndex = new HashMap<>();
+        firstIndex.put(0L, -1);
+
+        long prefixSum = 0;
+        int maxLength = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum += nums[i];
+
+            long requiredPrefix = prefixSum - k;
+
+            if (firstIndex.containsKey(requiredPrefix)) {
+                int startBefore = firstIndex.get(requiredPrefix);
+                int currentLength = i - startBefore;
+
+                maxLength = Math.max(maxLength, currentLength);
+            }
+
+            firstIndex.putIfAbsent(prefixSum, i);
+        }
+
+        return maxLength;
+    }
+}
+```
+
+Example:
+
+```text
+nums = [10, 5, 2, 7, 1, 9]
+k = 15
+```
+
+One longest valid subarray:
+
+```text
+[5, 2, 7, 1]
+sum = 15
+length = 4
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview line
+
+> “For the longest subarray, I store the earliest index of every prefix sum. When `prefixSum - k` exists, the distance from its earliest index to the current index gives the maximum possible length.”
+
+---
+
+# 24. Count vs Longest Prefix Template
+
+| Requirement       | Initial Map        | Map Value                   | Update Rule                         |
+| ----------------- | ------------------ | --------------------------- | ----------------------------------- |
+| Count subarrays   | `0 → 1`            | Frequency                   | Increment every occurrence          |
+| Longest subarray  | `0 → -1`           | Earliest index              | Use `putIfAbsent`                   |
+| Existence         | Add prefix `0`     | Boolean presence/index      | Any occurrence is enough            |
+| Shortest subarray | Depends on problem | Latest/useful ordered index | Usually needs deque or latest index |
+
+Memorize this table.
+
+---
+
+# 25. Template 2C: Check Whether a Subarray Sum Exists
+
+If only existence is required:
+
+```java
+import java.util.HashSet;
+import java.util.Set;
+
+public boolean hasSubarrayWithSumK(int[] nums, long k) {
+    Set<Long> seenPrefixSums = new HashSet<>();
+    seenPrefixSums.add(0L);
+
+    long prefixSum = 0;
+
+    for (int num : nums) {
+        prefixSum += num;
+
+        if (seenPrefixSums.contains(prefixSum - k)) {
+            return true;
+        }
+
+        seenPrefixSums.add(prefixSum);
+    }
+
+    return false;
+}
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+Mental shortcut:
+
+```text
+Existence problem → Prefix Set
+Count problem → Prefix Frequency Map
+Longest problem → Prefix Earliest-Index Map
+```
+
+---
+
+# Template 3: Prefix Transformation / Balance
+
+Many problems do not directly mention sums.
+
+We transform the problem into a sum problem.
+
+Examples:
+
+```text
+Equal number of zeroes and ones
+Equal number of vowels and consonants
+Equal number of positive and negative values
+Even and odd balance
+Gain and loss balance
+```
+
+## Mental model
+
+```text
+Category A → +1
+Category B → -1
+```
+
+Then:
+
+```text
+Equal number of A and B
+=
+Net sum is 0
+```
+
+Now use:
+
+```text
+Prefix Sum + HashMap
+```
+
+---
+
+# 26. Problem 4: Contiguous Array
+
+## Problem
+
+Given a binary array, find the longest contiguous subarray containing an equal number of `0` and `1`.
+
+Example:
+
+```text
+nums = [0, 1, 0]
+
+Answer = 2
+```
+
+## Transformation
+
+```text
+0 → -1
+1 → +1
+```
+
+Then:
+
+```text
+Equal zeroes and ones
+=
+Subarray sum equals 0
+```
+
+## Java solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class ContiguousArray {
+
+    public int findMaxLength(int[] nums) {
+        Map<Integer, Integer> firstIndex = new HashMap<>();
+        firstIndex.put(0, -1);
+
+        int balance = 0;
+        int maxLength = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            balance += nums[i] == 0 ? -1 : 1;
+
+            if (firstIndex.containsKey(balance)) {
+                int length = i - firstIndex.get(balance);
+                maxLength = Math.max(maxLength, length);
+            } else {
+                firstIndex.put(balance, i);
+            }
+        }
+
+        return maxLength;
+    }
+}
+```
+
+## Why does repeated balance work?
+
+Suppose balance was `2` at index `i` and again `2` at index `j`.
+
+The net change between them is:
+
+```text
+2 - 2 = 0
+```
+
+Therefore, between `i + 1` and `j`:
+
+```text
+Number of +1 values = Number of -1 values
+```
+
+Meaning:
+
+```text
+Equal number of 1 and 0
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview line
+
+> “I transform zero into minus one and one into plus one. Now an equal number of zeroes and ones produces a net sum of zero, so repeated prefix balance identifies a valid subarray.”
+
+---
+
+# 27. Same Prefix State Pattern
+
+This is broader than sums.
+
+Whenever the same cumulative state appears twice:
+
+```text
+State at j - State at i = 0
+```
+
+Therefore, the range between them is balanced.
+
+Examples:
+
+| Cumulative State               | Same State Means                |
+| ------------------------------ | ------------------------------- |
+| Running sum                    | Middle subarray sum is zero     |
+| Zero-one balance               | Equal zeroes and ones           |
+| Odd-even balance               | Equal odd and even count        |
+| Vowel-consonant balance        | Equal vowel and consonant count |
+| Prefix remainder               | Middle sum divisible by K       |
+| Character frequency difference | Two categories balanced         |
+
+Mental shortcut:
+
+```text
+Same prefix state twice → middle range contributes zero net change.
+```
+
+---
+
+# 28. Prefix Sum + Modulo Pattern
+
+Suppose we need:
+
+```text
+Subarray sum divisible by K
+```
+
+A number is divisible by `K` if its remainder is zero:
+
+```text
+subarraySum % K = 0
+```
+
+For two prefix sums:
+
+```text
+currentPrefix - previousPrefix
+```
+
+We want:
+
+```text
+(currentPrefix - previousPrefix) % K = 0
+```
+
+This is true when:
+
+```text
+currentPrefix % K = previousPrefix % K
+```
+
+Therefore:
+
+```text
+Same remainder at two prefix positions
+→ Difference between them is divisible by K
+```
+
+---
+
+# 29. Problem 5: Subarray Sums Divisible by K
+
+## Problem
+
+Count subarrays whose sum is divisible by `k`.
+
+Example:
+
+```text
+nums = [4, 5, 0, -2, -3, 1]
+k = 5
+
+Answer = 7
+```
+
+## Java solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class SubarraySumsDivisibleByK {
+
+    public int subarraysDivByK(int[] nums, int k) {
+        Map<Integer, Integer> remainderFrequency = new HashMap<>();
+        remainderFrequency.put(0, 1);
+
+        long prefixSum = 0;
+        int count = 0;
+
+        for (int num : nums) {
+            prefixSum += num;
+
+            int remainder = (int) ((prefixSum % k + k) % k);
+
+            count += remainderFrequency.getOrDefault(remainder, 0);
+
+            remainderFrequency.put(
+                    remainder,
+                    remainderFrequency.getOrDefault(remainder, 0) + 1
+            );
+        }
+
+        return count;
+    }
+}
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(k) in terms of possible remainders
+```
+
+---
+
+# 30. Why Normalize Negative Remainders?
+
+In Java:
+
+```java
+-2 % 5 = -2
+```
+
+But mathematically, we often want remainder values in:
+
+```text
+0 to k - 1
+```
+
+Normalize using:
+
+```java
+int remainder = (int) ((prefixSum % k + k) % k);
+```
+
+Example:
+
+```text
+prefixSum = -2
+k = 5
+
+(-2 % 5 + 5) % 5
+= (-2 + 5) % 5
+= 3
+```
+
+Both `-2` and `3` represent the same modulo class, but normalization ensures consistent HashMap keys.
+
+---
+
+# 31. Problem 6: Continuous Subarray Sum
+
+## Problem
+
+Check whether there is a continuous subarray of length at least `2` whose sum is a multiple of `k`.
+
+## Important differences
+
+We need:
+
+```text
+Existence
+Length at least 2
+Same remainder
+Earliest index
+```
+
+## Java solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class ContinuousSubarraySum {
+
+    public boolean checkSubarraySum(int[] nums, int k) {
+        Map<Integer, Integer> firstIndex = new HashMap<>();
+        firstIndex.put(0, -1);
+
+        long prefixSum = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum += nums[i];
+
+            int remainder;
+
+            if (k == 0) {
+                remainder = (int) prefixSum;
+            } else {
+                remainder = (int) ((prefixSum % k + k) % k);
+            }
+
+            if (firstIndex.containsKey(remainder)) {
+                if (i - firstIndex.get(remainder) >= 2) {
+                    return true;
+                }
+            } else {
+                firstIndex.put(remainder, i);
+            }
+        }
+
+        return false;
+    }
+}
+```
+
+Why store the earliest index?
+
+```text
+A larger distance makes it easier to satisfy length >= 2.
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(min(n, k)) when k is non-zero
+```
+
+---
+
+# 32. Pivot Index Pattern
+
+## Problem
+
+Find an index where:
+
+```text
+Sum of elements on left
+=
+Sum of elements on right
+```
+
+## Mental model
+
+At index `i`:
+
+```text
+leftSum = sum before i
+rightSum = totalSum - leftSum - nums[i]
+```
+
+Condition:
+
+```text
+leftSum == rightSum
+```
+
+## Java solution
+
+```java
+public class PivotIndex {
+
+    public int pivotIndex(int[] nums) {
+        long totalSum = 0;
+
+        for (int num : nums) {
+            totalSum += num;
+        }
+
+        long leftSum = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            long rightSum = totalSum - leftSum - nums[i];
+
+            if (leftSum == rightSum) {
+                return i;
+            }
+
+            leftSum += nums[i];
+        }
+
+        return -1;
+    }
+}
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+## Interview line
+
+> “I calculate the total sum first. While traversing, I maintain the left sum and derive the right sum as `total - left - current`, avoiding a separate suffix array.”
+
+---
+
+# 33. Running Prefix Without an Array
+
+You do not always need to build:
+
+```java
+long[] prefix
+```
+
+Use a single running variable when:
+
+```text
+You process the array once
+You do not need arbitrary future range queries
+You only compare the current prefix with earlier stored states
+```
+
+Example:
+
+```java
+long prefixSum = 0;
+
+for (int num : nums) {
+    prefixSum += num;
+}
+```
+
+Use a full prefix array when:
+
+```text
+Many later queries need direct prefix values
+You need arbitrary range sums
+You need to inspect prefix values by index
+You are building a 2D Prefix Sum
+```
+
+Decision:
+
+```text
+Queries later? → Prefix array
+Single online scan? → Running prefix variable
+```
+
+---
+
+# 34. Prefix Sum with Strings and Characters
+
+Prefix Sum is not limited to numeric arrays.
+
+You can build prefix counts.
+
+Example:
+
+```text
+For each index, store how many vowels appeared before it.
+```
+
+Then:
+
+```text
+Vowels between L and R
+=
+vowelPrefix[R + 1] - vowelPrefix[L]
+```
+
+## Java example
+
+```java
+public class VowelRangeCounter {
+
+    private final int[] vowelPrefix;
+
+    public VowelRangeCounter(String text) {
+        vowelPrefix = new int[text.length() + 1];
+
+        for (int i = 0; i < text.length(); i++) {
+            vowelPrefix[i + 1] =
+                    vowelPrefix[i] + (isVowel(text.charAt(i)) ? 1 : 0);
+        }
+    }
+
+    public int countVowels(int left, int right) {
+        return vowelPrefix[right + 1] - vowelPrefix[left];
+    }
+
+    private boolean isVowel(char ch) {
+        char normalized = Character.toLowerCase(ch);
+
+        return normalized == 'a'
+                || normalized == 'e'
+                || normalized == 'i'
+                || normalized == 'o'
+                || normalized == 'u';
+    }
+}
+```
+
+This pattern can count:
+
+```text
+Vowels
+Digits
+Uppercase characters
+Special characters
+Specific categories
+Valid/invalid records
+```
+
+---
+
+# 35. Multiple Prefix Arrays
+
+Sometimes you need one prefix array per category.
+
+Example:
+
+```text
+Count occurrences of every letter from L to R
+```
+
+Use:
+
+```java
+int[][] prefixFrequency = new int[26][n + 1];
+```
+
+Or:
+
+```java
+int[][] prefix = new int[n + 1][26];
+```
+
+Formula:
+
+```text
+count of character c from L to R
+=
+prefix[R + 1][c] - prefix[L][c]
+```
+
+This is useful for:
+
+```text
+Range frequency queries
+Palindrome rearrangement queries
+Character distribution queries
+Category-count queries
+```
+
+---
+
+# 36. 2D Prefix Sum
+
+Use for matrix rectangle-sum queries.
+
+Suppose:
+
+```text
+matrix:
+1 2 3
+4 5 6
+7 8 9
+```
+
+We build:
+
+```text
+prefix[r + 1][c + 1]
+```
+
+where each cell contains the sum of the rectangle from:
+
+```text
+(0,0) to (r,c)
+```
+
+## Formula to build
+
+```text
+prefix[r + 1][c + 1]
+=
+matrix[r][c]
++ prefix[r][c + 1]
++ prefix[r + 1][c]
+- prefix[r][c]
+```
+
+Why subtract?
+
+The top-left overlapping rectangle was added twice.
+
+---
+
+# 37. 2D Prefix Sum Mental Diagram
+
+```mermaid
+flowchart TD
+    A[Target Rectangle] --> B[Take Sum Until Bottom-Right]
+    B --> C[Subtract Area Above]
+    C --> D[Subtract Area Left]
+    D --> E[Add Back Double-Subtracted Top-Left]
+    E --> F[Rectangle Sum]
+```
+
+Rectangle formula:
+
+```text
+sum(row1...row2, col1...col2)
+=
+prefix[row2 + 1][col2 + 1]
+- prefix[row1][col2 + 1]
+- prefix[row2 + 1][col1]
++ prefix[row1][col1]
+```
+
+Mental shortcut:
+
+```text
+Whole
+- Top
+- Left
++ Top-Left overlap
+```
+
+---
+
+# 38. Problem 7: Range Sum Query 2D – Immutable
+
+## Java solution
+
+```java
+public class NumMatrix {
+
+    private final long[][] prefix;
+
+    public NumMatrix(int[][] matrix) {
+        int rows = matrix.length;
+        int columns = rows == 0 ? 0 : matrix[0].length;
+
+        prefix = new long[rows + 1][columns + 1];
+
+        for (int row = 0; row < rows; row++) {
+            for (int column = 0; column < columns; column++) {
+                prefix[row + 1][column + 1] =
+                        matrix[row][column]
+                        + prefix[row][column + 1]
+                        + prefix[row + 1][column]
+                        - prefix[row][column];
+            }
+        }
+    }
+
+    public long sumRegion(
+            int row1,
+            int column1,
+            int row2,
+            int column2
+    ) {
+        return prefix[row2 + 1][column2 + 1]
+                - prefix[row1][column2 + 1]
+                - prefix[row2 + 1][column1]
+                + prefix[row1][column1];
+    }
+}
+```
+
+Complexity:
+
+```text
+Construction: O(rows × columns)
+Each query: O(1)
+Space: O(rows × columns)
+```
+
+---
+
+# 39. Difference Array
+
+Difference Array is closely related to Prefix Sum.
+
+It is used when:
+
+```text
+There are many range updates.
+```
+
+Problem:
+
+```text
+Add value X to every index from L to R.
+```
+
+Updating each index would cost:
+
+```text
+O(R - L + 1)
+```
+
+Instead, mark only the boundaries:
+
+```text
+difference[L] += X
+difference[R + 1] -= X
+```
+
+Then reconstruct the final array using Prefix Sum.
+
+---
+
+# 40. Difference Array Mental Model
+
+```text
+Range update [L...R] by X:
+
+Start effect at L:
+difference[L] += X
+
+Stop effect after R:
+difference[R + 1] -= X
+```
+
+Then:
+
+```text
+Running prefix of difference
+=
+Total active update at each index
+```
+
+Visual:
+
+```mermaid
+flowchart LR
+    A[Range Update L to R by X] --> B[Add X at L]
+    B --> C[Subtract X at R+1]
+    C --> D[Process all updates]
+    D --> E[Take Prefix Sum]
+    E --> F[Final Updated Array]
+```
+
+---
+
+# 41. Problem 8: Range Addition
+
+## Java solution
+
+```java
+public class RangeAddition {
+
+    public long[] applyUpdates(int length, int[][] updates) {
+        long[] difference = new long[length + 1];
+
+        for (int[] update : updates) {
+            int left = update[0];
+            int right = update[1];
+            int value = update[2];
+
+            difference[left] += value;
+
+            if (right + 1 < length) {
+                difference[right + 1] -= value;
+            }
+        }
+
+        long[] result = new long[length];
+        long runningUpdate = 0;
+
+        for (int i = 0; i < length; i++) {
+            runningUpdate += difference[i];
+            result[i] = runningUpdate;
+        }
+
+        return result;
+    }
+}
+```
+
+Complexity:
+
+```text
+U updates: O(U)
+Reconstruction: O(n)
+Total: O(U + n)
+Space: O(n)
+```
+
+Without Difference Array:
+
+```text
+Worst case: O(U × n)
+```
+
+---
+
+# 42. Difference Array vs Prefix Sum
+
+| Prefix Sum                             | Difference Array                    |
+| -------------------------------------- | ----------------------------------- |
+| Optimizes range queries                | Optimizes range updates             |
+| Converts values into cumulative totals | Stores where changes start and stop |
+| Query by subtraction                   | Reconstruct by cumulative addition  |
+| Many queries, few updates              | Many updates, final result needed   |
+| Forward cumulative view                | Boundary-change view                |
+
+Mental shortcut:
+
+```text
+Prefix Sum answers ranges.
+Difference Array applies ranges.
+```
+
+---
+
+# 43. Prefix and Suffix Accumulation
+
+Some problems use both:
+
+```text
+Information before index i
+Information after index i
+```
+
+Examples:
+
+```text
+Product of Array Except Self
+Left-right sum difference
+Trapping Rain Water using prefix/suffix maximum
+Minimum removals based on both sides
+```
+
+This is related to Prefix Sum but is better called:
+
+```text
+Prefix/Suffix Accumulation
+```
+
+It may accumulate:
+
+```text
+Sum
+Product
+Maximum
+Minimum
+Frequency
+Boolean condition
+```
+
+Not every prefix structure must contain a sum.
+
+General concept:
+
+```text
+prefix[i] = combined information before or until i
+suffix[i] = combined information after or from i
+```
+
+---
+
+# 44. Problem 9: Product of Array Except Self
+
+This is not a Prefix Sum problem, but it uses the same prefix/suffix accumulation idea.
+
+## Mental model
+
+At index `i`:
+
+```text
+Answer =
+Product of everything left of i
+×
+Product of everything right of i
+```
+
+## Java solution
+
+```java
+public class ProductExceptSelf {
+
+    public int[] productExceptSelf(int[] nums) {
+        int length = nums.length;
+        int[] result = new int[length];
+
+        result[0] = 1;
+
+        for (int i = 1; i < length; i++) {
+            result[i] = result[i - 1] * nums[i - 1];
+        }
+
+        int suffixProduct = 1;
+
+        for (int i = length - 1; i >= 0; i--) {
+            result[i] *= suffixProduct;
+            suffixProduct *= nums[i];
+        }
+
+        return result;
+    }
+}
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Extra space excluding output: O(1)
+```
+
+Important classification:
+
+```text
+Core concept: Prefix/Suffix accumulation
+Not specifically Prefix Sum
+```
+
+---
+
+# 45. Prefix Sum Problem Families
+
+| Family                           | Required State           | Typical Problem              |
+| -------------------------------- | ------------------------ | ---------------------------- |
+| Range query                      | Prefix array             | Range Sum Query              |
+| Exact target count               | Prefix frequency         | Subarray Sum Equals K        |
+| Exact target longest             | Prefix earliest index    | Longest Subarray Sum K       |
+| Existence                        | Prefix Set               | Check subarray sum           |
+| Zero-sum range                   | Repeated prefix sum      | Longest Zero-Sum Subarray    |
+| Equal categories                 | +1/-1 balance            | Contiguous Array             |
+| Divisible by K count             | Remainder frequency      | Subarray Sums Divisible by K |
+| Divisible by K longest/existence | Remainder earliest index | Continuous Subarray Sum      |
+| Left/right balance               | Total + running sum      | Pivot Index                  |
+| Matrix ranges                    | 2D prefix                | Range Sum Query 2D           |
+| Range updates                    | Difference array         | Range Addition               |
+| Before/after information         | Prefix and suffix        | Product Except Self          |
+
+---
+
+# 46. Common Transformations
+
+## Equal zeroes and ones
+
+```text
+0 → -1
+1 → +1
+Find zero-sum subarray
+```
+
+## Equal two categories
+
+```text
+Category A → +1
+Category B → -1
+Find zero-sum subarray
+```
+
+## Count odd numbers in range
+
+```text
+Odd → 1
+Even → 0
+Build prefix count
+```
+
+## Number of values satisfying condition
+
+```text
+Condition true  → 1
+Condition false → 0
+```
+
+## Divisible by K
+
+```text
+Store normalized prefix remainder
+```
+
+## Exactly K odd numbers
+
+Transform:
+
+```text
+Odd → 1
+Even → 0
+```
+
+Then solve:
+
+```text
+Count subarrays with sum K
+```
+
+This is the problem:
+
+```text
+Count Number of Nice Subarrays
+```
+
+---
+
+# 47. Problem 10: Count Number of Nice Subarrays
+
+## Problem
+
+Count subarrays containing exactly `k` odd numbers.
+
+## Transformation
+
+```text
+Odd number → 1
+Even number → 0
+```
+
+Now the problem becomes:
+
+```text
+Count subarrays with sum K
+```
+
+## Java solution
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class NiceSubarrays {
+
+    public int numberOfSubarrays(int[] nums, int k) {
+        Map<Integer, Integer> prefixFrequency = new HashMap<>();
+        prefixFrequency.put(0, 1);
+
+        int oddCount = 0;
+        int result = 0;
+
+        for (int num : nums) {
+            if ((num & 1) != 0) {
+                oddCount++;
+            }
+
+            result += prefixFrequency.getOrDefault(oddCount - k, 0);
+
+            prefixFrequency.put(
+                    oddCount,
+                    prefixFrequency.getOrDefault(oddCount, 0) + 1
+            );
+        }
+
+        return result;
+    }
+}
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(n)
+```
+
+## Interview line
+
+> “I convert every odd number to one and every even number to zero. The problem then becomes counting subarrays with sum K, which is the standard Prefix Sum plus frequency-map template.”
+
+---
+
+# 48. Binary Prefix Sum Optimization
+
+When transformed prefix states have a small range, an array can sometimes replace HashMap.
+
+Example:
+
+```text
+Prefix count ranges from 0 to n
+```
+
+Use:
+
+```java
+int[] frequency = new int[nums.length + 1];
+```
+
+instead of:
+
+```java
+Map<Integer, Integer>
+```
+
+Advantages:
+
+```text
+Lower constant factor
+No hashing overhead
+Simpler when state bounds are known
+```
+
+HashMap remains safer when:
+
+```text
+Prefix sums may be negative
+Values may be very large
+State range is unknown
+```
+
+---
+
+# 49. Integer Overflow
+
+Prefix sums can exceed `int`.
+
+Suppose:
+
+```text
+n = 100000
+nums[i] = 1000000000
+```
+
+Total sum can reach:
+
+```text
+10^5 × 10^9 = 10^14
+```
+
+This exceeds Java `int`.
+
+Use:
+
+```java
+long prefixSum = 0;
+long[] prefix = new long[n + 1];
+Map<Long, Integer> map = new HashMap<>();
+```
+
+Interview line:
+
+> “I use long for cumulative values because prefix sums can overflow an integer even when individual elements fit inside int.”
+
+---
+
+# 50. Complexity Mental Model
+
+## Prefix array
+
+```text
+Build: O(n)
+Query: O(1)
+Space: O(n)
+```
+
+## Running Prefix + HashMap
+
+```text
+Time: O(n) average
+Space: O(n)
+```
+
+## 2D Prefix Sum
+
+```text
+Build: O(rows × columns)
+Query: O(1)
+Space: O(rows × columns)
+```
+
+## Difference Array
+
+```text
+Updates: O(number of updates)
+Reconstruction: O(n)
+Total: O(updates + n)
+```
+
+---
+
+# 51. Why Prefix Sum + HashMap Is O(n)
+
+Even though a HashMap is used:
+
+```text
+Each element is processed once.
+```
+
+For every element:
+
+```text
+One prefix addition
+One map lookup
+One map update
+```
+
+Average HashMap operations are:
+
+```text
+O(1)
+```
+
+Therefore:
+
+```text
+n × O(1) = O(n)
+```
+
+Worst-case hashing complexity can theoretically degrade, but interview complexity is normally stated as:
+
+```text
+O(n) average time
+```
+
+---
+
+# 52. Common Prefix Sum Mistakes
+
+## Mistake 1: Wrong range formula
+
+Wrong:
+
+```java
+prefix[right] - prefix[left];
+```
+
+when using an extra leading zero.
+
+Correct:
+
+```java
+prefix[right + 1] - prefix[left];
+```
+
+---
+
+## Mistake 2: Forgetting initial zero state
+
+For counting:
+
+```java
+map.put(0L, 1);
+```
+
+For longest length:
+
+```java
+map.put(0L, -1);
+```
+
+Without these, subarrays starting from index `0` may be missed.
+
+---
+
+## Mistake 3: Storing frequency for a longest problem
+
+Longest requires:
+
+```text
+Earliest index
+```
+
+not frequency.
+
+---
+
+## Mistake 4: Overwriting the earliest index
+
+Wrong:
+
+```java
+firstIndex.put(prefixSum, i);
+```
+
+Correct:
+
+```java
+firstIndex.putIfAbsent(prefixSum, i);
+```
+
+---
+
+## Mistake 5: Using a Set when duplicates matter
+
+For count problems, one prefix value may occur several times.
+
+Use:
+
+```text
+Frequency Map
+```
+
+not Set.
+
+---
+
+## Mistake 6: Using Sliding Window with negative numbers
+
+For exact sum with arbitrary integers:
+
+```text
+Prefix Sum + HashMap
+```
+
+is generally the safer pattern.
+
+---
+
+## Mistake 7: Not normalizing negative remainders
+
+Use:
+
+```java
+((remainder % k) + k) % k
+```
+
+---
+
+## Mistake 8: Using `int` for cumulative sum
+
+Use:
+
+```java
+long
+```
+
+when constraints may produce large totals.
+
+---
+
+## Mistake 9: Updating the map before checking
+
+Correct order:
+
+```text
+Calculate prefix
+Check required previous prefix
+Update answer
+Store current prefix
+```
+
+---
+
+## Mistake 10: Confusing subarray and subsequence
+
+Prefix Sum normally applies to:
+
+```text
+Contiguous ranges
+```
+
+It does not directly solve arbitrary subsequences.
+
+---
+
+# 53. Prefix Sum Debugging Flow
+
+```mermaid
+flowchart TD
+    A[Wrong Prefix Sum Answer] --> B{Range query problem?}
+
+    B -- Yes --> C[Check prefix convention]
+    C --> D[Check R+1 and L indexes]
+
+    B -- No --> E{Subarray target problem?}
+    E -- Yes --> F[Verify equation: required = current - target]
+    F --> G[Check initial map entry]
+    G --> H{Count or longest?}
+
+    H -- Count --> I[Store frequency]
+    H -- Longest --> J[Store earliest index]
+
+    E -- No --> K{Modulo problem?}
+    K -- Yes --> L[Normalize negative remainder]
+
+    K -- No --> M{Large values?}
+    M -- Yes --> N[Use long]
+
+    N --> O[Dry run prefix states]
+    I --> O
+    J --> O
+    L --> O
+    D --> O
+```
+
+---
+
+# 54. Step-by-Step Approach for a New Prefix Sum Problem
+
+Ask these questions in order.
+
+## Question 1: Is the answer about a contiguous range?
+
+```text
+Subarray
+Substring
+Range
+Interval
+Rectangle
+```
+
+If no, Prefix Sum may not apply.
+
+---
+
+## Question 2: Are range values being recalculated repeatedly?
+
+If yes:
+
+```text
+Build a prefix array.
+```
+
+---
+
+## Question 3: Is the required subarray condition exact?
+
+Examples:
+
+```text
+Sum equals K
+Exactly K odd numbers
+Equal zeroes and ones
+Sum divisible by K
+```
+
+If yes:
+
+```text
+Running Prefix + HashMap
+```
+
+---
+
+## Question 4: What does the map need to store?
+
+```text
+Count answer   → frequency
+Longest answer → earliest index
+Existence      → Set or any index
+```
+
+---
+
+## Question 5: What is the prefix state?
+
+It may be:
+
+```text
+Sum
+Odd count
+Balance
+Remainder
+Frequency difference
+```
+
+---
+
+## Question 6: What is the required previous state?
+
+For exact sum:
+
+```text
+currentPrefix - target
+```
+
+For zero balance:
+
+```text
+same current state
+```
+
+For divisibility:
+
+```text
+same remainder
+```
+
+---
+
+## Question 7: What initial state is needed?
+
+```text
+Count → state 0 occurred once
+Length → state 0 occurred at index -1
+```
+
+---
+
+## Question 8: Can the sum overflow?
+
+If yes:
+
+```text
+Use long.
+```
+
+---
+
+# 55. Problem Statement Translation Table
+
+| Problem Language           | Prefix Sum Translation           |
+| -------------------------- | -------------------------------- |
+| Sum from L to R            | `prefix[R + 1] - prefix[L]`      |
+| Subarray sum equals K      | Find old prefix `current - K`    |
+| Count subarrays sum K      | Prefix frequency map             |
+| Longest subarray sum K     | Prefix earliest-index map        |
+| Zero-sum subarray          | Find repeated prefix sum         |
+| Equal 0 and 1              | Convert 0 to -1                  |
+| Equal two categories       | Convert one to +1, another to -1 |
+| Exactly K odd numbers      | Odd = 1, even = 0                |
+| Sum divisible by K         | Find same prefix remainder       |
+| Left sum equals right sum  | Total sum and running left sum   |
+| Rectangle sum              | 2D inclusion-exclusion           |
+| Many range additions       | Difference array                 |
+| Information except current | Prefix + suffix                  |
+
+---
+
+# 56. Prefix Sum and HashMap Relationship
+
+You have already covered HashMap, so remember:
+
+```text
+Prefix Sum defines the state.
+HashMap remembers previous states.
+```
+
+The combined mental model is:
+
+```text
+Running Prefix = What has happened until now
+HashMap         = Where/how often this state happened before
+```
+
+Examples:
+
+```text
+Subarray Sum Equals K
+Prefix state: cumulative sum
+Map: sum → frequency
+```
+
+```text
+Longest Equal 0 and 1
+Prefix state: zero-one balance
+Map: balance → earliest index
+```
+
+```text
+Subarray Divisible by K
+Prefix state: cumulative remainder
+Map: remainder → frequency
+```
+
+---
+
+# 57. Prefix Sum and Two-Pointers Relationship
+
+Two-Pointers moves indexes based on comparisons:
+
+```text
+left
+right
+```
+
+Prefix Sum usually does not maintain a current window.
+
+Instead:
+
+```text
+Current index scans once.
+HashMap indirectly identifies a previous boundary.
+```
+
+For `Subarray Sum Equals K`:
+
+```text
+Current index = right boundary
+Stored old prefix = boundary before left
+```
+
+The left boundary is not moved manually.
+
+It is discovered through:
+
+```text
+prefixSum - k
+```
+
+---
+
+# 58. Prefix Sum and Sliding Window Relationship
+
+Both optimize contiguous-range problems.
+
+Sliding Window:
+
+```text
+Explicitly maintains [left...right]
+```
+
+Prefix Sum:
+
+```text
+Computes a state at right and searches for a compatible old state
+```
+
+Example:
+
+```text
+Minimum-size subarray sum at least K
+Positive numbers → Sliding Window
+```
+
+```text
+Count subarrays sum exactly K
+Negative numbers allowed → Prefix Sum + HashMap
+```
+
+---
+
+# 59. When Prefix Sum Is Not the Correct Pattern
+
+Do not force Prefix Sum when:
+
+```text
+The problem asks for arbitrary subsequences
+The answer depends on element order but not contiguous ranges
+The operation cannot be reversed or combined properly
+Frequent updates invalidate the prefix array
+The condition needs maximum/minimum inside every window
+A simple running sum or Sliding Window is sufficient
+```
+
+Examples:
+
+```text
+Maximum element in every window
+→ Monotonic Deque
+
+Frequent point updates and range sum
+→ Fenwick Tree / Segment Tree
+
+Longest substring without repeating
+→ Sliding Window
+
+Two Sum
+→ Complement HashMap
+```
+
+---
+
+# 60. Prefix Sum Project Usage Mapping
+
+Prefix Sum is primarily an interview pattern, but its idea appears in backend systems.
+
+| Concept                | Realistic Project Usage                    | Interview Line                                                                                         |
+| ---------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| Running totals         | Daily transaction/request totals           | “Running aggregation avoids recalculating totals repeatedly.”                                          |
+| Range totals           | Reports between dates or periods           | “Prefix-style cumulative totals can answer repeated interval queries efficiently.”                     |
+| Cumulative metrics     | Requests, posts, users or errors over time | “Cumulative counters help derive interval metrics through subtraction.”                                |
+| Balance transformation | Credit/debit or success/failure balance    | “Two event types can be converted into positive and negative contributions.”                           |
+| 2D prefix concept      | Analytics by time and category             | “For fixed multidimensional reports, precomputed cumulative aggregates reduce repeated calculations.”  |
+| Difference array       | Bulk interval configuration updates        | “Boundary updates are useful when many interval changes must be applied before final materialization.” |
+
+Important honesty:
+
+```text
+In most Spring Boot applications, databases and analytics systems perform these aggregations.
+Prefix Sum is more commonly tested in coding interviews than manually implemented in CRUD services.
+```
+
+---
+
+# 61. Blog Application Examples
+
+## Posts created during a date range
+
+Suppose daily post counts are:
+
+```text
+[4, 7, 2, 5, 3]
+```
+
+A cumulative array can answer:
+
+```text
+How many posts were created from day 2 to day 4?
+```
+
+using:
+
+```text
+prefix[5] - prefix[1]
+```
+
+In a real project, SQL would normally use:
+
+```sql
+SUM(...)
+WHERE created_at BETWEEN ...
+```
+
+But Prefix Sum explains how repeated in-memory range aggregation could be optimized.
+
+---
+
+## API request analytics
+
+For requests per minute:
+
+```text
+[100, 120, 90, 150, 130]
+```
+
+Prefix totals can calculate requests during any time interval.
+
+Interview line:
+
+> “For immutable time-series data, cumulative totals allow interval metrics to be calculated by subtracting two prefix values.”
+
+---
+
+## Success/failure balance
+
+Transform:
+
+```text
+Success → +1
+Failure → -1
+```
+
+A repeated balance means the middle interval has:
+
+```text
+Equal successes and failures
+```
+
+This is a conceptual project mapping, not necessarily a recommended production implementation.
+
+---
+
+# 62. Interview Answer Templates
+
+## General identification answer
+
+> “I identified Prefix Sum because the problem involves contiguous ranges and repeated cumulative calculations. Instead of recalculating each range, I accumulate the state once and derive a range by subtracting two prefix states.”
+
+---
+
+## Range-query answer
+
+> “I use an extra leading zero in the prefix array. Therefore, the sum from L to R becomes `prefix[R + 1] - prefix[L]`, with no separate handling for L equal to zero.”
+
+---
+
+## Exact-sum answer
+
+> “If the current prefix sum is P and the required subarray sum is K, I need a previous prefix equal to `P - K`. Therefore, I store previous prefix sums in a HashMap.”
+
+---
+
+## Count-subarrays answer
+
+> “Since multiple previous indexes may have the same prefix sum, I store frequency rather than only existence. Every occurrence of `prefixSum - K` forms another valid subarray ending at the current index.”
+
+---
+
+## Longest-subarray answer
+
+> “For the longest subarray, I store the earliest index of each prefix sum. The earlier the previous index, the greater the possible length, so I do not overwrite an existing index.”
+
+---
+
+## Initial-map answer
+
+> “For counting, I initialize prefix zero with frequency one. For longest length, I initialize prefix zero at index minus one. This handles subarrays that begin at index zero.”
+
+---
+
+## Negative-number answer
+
+> “Sliding Window depends on predictable movement of the sum, which usually requires non-negative values. Prefix Sum only compares cumulative states, so it also works when negative values are present.”
+
+---
+
+## Modulo answer
+
+> “If two prefix sums have the same remainder modulo K, their difference is divisible by K. I normalize negative remainders before using them as HashMap keys.”
+
+---
+
+## Transformation answer
+
+> “The original problem does not always mention sums. For equal zeroes and ones, I transform zero to minus one and one to plus one. Then the problem becomes finding a zero-sum subarray.”
+
+---
+
+## Complexity answer
+
+> “The algorithm performs one scan, and each HashMap lookup and update takes O(1) average time. Therefore, the overall complexity is O(n) time and O(n) space.”
+
+---
+
+# 63. Most Important Interview Problems
+
+## P0 — Must Complete First
+
+| Problem                        | Core Template              | Important Learning    |
+| ------------------------------ | -------------------------- | --------------------- |
+| Range Sum Query – Immutable    | Prefix array               | Range formula         |
+| Find Pivot Index               | Total + running prefix     | Left/right derivation |
+| Subarray Sum Equals K          | Prefix frequency           | Count exact sums      |
+| Longest Subarray with Sum K    | Prefix earliest index      | Longest exact sum     |
+| Contiguous Array               | Prefix transformation      | Equal categories      |
+| Subarray Sums Divisible by K   | Prefix remainder frequency | Modulo pattern        |
+| Count Number of Nice Subarrays | Transform odd/even         | Hidden Prefix Sum     |
+
+---
+
+## P1 — Very Important
+
+| Problem                            | Core Template            | Important Learning  |
+| ---------------------------------- | ------------------------ | ------------------- |
+| Continuous Subarray Sum            | Remainder earliest index | Length constraint   |
+| Longest Zero Sum Subarray          | Repeated prefix          | Same-state pattern  |
+| Binary Subarrays With Sum          | Prefix frequency         | Binary exact sum    |
+| Maximum Size Subarray Sum Equals K | Earliest prefix index    | Negative values     |
+| Range Sum Query 2D                 | 2D Prefix Sum            | Inclusion-exclusion |
+| Corporate Flight Bookings          | Difference array         | Range updates       |
+| Car Pooling                        | Difference / timeline    | Interval changes    |
+| Number of Ways to Split Array      | Prefix vs suffix         | Balance             |
+
+---
+
+## P2 — After Interviews Start
+
+| Problem                               | Pattern                               |
+| ------------------------------------- | ------------------------------------- |
+| Shortest Subarray with Sum at Least K | Prefix Sum + Monotonic Deque          |
+| Count of Range Sum                    | Prefix Sum + Merge Sort/Balanced Tree |
+| Maximum Sum Rectangle                 | 2D compression + Kadane               |
+| Matrix Block Sum                      | 2D Prefix Sum                         |
+| Ways to Make a Fair Array             | Prefix/suffix parity sums             |
+| Product of Array Except Self          | Prefix/suffix accumulation            |
+| Random Pick with Weight               | Prefix Sum + Binary Search            |
+| NumArray with updates                 | Fenwick Tree / Segment Tree           |
+
+---
+
+# 64. Recommended Practice Order
+
+```text
+1. Running sum basics
+2. Prefix array with extra zero
+3. Range Sum Query
+4. Pivot Index
+5. Subarray Sum Equals K
+6. Longest Subarray Sum K
+7. Longest Zero-Sum Subarray
+8. Contiguous Array
+9. Nice Subarrays
+10. Subarrays Divisible by K
+11. Continuous Subarray Sum
+12. 2D Prefix Sum
+13. Difference Array
+14. Prefix Sum + Monotonic Deque
+```
+
+---
+
+# 65. Three Templates to Memorize
+
+## Template 1: Range Query
+
+```java
+long[] prefix = new long[nums.length + 1];
+
+for (int i = 0; i < nums.length; i++) {
+    prefix[i + 1] = prefix[i] + nums[i];
+}
+
+long rangeSum = prefix[right + 1] - prefix[left];
+```
+
+Mental shortcut:
+
+```text
+Build once → subtract twice.
+```
+
+---
+
+## Template 2: Count Exact Target
+
+```java
+Map<Long, Integer> frequency = new HashMap<>();
+frequency.put(0L, 1);
+
+long prefixSum = 0;
+int count = 0;
+
+for (int num : nums) {
+    prefixSum += num;
+
+    count += frequency.getOrDefault(prefixSum - target, 0);
+
+    frequency.put(
+            prefixSum,
+            frequency.getOrDefault(prefixSum, 0) + 1
+    );
+}
+```
+
+Mental shortcut:
+
+```text
+Count → current - target → frequency.
+```
+
+---
+
+## Template 3: Longest Exact Target
+
+```java
+Map<Long, Integer> firstIndex = new HashMap<>();
+firstIndex.put(0L, -1);
+
+long prefixSum = 0;
+int maxLength = 0;
+
+for (int i = 0; i < nums.length; i++) {
+    prefixSum += nums[i];
+
+    if (firstIndex.containsKey(prefixSum - target)) {
+        maxLength = Math.max(
+                maxLength,
+                i - firstIndex.get(prefixSum - target)
+        );
+    }
+
+    firstIndex.putIfAbsent(prefixSum, i);
+}
+```
+
+Mental shortcut:
+
+```text
+Longest → current - target → earliest index.
+```
+
+---
+
+# 66. Quick Revision Card
+
+## Master mental model
+
+```text
+Current Prefix - Old Prefix = Middle Subarray
+```
+
+## Range query
+
+```text
+sum(L...R) = prefix[R + 1] - prefix[L]
+```
+
+## Exact target
+
+```text
+requiredOldPrefix = currentPrefix - target
+```
+
+## Count
+
+```text
+Map<Prefix, Frequency>
+Initial: 0 → 1
+```
+
+## Longest
+
+```text
+Map<Prefix, Earliest Index>
+Initial: 0 → -1
+Use putIfAbsent
+```
+
+## Balance
+
+```text
+Category A → +1
+Category B → -1
+Repeated balance → valid middle range
+```
+
+## Divisibility
+
+```text
+Same remainder → difference divisible by K
+```
+
+## Range updates
+
+```text
+diff[L] += value
+diff[R + 1] -= value
+Build final result using prefix
+```
+
+## 2D range
+
+```text
+Whole - Top - Left + Overlap
+```
+
+---
+
+# 67. Ten Must-Remember Points
+
+1. Prefix Sum is used for contiguous ranges.
+2. Prefer a prefix array of size `n + 1`.
+3. Range sum is `prefix[R + 1] - prefix[L]`.
+4. Exact subarray sum uses `currentPrefix - target`.
+5. Count problems store prefix frequency.
+6. Longest problems store the earliest prefix index.
+7. `0 → 1` is used for counting.
+8. `0 → -1` is used for longest length.
+9. Negative numbers are a strong signal for Prefix Sum over ordinary Sliding Window.
+10. Use `long` when cumulative sums may overflow.
+
+---
+
+# 68. Ten Common Interview Lines
+
+1. “The problem involves contiguous ranges, so I am considering Prefix Sum.”
+2. “I use an extra zero to simplify boundary handling.”
+3. “The sum from L to R is the difference of two prefix sums.”
+4. “For current prefix P, the required previous prefix is P minus K.”
+5. “Since the question asks for count, I store frequency.”
+6. “Since the question asks for maximum length, I store the earliest index.”
+7. “The initial zero-prefix state handles ranges starting from index zero.”
+8. “Negative numbers prevent reliable Sliding Window movement.”
+9. “The same remainder means the difference is divisible by K.”
+10. “The final complexity is O(n) time and O(n) auxiliary space.”
+
+---
+
+# 69. Final Pattern Map
+
+```mermaid
+flowchart TD
+    A[Prefix Sum Problem] --> B{Question Type}
+
+    B --> C[Range Sum Queries]
+    C --> C1[Prefix Array]
+    C1 --> C2[prefix R+1 - prefix L]
+
+    B --> D[Count Exact Sum]
+    D --> D1[Prefix Frequency Map]
+    D1 --> D2[required = current - target]
+
+    B --> E[Longest Exact Sum]
+    E --> E1[Prefix Earliest Index]
+    E1 --> E2[putIfAbsent]
+
+    B --> F[Equal Categories]
+    F --> F1[Transform +1/-1]
+    F1 --> F2[Repeated Balance]
+
+    B --> G[Divisible by K]
+    G --> G1[Prefix Remainder]
+    G1 --> G2[Same Remainder]
+
+    B --> H[Left Right Balance]
+    H --> H1[Total + Running Left]
+
+    B --> I[2D Rectangle]
+    I --> I1[2D Prefix]
+    I1 --> I2[Whole - Top - Left + Overlap]
+
+    B --> J[Many Range Updates]
+    J --> J1[Difference Array]
+    J1 --> J2[Boundary Marking + Prefix Reconstruction]
+```
+
+---
+
+# 70. Final Mental Model
+
+Do not memorize Prefix Sum as only:
+
+```text
+Keep adding numbers.
+```
+
+Memorize it as:
+
+```text
+Every index stores the history before it.
+
+A contiguous range is the difference between two histories.
+```
+
+The complete pattern is:
+
+```text
+1. Define the cumulative state.
+2. Calculate the current prefix state.
+3. Determine which old state would produce the required range.
+4. Search that state in an array, Set or HashMap.
+5. Store frequency for count.
+6. Store earliest index for longest.
+7. Transform non-sum problems into cumulative-state problems.
+```
+
+Final shortcut:
+
+```text
+Prefix Sum =
+Accumulate History
+→ Compare Old History
+→ Extract Middle Range
+```
+
+For interviews:
+
+> “Prefix Sum converts a contiguous-range problem into a relationship between two cumulative states. For range queries I subtract two prefix-array values. For exact subarray conditions I combine a running prefix with a HashMap, storing frequency for counting problems and earliest index for longest-length problems.”
