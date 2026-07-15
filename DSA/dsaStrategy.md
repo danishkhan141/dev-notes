@@ -10,6 +10,9 @@
 7. [Prefix Sum](#prefix-sum--complete-postmortem-for-dsa-interviews)
 8. [Prefix Sum Problem](#prefix-sum-problems-using-only-3-important-templates)
 9. [Kadane's Algorithm](#kadanes-algorithm--complete-postmortem-for-dsa-interviews)
+10. [Binary Search](#binary-search--complete-postmortem-for-dsa-interviews)
+11. [Sorting and Searching Techniques](#sorting-and-searching-techniques--complete-postmortem-for-dsa-interviews)
+12. [Priority Queue](#priority-queue--heap--complete-postmortem-for-dsa-interviews)
 
 
 # Prompt
@@ -20654,3 +20657,9683 @@ Best Ending Here
 ## Final Interview Line
 
 > “Kadane’s Algorithm solves maximum or minimum contiguous-segment optimization by maintaining the best segment ending at each position. At every element, it decides between starting fresh and extending the previous segment, while a separate global state stores the best answer. It is a space-optimized one-dimensional DP with O(n) time and O(1) space.”
+
+# Binary Search — Complete Postmortem for DSA Interviews
+
+Binary Search is often taught as:
+
+```text
+Find a target in a sorted array.
+```
+
+That definition is correct but incomplete.
+
+The stronger interview definition is:
+
+```text
+Binary Search finds a target or boundary inside an ordered,
+monotonic search space by eliminating half of that space
+after every decision.
+```
+
+The search space may be:
+
+```text
+Array indices
+Possible speeds
+Possible capacities
+Possible days
+Possible distances
+Possible answers
+```
+
+Therefore, Binary Search is not just an array-searching algorithm.
+
+It is a **decision-space reduction pattern**.
+
+---
+
+# 1. Best Mental Model
+
+The best mental model for Binary Search is:
+
+```text
+Search Space
+→ Choose Middle Candidate
+→ Evaluate Condition
+→ Discard One Impossible Half
+→ Repeat
+→ Stop at Target or Boundary
+```
+
+## One-line shortcut
+
+```text
+Binary Search = Mid → Decide → Discard Half → Repeat
+```
+
+For advanced problems:
+
+```text
+Binary Search on Answer =
+Ordered Answers → Feasibility Check → Find First/Last Valid Answer
+```
+
+---
+
+# 2. Master Mental Model
+
+```mermaid
+flowchart TD
+    A[Problem] --> B{Is there an ordered search space?}
+
+    B -- No --> C[Binary Search probably not applicable]
+    B -- Yes --> D{What are we searching?}
+
+    D --> E[Exact Target]
+    D --> F[First or Last Position]
+    D --> G[Minimum or Maximum Valid Answer]
+    D --> H[Special Sorted Structure]
+
+    E --> E1[Classic Binary Search]
+
+    F --> F1[Lower Bound]
+    F --> F2[Upper Bound]
+    F --> F3[First True / Last True]
+
+    G --> G1[Define Answer Range]
+    G1 --> G2[Write Feasibility Function]
+    G2 --> G3{Minimum feasible or maximum feasible?}
+    G3 --> G4[First True]
+    G3 --> G5[Last True]
+
+    H --> H1[Rotated Array]
+    H --> H2[Peak]
+    H --> H3[Sorted Matrix]
+    H --> H4[Nearly Sorted Data]
+
+    E1 --> I[Choose low and high]
+    F1 --> I
+    F2 --> I
+    F3 --> I
+    G4 --> I
+    G5 --> I
+    H1 --> I
+    H2 --> I
+    H3 --> I
+
+    I --> J[Calculate mid safely]
+    J --> K[Evaluate mid]
+    K --> L[Remove impossible half]
+    L --> M{Search complete?}
+
+    M -- No --> J
+    M -- Yes --> N[Return target or boundary]
+```
+
+---
+
+# 3. What Binary Search Actually Requires
+
+Binary Search requires two properties.
+
+## Property 1: Ordered search space
+
+The possible candidates must have a meaningful order:
+
+```text
+1, 2, 3, 4, 5...
+```
+
+or:
+
+```text
+Minimum capacity ... Maximum capacity
+```
+
+## Property 2: A monotonic decision
+
+The condition should change in one direction only.
+
+Example:
+
+```text
+Capacity:  1  2  3  4  5  6  7
+Possible:  F  F  F  T  T  T  T
+```
+
+Once the condition becomes true, it remains true.
+
+Or:
+
+```text
+Distance:  1  2  3  4  5  6  7
+Possible:  T  T  T  T  F  F  F
+```
+
+Once the condition becomes false, it remains false.
+
+This is called a **monotonic predicate**.
+
+---
+
+# 4. The Most Important Binary Search Insight
+
+Binary Search is applicable when you can answer:
+
+> “After checking the middle candidate, can I prove that one entire half cannot contain the answer?”
+
+If yes, Binary Search may be applicable.
+
+If checking `mid` does not allow you to eliminate either half safely, ordinary Binary Search is not applicable.
+
+---
+
+# 5. Why Binary Search Is O(log n)
+
+Suppose the search space contains 16 elements.
+
+```text
+16 → 8 → 4 → 2 → 1
+```
+
+It takes approximately four decisions.
+
+For `n` candidates:
+
+```text
+Number of decisions ≈ log₂(n)
+```
+
+Therefore:
+
+```text
+Time Complexity: O(log n)
+Space Complexity:
+    Iterative: O(1)
+    Recursive: O(log n) call stack
+```
+
+For one billion possible answers:
+
+```text
+log₂(1,000,000,000) ≈ 30
+```
+
+Binary Search can search a billion-value range in about 30 iterations.
+
+---
+
+# 6. How to Identify Binary Search Problems
+
+Look for these signals.
+
+| Problem Signal                       | Likely Binary Search Type                        |
+| ------------------------------------ | ------------------------------------------------ |
+| Sorted array and target              | Exact Binary Search                              |
+| Find first occurrence                | Lower-bound search                               |
+| Find last occurrence                 | Upper-bound/boundary search                      |
+| Find insertion position              | Lower bound                                      |
+| Find first value greater than target | Upper bound                                      |
+| Minimum value satisfying a condition | First true                                       |
+| Maximum value satisfying a condition | Last true                                        |
+| Minimum speed/capacity/days          | Binary Search on answer                          |
+| Maximum minimum distance             | Binary Search on answer                          |
+| Rotated sorted array                 | Binary Search on sorted half                     |
+| Peak or mountain array               | Direction-based Binary Search                    |
+| Matrix behaves like one sorted array | Flattened Binary Search                          |
+| Constraints are huge, such as `10^9` | Search on answer may apply                       |
+| Checking one candidate takes O(n)    | Binary Search may reduce total to O(n log range) |
+
+---
+
+# 7. Binary Search Identification Decision Tree
+
+```mermaid
+flowchart TD
+    A[New Problem] --> B{Is the array sorted?}
+
+    B -- Yes --> C{Need exact target?}
+    C -- Yes --> C1[Classic Binary Search]
+    C -- No --> D{Need first or last position?}
+
+    D -- First position --> D1[Lower Bound]
+    D -- Last position --> D2[Upper Bound - 1]
+    D -- Insertion position --> D1
+
+    B -- No --> E{Are possible answers ordered?}
+
+    E -- No --> F[Consider another pattern]
+    E -- Yes --> G{Does feasibility change monotonically?}
+
+    G -- No --> F
+    G -- Yes --> H{What is requested?}
+
+    H -- Minimum valid answer --> H1[First True]
+    H -- Maximum valid answer --> H2[Last True]
+
+    B --> I{Rotated or mountain structure?}
+    I -- Rotated --> I1[Find sorted half]
+    I -- Mountain or peak --> I2[Compare mid and mid + 1]
+```
+
+---
+
+# 8. Three Master Binary Search Templates
+
+Most interview questions can be organized under three templates.
+
+```text
+Template 1: Exact Target Search
+Template 2: Boundary Search
+Template 3: Binary Search on Answer
+```
+
+Special problems such as rotated arrays and peaks are variations of these templates.
+
+---
+
+# 9. Template 1 — Exact Target Search
+
+Use this when:
+
+```text
+The data is sorted
+The target may or may not exist
+Any matching index is acceptable
+```
+
+## Mental model
+
+```text
+Target equals mid
+→ Found
+
+Target is smaller
+→ Remove right half
+
+Target is greater
+→ Remove left half
+```
+
+## Java template
+
+```java
+public int binarySearch(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] == target) {
+            return mid;
+        }
+
+        if (nums[mid] < target) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return -1;
+}
+```
+
+## Complexity
+
+```text
+Time: O(log n)
+Space: O(1)
+```
+
+---
+
+# 10. Why `low + (high - low) / 2` Is Used
+
+Avoid:
+
+```java
+int mid = (low + high) / 2;
+```
+
+If both values are very large, `low + high` may overflow.
+
+Prefer:
+
+```java
+int mid = low + (high - low) / 2;
+```
+
+For answer-space problems involving large values, use `long`:
+
+```java
+long mid = low + (high - low) / 2;
+```
+
+---
+
+# 11. Dry Run of Exact Binary Search
+
+Input:
+
+```text
+nums   = [2, 4, 7, 10, 15, 21, 30]
+target = 15
+```
+
+| low | high | mid | nums[mid] | Decision                     |
+| --: | ---: | --: | --------: | ---------------------------- |
+|   0 |    6 |   3 |        10 | Target is greater, move low  |
+|   4 |    6 |   5 |        21 | Target is smaller, move high |
+|   4 |    4 |   4 |        15 | Found                        |
+
+The important part is not calculating `mid`.
+
+The important part is proving why one half can be discarded.
+
+---
+
+# 12. Binary Search Interval Models
+
+There are multiple correct Binary Search styles.
+
+The most common bugs happen when developers mix them.
+
+## Model 1: Closed interval `[low, high]`
+
+```text
+Both low and high are valid candidates.
+```
+
+Initialization:
+
+```java
+int low = 0;
+int high = nums.length - 1;
+```
+
+Loop:
+
+```java
+while (low <= high)
+```
+
+Updates:
+
+```java
+low = mid + 1;
+high = mid - 1;
+```
+
+Use this for exact target search.
+
+---
+
+## Model 2: Half-open interval `[low, high)`
+
+```text
+low is included
+high is excluded
+```
+
+Initialization:
+
+```java
+int low = 0;
+int high = nums.length;
+```
+
+Loop:
+
+```java
+while (low < high)
+```
+
+Updates:
+
+```java
+low = mid + 1;
+high = mid;
+```
+
+This is commonly used for lower-bound searches.
+
+---
+
+## Model 3: Converging candidates `[low, high]`
+
+Both endpoints remain possible answers.
+
+Loop:
+
+```java
+while (low < high)
+```
+
+Updates:
+
+```java
+high = mid;
+low = mid + 1;
+```
+
+At completion:
+
+```text
+low == high
+```
+
+Use this for:
+
+```text
+First true
+Minimum feasible answer
+Rotated-array minimum
+Peak element
+```
+
+## Rule
+
+```text
+Choose one interval model and remain consistent.
+```
+
+Do not combine:
+
+```java
+while (low < high)
+```
+
+with updates designed for:
+
+```java
+while (low <= high)
+```
+
+without understanding the invariant.
+
+---
+
+# 13. Template 2 — Boundary Search
+
+Boundary search is used when finding an exact match is not enough.
+
+Examples:
+
+```text
+First occurrence
+Last occurrence
+Insertion position
+First value >= target
+First value > target
+First valid answer
+Last valid answer
+```
+
+This template is more important than memorizing several separate solutions.
+
+---
+
+# 14. Lower Bound
+
+Lower bound means:
+
+```text
+First index where value >= target
+```
+
+Example:
+
+```text
+Array  = [2, 4, 4, 4, 7, 10]
+Target = 4
+
+Lower bound = index 1
+```
+
+## Java implementation
+
+```java
+public int lowerBound(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length;
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] < target) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    return low;
+}
+```
+
+Possible return range:
+
+```text
+0 to nums.length
+```
+
+If every value is less than the target:
+
+```text
+lowerBound returns nums.length
+```
+
+---
+
+# 15. Upper Bound
+
+Upper bound means:
+
+```text
+First index where value > target
+```
+
+Example:
+
+```text
+Array  = [2, 4, 4, 4, 7, 10]
+Target = 4
+
+Upper bound = index 4
+```
+
+## Java implementation
+
+```java
+public int upperBound(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length;
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] <= target) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    return low;
+}
+```
+
+The only major difference is:
+
+```text
+Lower bound moves past values < target
+Upper bound moves past values <= target
+```
+
+---
+
+# 16. Boundary Glossary
+
+Given a sorted array:
+
+| Requirement                  | Formula                               |
+| ---------------------------- | ------------------------------------- |
+| First value `>= target`      | `lowerBound(target)`                  |
+| First value `> target`       | `upperBound(target)`                  |
+| First occurrence of target   | `lowerBound(target)`, then verify     |
+| Last occurrence of target    | `upperBound(target) - 1`, then verify |
+| Last value `< target`        | `lowerBound(target) - 1`              |
+| Last value `<= target`       | `upperBound(target) - 1`              |
+| Number of target occurrences | `upperBound - lowerBound`             |
+| Insertion position           | `lowerBound(target)`                  |
+
+This table converts many separate-looking problems into one pattern.
+
+---
+
+# 17. First and Last Occurrence
+
+## Java solution
+
+```java
+public int[] searchRange(int[] nums, int target) {
+    int first = lowerBound(nums, target);
+
+    if (first == nums.length || nums[first] != target) {
+        return new int[]{-1, -1};
+    }
+
+    int last = upperBound(nums, target) - 1;
+
+    return new int[]{first, last};
+}
+
+private int lowerBound(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length;
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] < target) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    return low;
+}
+
+private int upperBound(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length;
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] <= target) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    return low;
+}
+```
+
+## Mental model
+
+```text
+First occurrence:
+Find the first position that is not smaller than target.
+
+Last occurrence:
+Find the first position greater than target, then move one step left.
+```
+
+---
+
+# 18. Search Insert Position
+
+Requirement:
+
+```text
+Return the target's index if found.
+Otherwise return where it should be inserted.
+```
+
+This is exactly lower bound.
+
+```java
+public int searchInsert(int[] nums, int target) {
+    return lowerBound(nums, target);
+}
+```
+
+Example:
+
+```text
+[1, 3, 5, 6], target = 5 → 2
+[1, 3, 5, 6], target = 2 → 1
+[1, 3, 5, 6], target = 7 → 4
+```
+
+---
+
+# 19. First True Boundary
+
+Many problems can be converted into:
+
+```text
+F F F F T T T T
+```
+
+You need the first true position.
+
+```mermaid
+flowchart LR
+    A[False] --> B[False]
+    B --> C[False]
+    C --> D[First True]
+    D --> E[True]
+    E --> F[True]
+```
+
+## Generic mental template
+
+```java
+int low = minimumPossible;
+int high = maximumPossible;
+
+while (low < high) {
+    int mid = low + (high - low) / 2;
+
+    if (isValid(mid)) {
+        high = mid;
+    } else {
+        low = mid + 1;
+    }
+}
+
+return low;
+```
+
+Meaning:
+
+```text
+If mid is valid:
+    mid may be the first valid answer.
+    Keep it and search left.
+
+If mid is invalid:
+    mid and everything before it are invalid.
+    Search right.
+```
+
+---
+
+# 20. Last True Boundary
+
+Some problems have:
+
+```text
+T T T T F F F F
+```
+
+You need the last true position.
+
+A simple interview-friendly template is:
+
+```java
+int low = minimumPossible;
+int high = maximumPossible;
+int answer = minimumPossible - 1;
+
+while (low <= high) {
+    int mid = low + (high - low) / 2;
+
+    if (isValid(mid)) {
+        answer = mid;
+        low = mid + 1;
+    } else {
+        high = mid - 1;
+    }
+}
+
+return answer;
+```
+
+Meaning:
+
+```text
+If mid is valid:
+    Store it.
+    Try to find a larger valid answer.
+
+If mid is invalid:
+    Search smaller answers.
+```
+
+---
+
+# 21. Template 3 — Binary Search on Answer
+
+This is the most important medium-level Binary Search pattern.
+
+The input itself may not be sorted.
+
+Instead, the **possible answers** are ordered.
+
+Examples:
+
+```text
+Minimum eating speed
+Minimum ship capacity
+Minimum number of days
+Minimum maximum workload
+Maximum minimum distance
+Maximum possible allocation
+Integer square root
+```
+
+## Mental model
+
+```text
+Define candidate answer X
+→ Check whether X can solve the problem
+→ If possible, move toward a better answer
+→ If impossible, move away from it
+```
+
+---
+
+# 22. Conditions for Binary Search on Answer
+
+Before applying it, verify all five points.
+
+```text
+1. There is a finite answer range.
+2. The possible answers are ordered.
+3. You can test one candidate answer.
+4. The test is monotonic.
+5. The problem asks for a minimum or maximum boundary.
+```
+
+Example:
+
+```text
+Minimum ship capacity
+```
+
+Possible capacities:
+
+```text
+1, 2, 3, 4, 5, ...
+```
+
+Feasibility:
+
+```text
+Small capacity  → impossible
+Larger capacity → possible
+```
+
+Pattern:
+
+```text
+F F F F T T T T
+```
+
+Find the first true capacity.
+
+---
+
+# 23. Search-on-Answer Construction Process
+
+When you suspect Binary Search on answer, ask these questions:
+
+## Question 1: What is the answer?
+
+Example:
+
+```text
+Koko Eating Bananas → eating speed
+Ship Packages       → ship capacity
+Aggressive Cows     → minimum distance
+Split Array          → maximum partition sum
+```
+
+## Question 2: What is the smallest possible answer?
+
+Example:
+
+```text
+Eating speed:
+At least 1 banana/hour
+```
+
+## Question 3: What is the largest possible answer?
+
+Example:
+
+```text
+Eating speed:
+At most max pile size
+```
+
+## Question 4: How can I test a candidate?
+
+Example:
+
+```text
+Can Koko finish all piles at speed mid within h hours?
+```
+
+## Question 5: Is the test monotonic?
+
+```text
+If speed 10 works,
+speed 11, 12, 13... will also work.
+```
+
+Therefore:
+
+```text
+F F F T T T
+```
+
+Find the first true.
+
+---
+
+# 24. Feasibility Function Mental Model
+
+The Binary Search loop is usually simple.
+
+The real logic is inside:
+
+```java
+canComplete(mid)
+```
+
+```mermaid
+flowchart TD
+    A[Candidate Answer mid] --> B[Simulate or calculate result]
+    B --> C{Does mid satisfy constraint?}
+
+    C -- Yes --> D[Candidate is feasible]
+    C -- No --> E[Candidate is infeasible]
+
+    D --> F[Try to improve answer]
+    E --> G[Move toward feasible side]
+```
+
+A correct feasibility function should:
+
+```text
+Answer only one question
+Avoid changing external state
+Use long where totals may overflow
+Run efficiently, usually O(n)
+```
+
+---
+
+# 25. Koko Eating Bananas
+
+Requirement:
+
+```text
+Find the minimum eating speed that allows all piles
+to be completed within h hours.
+```
+
+## Monotonic pattern
+
+```text
+Slow speed → impossible
+Fast speed → possible
+```
+
+```text
+F F F F T T T
+```
+
+Find first true.
+
+## Java solution
+
+```java
+public int minEatingSpeed(int[] piles, int h) {
+    int low = 1;
+    int high = 0;
+
+    for (int pile : piles) {
+        high = Math.max(high, pile);
+    }
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (canFinish(piles, h, mid)) {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    return low;
+}
+
+private boolean canFinish(int[] piles, int h, int speed) {
+    long hoursRequired = 0;
+
+    for (int pile : piles) {
+        hoursRequired += (pile + speed - 1L) / speed;
+
+        if (hoursRequired > h) {
+            return false;
+        }
+    }
+
+    return true;
+}
+```
+
+## Ceiling division
+
+```java
+(pile + speed - 1L) / speed
+```
+
+This calculates:
+
+```text
+ceil(pile / speed)
+```
+
+without floating-point arithmetic.
+
+## Complexity
+
+```text
+n = number of piles
+M = maximum pile
+
+Time: O(n log M)
+Space: O(1)
+```
+
+---
+
+# 26. Capacity to Ship Packages Within D Days
+
+Requirement:
+
+```text
+Find the minimum ship capacity required to deliver
+all packages within the given number of days.
+```
+
+## Answer range
+
+Minimum capacity:
+
+```text
+Maximum single package weight
+```
+
+The ship must carry every individual package.
+
+Maximum capacity:
+
+```text
+Sum of all package weights
+```
+
+That allows everything to be shipped in one day.
+
+## Java solution
+
+```java
+public int shipWithinDays(int[] weights, int days) {
+    int low = 0;
+    int high = 0;
+
+    for (int weight : weights) {
+        low = Math.max(low, weight);
+        high += weight;
+    }
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (canShip(weights, days, mid)) {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    return low;
+}
+
+private boolean canShip(int[] weights, int allowedDays, int capacity) {
+    int requiredDays = 1;
+    int currentLoad = 0;
+
+    for (int weight : weights) {
+        if (currentLoad + weight > capacity) {
+            requiredDays++;
+            currentLoad = 0;
+        }
+
+        currentLoad += weight;
+
+        if (requiredDays > allowedDays) {
+            return false;
+        }
+    }
+
+    return true;
+}
+```
+
+## Mental model
+
+```text
+Capacity too small
+→ More days required
+→ Move right
+
+Capacity works
+→ Try smaller capacity
+→ Move left
+```
+
+---
+
+# 27. Maximum Minimum Problems
+
+Some questions ask:
+
+```text
+Maximize the minimum distance
+Maximize the minimum allocation
+Maximize the minimum quality
+```
+
+These usually produce:
+
+```text
+T T T T F F F
+```
+
+Example:
+
+```text
+Can animals be placed at least distance X apart?
+```
+
+Small distances are easy:
+
+```text
+Possible
+```
+
+Very large distances become impossible:
+
+```text
+Impossible
+```
+
+Therefore, search for the **last true** distance.
+
+Common problems:
+
+```text
+Aggressive Cows
+Magnetic Force Between Two Balls
+Allocate maximum minimum distance
+```
+
+---
+
+# 28. Search in Rotated Sorted Array
+
+Example:
+
+```text
+Original: [1, 2, 3, 4, 5, 6, 7]
+Rotated:  [4, 5, 6, 7, 1, 2, 3]
+```
+
+The complete array is no longer sorted.
+
+However, around any middle point, at least one half is sorted.
+
+## Mental model
+
+```text
+Find which half is sorted
+→ Check whether target lies inside that sorted half
+→ Keep that half or discard it
+```
+
+## Java solution
+
+```java
+public int searchRotated(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] == target) {
+            return mid;
+        }
+
+        // Left half is sorted.
+        if (nums[low] <= nums[mid]) {
+            if (nums[low] <= target && target < nums[mid]) {
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        } else {
+            // Right half is sorted.
+            if (nums[mid] < target && target <= nums[high]) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+    }
+
+    return -1;
+}
+```
+
+## Important boundary conditions
+
+For the sorted left half:
+
+```java
+nums[low] <= target && target < nums[mid]
+```
+
+For the sorted right half:
+
+```java
+nums[mid] < target && target <= nums[high]
+```
+
+Using the wrong `<` or `<=` can exclude valid endpoints.
+
+---
+
+# 29. Rotated Array with Duplicates
+
+Example:
+
+```text
+[1, 0, 1, 1, 1]
+```
+
+Sometimes:
+
+```text
+nums[low] == nums[mid] == nums[high]
+```
+
+You cannot determine which half is sorted.
+
+A common approach is:
+
+```java
+low++;
+high--;
+```
+
+This may reduce the worst-case complexity to:
+
+```text
+O(n)
+```
+
+Therefore:
+
+```text
+Rotated array without duplicates → O(log n)
+Rotated array with duplicates    → O(n) worst case
+```
+
+---
+
+# 30. Find Minimum in Rotated Sorted Array
+
+Example:
+
+```text
+[4, 5, 6, 7, 0, 1, 2]
+```
+
+Compare `nums[mid]` with `nums[high]`.
+
+```text
+nums[mid] > nums[high]
+→ Minimum must be on the right.
+
+nums[mid] <= nums[high]
+→ Minimum may be mid or on the left.
+```
+
+## Java solution
+
+```java
+public int findMin(int[] nums) {
+    int low = 0;
+    int high = nums.length - 1;
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] > nums[high]) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    return nums[low];
+}
+```
+
+Why:
+
+```java
+high = mid;
+```
+
+and not:
+
+```java
+high = mid - 1;
+```
+
+Because `mid` itself may be the minimum.
+
+---
+
+# 31. Find Peak Element
+
+A peak is greater than its neighbours.
+
+Compare:
+
+```java
+nums[mid]
+```
+
+with:
+
+```java
+nums[mid + 1]
+```
+
+## Direction logic
+
+```text
+nums[mid] < nums[mid + 1]
+→ We are on an upward slope.
+→ A peak exists to the right.
+
+nums[mid] > nums[mid + 1]
+→ We are on a downward slope.
+→ A peak exists at mid or to the left.
+```
+
+## Java solution
+
+```java
+public int findPeakElement(int[] nums) {
+    int low = 0;
+    int high = nums.length - 1;
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] < nums[mid + 1]) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    return low;
+}
+```
+
+This demonstrates that Binary Search can work without a globally sorted array.
+
+The direction information is sufficient.
+
+---
+
+# 32. Search a 2D Matrix
+
+Suppose:
+
+```text
+Every row is sorted.
+The first value of each row is greater than
+the last value of the previous row.
+```
+
+The matrix behaves like one flattened sorted array.
+
+For:
+
+```text
+rows = m
+columns = n
+```
+
+Virtual index:
+
+```text
+0 to m*n - 1
+```
+
+Conversion:
+
+```text
+row = mid / columns
+column = mid % columns
+```
+
+## Java solution
+
+```java
+public boolean searchMatrix(int[][] matrix, int target) {
+    int rows = matrix.length;
+    int columns = matrix[0].length;
+
+    int low = 0;
+    int high = rows * columns - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        int row = mid / columns;
+        int column = mid % columns;
+        int value = matrix[row][column];
+
+        if (value == target) {
+            return true;
+        }
+
+        if (value < target) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return false;
+}
+```
+
+Complexity:
+
+```text
+Time: O(log(m × n))
+Space: O(1)
+```
+
+---
+
+# 33. Integer Square Root
+
+Requirement:
+
+```text
+Find floor(sqrt(x))
+```
+
+Possible answers:
+
+```text
+0 to x
+```
+
+Condition:
+
+```text
+mid * mid <= x
+```
+
+This gives:
+
+```text
+T T T T F F F
+```
+
+Find last true.
+
+## Java solution
+
+```java
+public int mySqrt(int x) {
+    int low = 0;
+    int high = x;
+    int answer = 0;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        long square = (long) mid * mid;
+
+        if (square <= x) {
+            answer = mid;
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return answer;
+}
+```
+
+Using `long` prevents overflow in:
+
+```java
+mid * mid
+```
+
+---
+
+# 34. Floating-Point Binary Search
+
+Binary Search can also work over decimal answers.
+
+Examples:
+
+```text
+Square root with decimal precision
+Minimum geometric distance
+Maximum average
+```
+
+Termination can be based on:
+
+```text
+A fixed number of iterations
+```
+
+or:
+
+```text
+high - low > epsilon
+```
+
+Example:
+
+```java
+for (int iteration = 0; iteration < 100; iteration++) {
+    double mid = low + (high - low) / 2.0;
+
+    if (isValid(mid)) {
+        high = mid;
+    } else {
+        low = mid;
+    }
+}
+```
+
+Fixed iterations are often safer than relying only on equality with floating-point numbers.
+
+---
+
+# 35. Binary Search in Descending Arrays
+
+For descending order:
+
+```text
+[20, 15, 10, 7, 3]
+```
+
+The comparison directions reverse.
+
+```java
+public int searchDescending(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] == target) {
+            return mid;
+        }
+
+        if (nums[mid] > target) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return -1;
+}
+```
+
+The core principle remains:
+
+```text
+Use ordering to eliminate one half.
+```
+
+---
+
+# 36. When Not to Use Binary Search
+
+Do not use Binary Search merely because it is faster.
+
+## Case 1: Unsorted data and only one search
+
+```text
+Linear search: O(n)
+Sort + Binary Search: O(n log n) + O(log n)
+```
+
+Sorting first is more expensive unless:
+
+```text
+Multiple searches will be performed
+The sorted order is needed for another reason
+```
+
+## Case 2: Condition is not monotonic
+
+Example:
+
+```text
+T F T F T
+```
+
+A middle result does not prove anything about an entire half.
+
+## Case 3: Search-space boundaries cannot be defined
+
+If you do not know what `low` and `high` represent, the pattern is probably not ready.
+
+## Case 4: Feasibility check is incorrect
+
+Binary Search cannot repair a non-monotonic or incorrect `can(mid)` function.
+
+---
+
+# 37. Binary Search versus Previously Covered Patterns
+
+| Pattern        | Main Question                                             |
+| -------------- | --------------------------------------------------------- |
+| HashMap        | What have I already seen?                                 |
+| Two Pointers   | Which pointer should move?                                |
+| Sliding Window | How do I expand or shrink a contiguous range?             |
+| Prefix Sum     | How can previous cumulative state answer range questions? |
+| Kadane         | Should I extend or restart the current segment?           |
+| Binary Search  | Which half of the search space is impossible?             |
+
+---
+
+# 38. Binary Search versus Two Pointers
+
+## Two Pointers
+
+```text
+Usually scans data from one or both ends.
+Common complexity: O(n)
+Often used for pairs, partitioning, or merging.
+```
+
+## Binary Search
+
+```text
+Jumps to the middle.
+Common complexity: O(log n)
+Used when half of the search space can be discarded.
+```
+
+Example:
+
+```text
+Find two numbers with target sum in sorted array
+→ Two Pointers
+
+Find one target in sorted array
+→ Binary Search
+```
+
+---
+
+# 39. Binary Search versus Sliding Window
+
+## Sliding Window
+
+```text
+Maintains a contiguous interval.
+Expands or shrinks based on window validity.
+Usually O(n).
+```
+
+## Binary Search
+
+```text
+Searches a candidate value or position.
+Removes half based on monotonicity.
+Usually O(log n) decisions.
+```
+
+Example:
+
+```text
+Minimum-length subarray with sum >= target
+→ Sliding Window when values are positive
+
+Minimum capacity to process all values within D groups
+→ Binary Search on answer
+```
+
+---
+
+# 40. Binary Search versus Prefix Sum
+
+Prefix Sum answers:
+
+```text
+What is the cumulative value over a range?
+```
+
+Binary Search answers:
+
+```text
+Where is the first or last position satisfying a condition?
+```
+
+They may be combined.
+
+Example:
+
+```text
+Build prefix sums
+→ Use Binary Search to find the earliest prefix
+  reaching a required threshold
+```
+
+---
+
+# 41. Binary Search versus Kadane
+
+Kadane asks:
+
+```text
+What is the best contiguous segment ending here?
+```
+
+Binary Search asks:
+
+```text
+Which candidate half cannot contain the answer?
+```
+
+Example:
+
+```text
+Maximum sum of any contiguous subarray
+→ Kadane
+
+Minimum value X such that no partition sum exceeds X
+→ Binary Search on answer
+```
+
+---
+
+# 42. Java Library Support
+
+Java provides:
+
+```java
+Arrays.binarySearch(array, key);
+Collections.binarySearch(list, key);
+```
+
+Example:
+
+```java
+int index = Arrays.binarySearch(nums, target);
+```
+
+Return behaviour:
+
+```text
+Target found:
+    Returns a non-negative index.
+
+Target not found:
+    Returns -(insertionPoint) - 1.
+```
+
+Recover insertion point:
+
+```java
+int insertionPoint = -index - 1;
+```
+
+Important:
+
+```text
+When duplicates exist, the library does not promise
+the first or last matching occurrence.
+```
+
+For boundary questions, implement lower bound and upper bound manually.
+
+---
+
+# 43. Real Project Usage Mapping
+
+Binary Search does not commonly appear directly inside ordinary Spring Boot CRUD code because databases perform most searching.
+
+However, the concept appears in several practical areas.
+
+| Concept               | Realistic Project Usage                   | Interview Line                                                                                                                                 |
+| --------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exact search          | Searching an in-memory sorted list        | “For sorted in-memory data, Binary Search reduces lookup from O(n) to O(log n).”                                                               |
+| Lower bound           | Finding the first applicable threshold    | “Lower bound is useful when selecting the first configuration tier that meets a requirement.”                                                  |
+| Upper bound           | Finding the first value exceeding a limit | “Upper bound helps identify where values cross a configured threshold.”                                                                        |
+| Search on answer      | Capacity or batch-size planning           | “Binary Search on answer can optimize minimum capacity when feasibility is monotonic.”                                                         |
+| Version ranges        | Find the applicable configuration/version | “For sorted version intervals, boundary search can identify the active configuration.”                                                         |
+| Monitoring thresholds | Find the first threshold crossed          | “Boundary search can locate the first SLA or alert tier crossed by a metric.”                                                                  |
+| Database indexes      | Conceptual divide-and-conquer search      | “Databases generally use B/B+ tree indexes rather than a simple array Binary Search, but both avoid full scans by narrowing the search space.” |
+| Keyset pagination     | Seek within ordered indexed data          | “The database uses an index to seek near the requested ordered key instead of scanning all previous rows.”                                     |
+
+Do not claim:
+
+```text
+“I implemented Binary Search in JPA repository methods.”
+```
+
+unless you actually did.
+
+A professional explanation is:
+
+> “Most application-level searches in my Spring Boot project are delegated to indexed database queries. Binary Search becomes directly relevant when processing already sorted data in memory or when solving an optimization problem over a monotonic range.”
+
+---
+
+# 44. Scenario 1 — Search in Sorted API Data
+
+Suppose an API has already returned sorted transaction IDs.
+
+```mermaid
+flowchart TD
+    A[Sorted Transaction IDs] --> B[Choose middle ID]
+    B --> C{Compared with required ID}
+    C -- Equal --> D[Return record]
+    C -- Smaller --> E[Search right half]
+    C -- Greater --> F[Search left half]
+```
+
+Interview explanation:
+
+> “If the data is already sorted and I need repeated in-memory lookup, Binary Search is more efficient than scanning the list for every request.”
+
+---
+
+# 45. Scenario 2 — Find First Applicable Pricing Tier
+
+Suppose limits are:
+
+```text
+[100, 500, 1000, 5000]
+```
+
+For usage `750`, find the first tier whose limit is at least `750`.
+
+This is:
+
+```text
+First value >= 750
+```
+
+Therefore:
+
+```text
+Lower bound
+```
+
+Result:
+
+```text
+1000
+```
+
+---
+
+# 46. Scenario 3 — Minimum Batch Capacity
+
+Suppose a batch job must process items within a fixed number of runs.
+
+```text
+Small batch capacity
+→ Too many runs
+
+Large batch capacity
+→ Acceptable number of runs
+```
+
+This produces:
+
+```text
+F F F T T T
+```
+
+Use first-true Binary Search.
+
+Interview explanation:
+
+> “I would define a candidate batch capacity, simulate the required number of runs, and Binary Search the minimum capacity that satisfies the operational limit.”
+
+---
+
+# 47. Scenario 4 — Maximum Allowed Delay
+
+Suppose:
+
+```text
+Delay <= X keeps the system within SLA.
+```
+
+Small delays are valid, large delays become invalid:
+
+```text
+T T T T F F F
+```
+
+Find the last true delay.
+
+---
+
+# 48. Common Binary Search Bugs
+
+## Bug 1: Infinite loop
+
+Incorrect:
+
+```java
+low = mid;
+```
+
+When:
+
+```text
+low + 1 == high
+```
+
+then:
+
+```text
+mid == low
+```
+
+and `low` never changes.
+
+Fix:
+
+```java
+low = mid + 1;
+```
+
+or use an upper-middle calculation for a last-true template.
+
+---
+
+## Bug 2: Wrong loop condition
+
+Using:
+
+```java
+while (low < high)
+```
+
+for an exact search may skip the final candidate unless the post-loop state is checked.
+
+---
+
+## Bug 3: Incorrect high initialization
+
+Closed interval:
+
+```java
+high = nums.length - 1;
+```
+
+Half-open interval:
+
+```java
+high = nums.length;
+```
+
+Mixing them causes out-of-bounds or missed answers.
+
+---
+
+## Bug 4: Returning immediately with duplicates
+
+This returns any occurrence:
+
+```java
+if (nums[mid] == target) {
+    return mid;
+}
+```
+
+For first occurrence:
+
+```text
+Store or retain mid
+Continue left
+```
+
+For last occurrence:
+
+```text
+Store or retain mid
+Continue right
+```
+
+---
+
+## Bug 5: Incorrect feasibility direction
+
+For minimum feasible answer:
+
+```text
+Valid mid → move left
+Invalid mid → move right
+```
+
+For maximum feasible answer:
+
+```text
+Valid mid → move right
+Invalid mid → move left
+```
+
+---
+
+## Bug 6: Incorrect answer range
+
+For shipping capacity:
+
+Incorrect lower bound:
+
+```text
+1
+```
+
+Better lower bound:
+
+```text
+Maximum package weight
+```
+
+A strong answer range improves correctness and reduces iterations.
+
+---
+
+## Bug 7: Integer overflow
+
+Possible overflow locations:
+
+```java
+low + high
+mid * mid
+sum of array
+hoursRequired
+currentLoad
+```
+
+Use `long` where required.
+
+---
+
+## Bug 8: Assuming sorting is free
+
+For one search in unsorted data:
+
+```text
+Linear search O(n)
+```
+
+may be better than:
+
+```text
+Sort O(n log n) + Binary Search O(log n)
+```
+
+---
+
+# 49. Debugging Flow
+
+```mermaid
+flowchart TD
+    A[Binary Search Wrong Answer] --> B{Infinite loop?}
+
+    B -- Yes --> B1[Check whether low/high always move]
+    B -- No --> C{Final element skipped?}
+
+    C -- Yes --> C1[Check low < high versus low <= high]
+    C -- No --> D{Index out of bounds?}
+
+    D -- Yes --> D1[Check high = n or n - 1]
+    D -- No --> E{Duplicate boundary wrong?}
+
+    E -- Yes --> E1[Use lower or upper bound]
+    E -- No --> F{Answer-search wrong?}
+
+    F -- Yes --> F1[Validate monotonicity]
+    F1 --> F2[Validate can mid function]
+    F2 --> F3[Check movement direction]
+
+    F -- No --> G[Check overflow and edge cases]
+```
+
+---
+
+# 50. Five Quick Debugging Checks
+
+```text
+Infinite loop
+→ Check whether low or high changes on every iteration
+```
+
+```text
+Last element is never checked
+→ Check while condition and interval model
+```
+
+```text
+First/last occurrence is wrong
+→ Use lower bound and upper bound
+```
+
+```text
+Search-on-answer gives the opposite boundary
+→ Check whether you need first true or last true
+```
+
+```text
+Large test cases fail
+→ Check int overflow in mid, product, sum, or feasibility count
+```
+
+---
+
+# 51. Complexity Map
+
+| Problem Type                  | Complexity                      |
+| ----------------------------- | ------------------------------- |
+| Exact search                  | O(log n)                        |
+| Lower/upper bound             | O(log n)                        |
+| Search in rotated array       | O(log n)                        |
+| Rotated array with duplicates | O(n) worst case                 |
+| Peak element                  | O(log n)                        |
+| Sorted matrix                 | O(log(m × n))                   |
+| Search on answer              | O(checkCost × log(answerRange)) |
+| Koko                          | O(n log maxPile)                |
+| Ship capacity                 | O(n log sumWeights)             |
+| Recursive Binary Search       | O(log n) stack space            |
+| Iterative Binary Search       | O(1) auxiliary space            |
+
+---
+
+# 52. Master Problem Map
+
+## Template 1: Exact Target Search
+
+```text
+1. Binary Search
+2. Search in a Sorted Array
+3. Search in Descending Array
+4. Search a 2D Matrix
+5. Search in Rotated Sorted Array
+6. Search in Rotated Sorted Array II
+```
+
+## Template 2: Boundary Search
+
+```text
+1. Search Insert Position
+2. First and Last Position
+3. Count Occurrences
+4. Lower Bound
+5. Upper Bound
+6. First Bad Version
+7. Find Minimum in Rotated Sorted Array
+8. Find Peak Element
+9. Peak Index in Mountain Array
+10. Find Smallest Letter Greater Than Target
+```
+
+## Template 3: Search on Answer
+
+```text
+1. Sqrt(x)
+2. Koko Eating Bananas
+3. Capacity to Ship Packages Within D Days
+4. Minimum Days to Make M Bouquets
+5. Split Array Largest Sum
+6. Allocate Minimum Number of Pages
+7. Aggressive Cows
+8. Magnetic Force Between Two Balls
+9. Minimum Speed to Arrive on Time
+10. Smallest Divisor Given a Threshold
+```
+
+---
+
+# 53. Priority for Your Interviews
+
+## P0 — Must Know
+
+```text
+1. Classic Binary Search
+2. Search Insert Position
+3. Lower Bound
+4. Upper Bound
+5. First and Last Occurrence
+6. Search in Rotated Sorted Array
+7. Find Minimum in Rotated Sorted Array
+8. Find Peak Element
+9. Koko Eating Bananas
+10. Ship Packages Within D Days
+```
+
+## P1 — Very Important
+
+```text
+11. Sqrt(x)
+12. Search a 2D Matrix
+13. First Bad Version
+14. Minimum Days to Make Bouquets
+15. Split Array Largest Sum
+16. Aggressive Cows / Magnetic Force
+```
+
+## P2 — After Interviews Start
+
+```text
+17. Rotated array with duplicates
+18. Median of Two Sorted Arrays
+19. Kth element of two sorted arrays
+20. Floating-point Binary Search
+21. Advanced partition Binary Search
+```
+
+---
+
+# 54. Binary Search Interview Questions
+
+## Q1. What is Binary Search?
+
+> Binary Search is an algorithmic pattern that repeatedly evaluates the middle candidate of an ordered search space and eliminates one impossible half. It runs in O(log n) time when the decision is monotonic.
+
+---
+
+## Q2. Does Binary Search always require a sorted array?
+
+> No. It requires an ordered search space and a monotonic decision. The array itself may not be sorted, as seen in peak-element problems or Binary Search on answer.
+
+---
+
+## Q3. What is a monotonic predicate?
+
+> A monotonic predicate changes in only one direction across the search space, such as false-false-false-true-true or true-true-true-false-false.
+
+---
+
+## Q4. What is lower bound?
+
+> Lower bound is the first index whose value is greater than or equal to the target.
+
+---
+
+## Q5. What is upper bound?
+
+> Upper bound is the first index whose value is strictly greater than the target.
+
+---
+
+## Q6. How do you find the number of target occurrences?
+
+> Calculate `upperBound(target) - lowerBound(target)`.
+
+---
+
+## Q7. Why do we use `low + (high - low) / 2`?
+
+> It avoids possible integer overflow from `low + high`.
+
+---
+
+## Q8. Why is Binary Search O(log n)?
+
+> Every decision removes approximately half of the remaining candidates, so only logarithmically many decisions are required.
+
+---
+
+## Q9. What is Binary Search on answer?
+
+> It searches an ordered range of possible answers rather than array elements. A feasibility function determines whether a candidate works, and monotonicity allows one half of the answer range to be discarded.
+
+---
+
+## Q10. How do you identify minimum-feasible-answer problems?
+
+> The problem usually asks for a minimum speed, capacity, time, or maximum workload. Smaller candidates fail and sufficiently large candidates work, producing a false-to-true monotonic sequence.
+
+---
+
+## Q11. How do you identify maximum-feasible-answer problems?
+
+> The problem usually asks to maximize a distance, allocation, or minimum value. Smaller candidates work, while candidates beyond a boundary fail, producing a true-to-false sequence.
+
+---
+
+## Q12. Why does rotated-array search still work?
+
+> Although the entire array is not sorted, at least one half around the middle is sorted. We identify that half and determine whether the target lies inside its range.
+
+---
+
+## Q13. Can Binary Search degrade to O(n)?
+
+> Yes. In rotated arrays with many duplicates, equal boundary values may prevent us from identifying the sorted half, forcing the boundaries to shrink one step at a time.
+
+---
+
+## Q14. Iterative or recursive Binary Search?
+
+> Iterative Binary Search is generally preferred because it uses O(1) auxiliary space, while the recursive version uses O(log n) call-stack space.
+
+---
+
+## Q15. What is the most common Binary Search mistake?
+
+> Mixing interval conventions, such as using a half-open boundary initialization with closed-interval loop conditions and updates.
+
+---
+
+# 55. Senior-Level Interview Explanation
+
+> “I do not limit Binary Search to exact lookup in sorted arrays. I model it as boundary discovery over a monotonic search space. First, I define what `low` and `high` represent. Then I identify whether I need an exact target, the first valid candidate, or the last valid candidate. For optimization problems, I write a feasibility function such as `canComplete(mid)` and verify that its result changes monotonically. Based on whether I need the minimum feasible or maximum feasible answer, I move toward the appropriate boundary. The resulting complexity is normally O(log range) Binary Search iterations multiplied by the cost of the feasibility check.”
+
+---
+
+# 56. Ten Must-Remember Points
+
+1. Binary Search is about eliminating half, not merely calculating the middle.
+2. It requires ordering and a monotonic decision.
+3. Exact search, boundary search, and search on answer are the three main templates.
+4. Use a closed interval for standard exact search.
+5. Lower bound finds the first value greater than or equal to target.
+6. Upper bound finds the first value strictly greater than target.
+7. Minimum feasible answer means first true.
+8. Maximum feasible answer means last true.
+9. Never mix Binary Search interval conventions.
+10. Use `long` when midpoint operations, sums, or products may overflow.
+
+---
+
+# 57. Ten Common Interview Lines
+
+1. “Since the array is sorted, I can eliminate half of the search space.”
+2. “I am maintaining a closed search interval from low to high.”
+3. “The target is smaller than the middle value, so the right half is impossible.”
+4. “This question requires a boundary rather than any matching occurrence.”
+5. “I will use lower bound to find the first value greater than or equal to the target.”
+6. “The possible answers form a monotonic search space.”
+7. “I will define a feasibility function for the candidate answer.”
+8. “Since we need the minimum feasible value, I will search for the first true position.”
+9. “At least one half of the rotated array is sorted.”
+10. “The total complexity is O(n log range), where O(n) is the feasibility-check cost.”
+
+---
+
+# 58. Ten Common Mistakes
+
+1. Using Binary Search on unsorted data without a monotonic property.
+2. Mixing `[low, high]` and `[low, high)` conventions.
+3. Using the wrong loop condition.
+4. Updating `low = mid` and creating an infinite loop.
+5. Discarding `mid` when it may still be the answer.
+6. Returning any duplicate occurrence when the first or last is required.
+7. Choosing an incorrect answer range.
+8. Reversing first-true and last-true movement.
+9. Ignoring integer overflow.
+10. Assuming `Arrays.binarySearch` returns the first duplicate.
+
+---
+
+# 59. Revision Cheat Sheet
+
+## Exact target
+
+```java
+while (low <= high) {
+    int mid = low + (high - low) / 2;
+
+    if (nums[mid] == target) {
+        return mid;
+    } else if (nums[mid] < target) {
+        low = mid + 1;
+    } else {
+        high = mid - 1;
+    }
+}
+```
+
+## Lower bound
+
+```java
+while (low < high) {
+    int mid = low + (high - low) / 2;
+
+    if (nums[mid] < target) {
+        low = mid + 1;
+    } else {
+        high = mid;
+    }
+}
+```
+
+## Upper bound
+
+```java
+while (low < high) {
+    int mid = low + (high - low) / 2;
+
+    if (nums[mid] <= target) {
+        low = mid + 1;
+    } else {
+        high = mid;
+    }
+}
+```
+
+## Minimum feasible answer
+
+```java
+while (low < high) {
+    int mid = low + (high - low) / 2;
+
+    if (can(mid)) {
+        high = mid;
+    } else {
+        low = mid + 1;
+    }
+}
+```
+
+## Maximum feasible answer
+
+```java
+while (low <= high) {
+    int mid = low + (high - low) / 2;
+
+    if (can(mid)) {
+        answer = mid;
+        low = mid + 1;
+    } else {
+        high = mid - 1;
+    }
+}
+```
+
+---
+
+# 60. Pattern Comparison Cheat Sheet
+
+```text
+Exact value in sorted array
+→ Classic Binary Search
+
+First value >= target
+→ Lower Bound
+
+First value > target
+→ Upper Bound
+
+First occurrence
+→ Lower Bound + verification
+
+Last occurrence
+→ Upper Bound - 1 + verification
+
+Minimum candidate that works
+→ First True Binary Search
+
+Maximum candidate that works
+→ Last True Binary Search
+
+Rotated array
+→ Identify sorted half
+
+Find minimum in rotated array
+→ Compare mid with high
+
+Peak element
+→ Compare mid with mid + 1
+
+Fixed-size contiguous range
+→ Sliding Window
+
+Maximum unrestricted contiguous sum
+→ Kadane
+
+Exact subarray sum/count
+→ Prefix Sum + HashMap
+```
+
+---
+
+# 61. Practice Order
+
+## Level 1 — Learn the Exact Template
+
+Solve:
+
+```text
+1. Binary Search
+2. Search Insert Position
+3. Sqrt(x)
+```
+
+Goal:
+
+```text
+Understand low, high, mid, and interval boundaries.
+```
+
+## Level 2 — Learn Boundaries
+
+Solve:
+
+```text
+4. First and Last Position
+5. Lower Bound
+6. Upper Bound
+7. First Bad Version
+```
+
+Goal:
+
+```text
+Stop searching for any match.
+Start searching for the first or last valid position.
+```
+
+## Level 3 — Learn Structural Variants
+
+Solve:
+
+```text
+8. Search in Rotated Sorted Array
+9. Find Minimum in Rotated Sorted Array
+10. Find Peak Element
+11. Search a 2D Matrix
+```
+
+Goal:
+
+```text
+Learn how structure determines which half can be removed.
+```
+
+## Level 4 — Learn Search on Answer
+
+Solve:
+
+```text
+12. Koko Eating Bananas
+13. Ship Packages Within D Days
+14. Smallest Divisor Given a Threshold
+15. Minimum Days to Make Bouquets
+```
+
+Goal:
+
+```text
+Build correct answer ranges and feasibility functions.
+```
+
+## Level 5 — Learn Maximum Feasible Answer
+
+Solve:
+
+```text
+16. Aggressive Cows
+17. Magnetic Force Between Two Balls
+18. Split Array Largest Sum
+```
+
+Goal:
+
+```text
+Differentiate first true from last true.
+```
+
+---
+
+# 62. What Is Enough to Start Interviews?
+
+For most mid-range product companies and Java Backend roles, confidently prepare:
+
+```text
+P0:
+Classic Binary Search
+Search Insert Position
+Lower Bound
+Upper Bound
+First/Last Occurrence
+Rotated Array Search
+Minimum in Rotated Array
+Peak Element
+Koko Eating Bananas
+Ship Capacity
+
+Concepts:
+Closed versus half-open interval
+First true versus last true
+Monotonic feasibility
+Overflow handling
+Time and space complexity
+```
+
+You can start interviews without mastering:
+
+```text
+Median of Two Sorted Arrays
+Kth element across two sorted arrays
+Complex floating-point searches
+Advanced partition Binary Search
+```
+
+---
+
+# 63. Final Pattern Map
+
+```mermaid
+flowchart TD
+    A[Binary Search Problem] --> B{What is ordered?}
+
+    B --> C[Array Elements]
+    B --> D[Possible Answers]
+    B --> E[Structural Direction]
+
+    C --> C1{What is required?}
+    C1 --> C2[Exact Target]
+    C1 --> C3[First Position]
+    C1 --> C4[Last Position]
+    C1 --> C5[Insertion Position]
+
+    C2 --> C6[Classic Search]
+    C3 --> C7[Lower Bound]
+    C4 --> C8[Upper Bound - 1]
+    C5 --> C7
+
+    D --> D1[Define low and high]
+    D1 --> D2[Write can mid]
+    D2 --> D3{Boundary type?}
+    D3 --> D4[Minimum Feasible]
+    D3 --> D5[Maximum Feasible]
+    D4 --> D6[First True]
+    D5 --> D7[Last True]
+
+    E --> E1[Rotated Array]
+    E --> E2[Peak/Mountain]
+    E --> E3[Sorted Matrix]
+
+    E1 --> E4[Identify Sorted Half]
+    E2 --> E5[Follow Slope]
+    E3 --> E6[Flatten Index Space]
+```
+
+---
+
+# 64. Final Mental Model
+
+Do not memorize Binary Search only as:
+
+```text
+Search for target in a sorted array.
+```
+
+Memorize it as:
+
+```text
+1. Define the ordered search space.
+2. Define what low and high represent.
+3. Evaluate the middle candidate.
+4. Prove which half is impossible.
+5. Retain the half that may contain the answer.
+6. Continue until the target or boundary remains.
+```
+
+For optimization problems:
+
+```text
+1. What answer am I minimizing or maximizing?
+2. What is the minimum possible answer?
+3. What is the maximum possible answer?
+4. How do I check whether a candidate works?
+5. Does feasibility change monotonically?
+6. Do I need first true or last true?
+```
+
+## Final shortcut
+
+```text
+Binary Search =
+Ordered Space
+→ Mid Candidate
+→ Monotonic Decision
+→ Discard Half
+→ Find Boundary
+```
+
+## Final interview line
+
+> “Binary Search is a boundary-finding pattern over an ordered or monotonic search space. I first define the search interval and determine whether I need an exact target, first valid candidate, or last valid candidate. At every middle value, I use the problem condition to eliminate one impossible half. For search-on-answer problems, I define a feasibility function and search the minimum or maximum candidate satisfying it. This usually gives O(log n) lookup or O(checkCost × log answerRange) for optimization problems.”
+
+# Sorting and Searching Techniques — Complete Postmortem for DSA Interviews
+
+Sorting and searching should not be memorized as a collection of unrelated algorithms.
+
+The strongest interview mental model is:
+
+```text
+Sorting = Create useful order
+Searching = Exploit structure to eliminate unnecessary work
+```
+
+Most interview problems are not asking:
+
+> “Can you write Bubble Sort?”
+
+They are actually asking:
+
+> “Can you recognize that ordering the data will unlock a simpler or faster pattern?”
+
+The complete mental model is:
+
+```text
+Raw Data
+→ Decide whether order is useful
+→ Sort or preserve existing order
+→ Scan / Two Pointers / Greedy / Interval Merge / Binary Search
+→ Handle duplicates and boundaries
+→ Explain complexity and trade-offs
+```
+
+---
+
+# 1. Best Mental Model
+
+The best model for Sorting and Searching is a combination of:
+
+```text
+Transformation Pipeline
++
+Decision Tree
++
+Boundary Templates
+```
+
+Why?
+
+Because these problems usually contain two separate decisions:
+
+```text
+Decision 1:
+Should I sort the data?
+
+Decision 2:
+After sorting, how should I use the order?
+```
+
+The order may unlock:
+
+```text
+Adjacent comparison
+Two pointers
+Duplicate grouping
+Interval processing
+Greedy selection
+Binary search
+Sweep-line processing
+```
+
+Searching also has a separate decision:
+
+```text
+Unsorted and one query?
+→ Linear search
+
+Exact lookup with extra memory allowed?
+→ HashMap/HashSet
+
+Sorted data?
+→ Binary search
+
+Monotonic feasibility?
+→ Binary search on answer
+
+Hierarchy or connectivity?
+→ BFS/DFS
+```
+
+---
+
+# 2. Master Mental Model Diagram
+
+```mermaid
+flowchart TD
+    A[New Problem] --> B[Understand Input, Output and Constraints]
+    B --> C{Is useful order already present?}
+
+    C -- Yes --> D[Preserve Sorted or Monotonic Structure]
+    C -- No --> E{Would sorting simplify the relationship?}
+
+    E -- No --> F[Use HashMap, Window, Prefix, DFS/BFS or Other Pattern]
+    E -- Yes --> G[Sort Data or Sort Derived Records]
+
+    D --> H{What becomes possible?}
+    G --> H
+
+    H --> I[Adjacent Scan]
+    H --> J[Two Pointers]
+    H --> K[Merge Intervals]
+    H --> L[Greedy Selection]
+    H --> M[Binary Search]
+    H --> N[Group Duplicates]
+    H --> O[Sweep Events]
+
+    M --> P{Search Type?}
+    P --> P1[Exact Match]
+    P --> P2[First Valid Position]
+    P --> P3[Last Valid Position]
+    P --> P4[Rotated Array]
+    P --> P5[Search on Answer]
+
+    P1 --> Q[Boundary Template]
+    P2 --> Q
+    P3 --> Q
+    P4 --> Q
+    P5 --> Q
+
+    I --> R[Dry Run]
+    J --> R
+    K --> R
+    L --> R
+    N --> R
+    O --> R
+    Q --> R
+
+    R --> S[Handle Duplicates, Overflow and Edge Cases]
+    S --> T[Time and Space Complexity]
+    T --> U[Interview Explanation]
+```
+
+---
+
+# 3. One-Line Mental Shortcut
+
+```text
+Sorting + Searching =
+Create Order → Exploit Order → Eliminate Work → Handle Boundaries
+```
+
+An even shorter version:
+
+```text
+Sort to reveal structure; search to discard possibilities.
+```
+
+Interview speaking line:
+
+> “I first check whether ordering the data exposes a useful relationship. If yes, I sort once and then use a linear scan, two pointers, interval processing, greedy logic, or binary search depending on the required output.”
+
+---
+
+# 4. Sorting Is Usually a Preprocessing Pattern
+
+Sorting is rarely the whole solution.
+
+It is usually this:
+
+```text
+Sort
+→ Apply another pattern
+```
+
+The most important combinations are:
+
+| Combination | Why Sorting Helps | Typical Problems |
+|---|---|---|
+| Sort + Scan | Related values become adjacent | Duplicates, minimum difference |
+| Sort + Two Pointers | Pointer movement becomes meaningful | 3Sum, pair sum, closest sum |
+| Sort + Intervals | Overlapping intervals become consecutive | Merge Intervals |
+| Sort + Greedy | Local choice becomes safe | Meeting rooms, activity selection |
+| Sort + Binary Search | Search space becomes ordered | Exact search, lower bound |
+| Sort + Grouping | Equal values become contiguous | Frequency grouping |
+| Sort + Sweep Line | Events can be processed chronologically | Maximum overlap |
+| Sort + Custom Comparator | Objects are ordered by business rule | Largest number, scheduling |
+
+Key insight:
+
+```text
+Sorting spends O(n log n)
+to make the remaining work simple, predictable and often O(n).
+```
+
+So the final complexity is commonly:
+
+```text
+O(n log n) + O(n)
+= O(n log n)
+```
+
+---
+
+# 5. How to Identify Sorting Problems
+
+Think about sorting when the problem contains signals such as:
+
+| Problem Signal | Likely Use of Sorting |
+|---|---|
+| “Closest”, “minimum difference”, “maximum gap” | Sort and compare nearby values |
+| “Pair”, “triplet”, “quadruplet” | Sort + two pointers |
+| “Merge overlapping intervals” | Sort by start time |
+| “Schedule maximum meetings/jobs” | Sort by finish time or deadline |
+| “Remove duplicates” | Sort + adjacent scan |
+| “Arrange to form largest/smallest number” | Custom comparator |
+| “Process events chronologically” | Sort events |
+| “Find missing or duplicate in 1..n” | Cyclic sort may fit |
+| “Need ordered output” | Sort directly |
+| “Many search queries on static data” | Sort once + binary search repeatedly |
+| “Top K only” | Consider heap instead of full sorting |
+
+The central question is:
+
+```text
+If related items were placed next to each other,
+would the problem become easier?
+```
+
+If yes, sorting is a strong candidate.
+
+---
+
+# 6. How to Identify Searching Problems
+
+Searching is broader than “find target in an array.”
+
+Use this decision table:
+
+| Problem Shape | Best First Thought |
+|---|---|
+| Unsorted data, one lookup | Linear search |
+| Unsorted data, many exact lookups | HashMap / HashSet |
+| Sorted array | Binary search |
+| Sorted matrix | Matrix-specific search |
+| First/last occurrence | Boundary binary search |
+| Rotated sorted array | Modified binary search |
+| Minimum feasible / maximum possible answer | Binary search on answer |
+| Tree hierarchy | DFS / BFS |
+| Graph connectivity | DFS / BFS |
+| Top K / kth element | Heap, Quickselect, or binary search depending on constraints |
+
+Search selection shortcut:
+
+```text
+Exact key lookup?
+→ Hashing
+
+Ordered index space?
+→ Binary search
+
+Connected structure?
+→ BFS/DFS
+
+Priority-ranked result?
+→ Heap
+```
+
+---
+
+# 7. Sorting and Searching Decision Tree
+
+```mermaid
+flowchart TD
+    A[Need to organize or find something] --> B{Need ordering?}
+
+    B -- Yes --> C{Need complete order?}
+    C -- Yes --> D[Comparison Sort]
+    C -- No --> E{Need only Top K or Kth?}
+    E -- Top K --> F[Heap]
+    E -- Kth only --> G[Quickselect / Heap]
+
+    D --> H{Data characteristics?}
+    H --> H1[General-purpose data]
+    H1 --> H2[Merge / Quick / Library Sort]
+
+    H --> H3[Small or nearly sorted]
+    H3 --> H4[Insertion Sort]
+
+    H --> H5[Small bounded integer range]
+    H5 --> H6[Counting Sort]
+
+    H --> H7[Values 1..n]
+    H7 --> H8[Cyclic Sort Pattern]
+
+    B -- No --> I{Need lookup?}
+    I -- Unsorted, one query --> J[Linear Search]
+    I -- Unsorted, repeated exact queries --> K[HashMap / HashSet]
+    I -- Sorted or monotonic --> L[Binary Search]
+    I -- Tree or graph --> M[BFS / DFS]
+
+    L --> N{Binary Search Type}
+    N --> N1[Exact Match]
+    N --> N2[First True / Lower Bound]
+    N --> N3[Last True / Upper Boundary]
+    N --> N4[Rotated Search]
+    N --> N5[Search on Answer]
+```
+
+---
+
+# 8. Sorting Algorithm Family Map
+
+```mermaid
+flowchart TD
+    A[Sorting Algorithms] --> B[Comparison Based]
+    A --> C[Non-Comparison Based]
+
+    B --> D[Simple O n squared]
+    D --> D1[Bubble Sort]
+    D --> D2[Selection Sort]
+    D --> D3[Insertion Sort]
+
+    B --> E[Efficient O n log n]
+    E --> E1[Merge Sort]
+    E --> E2[Quick Sort]
+    E --> E3[Heap Sort]
+
+    C --> F[Value Range Based]
+    F --> F1[Counting Sort]
+    F --> F2[Radix Sort]
+    F --> F3[Bucket Sort]
+
+    A --> G[Pattern-Specific Placement]
+    G --> G1[Cyclic Sort]
+```
+
+---
+
+# 9. Sorting Algorithm Comparison Table
+
+| Algorithm | Best | Average | Worst | Extra Space | Stable? | In-place? | Interview Importance |
+|---|---:|---:|---:|---:|---|---|---|
+| Bubble Sort | O(n) with flag | O(n²) | O(n²) | O(1) | Yes | Yes | Low |
+| Selection Sort | O(n²) | O(n²) | O(n²) | O(1) | Usually No | Yes | Low |
+| Insertion Sort | O(n) | O(n²) | O(n²) | O(1) | Yes | Yes | Medium |
+| Merge Sort | O(n log n) | O(n log n) | O(n log n) | O(n) | Yes | No for arrays | High |
+| Quick Sort | O(n log n) | O(n log n) | O(n²) | O(log n) average recursion | Usually No | Mostly | High |
+| Heap Sort | O(n log n) | O(n log n) | O(n log n) | O(1) | No | Yes | Medium |
+| Counting Sort | O(n + k) | O(n + k) | O(n + k) | O(k) | Can be | No | Medium |
+| Radix Sort | O(d(n + k)) | O(d(n + k)) | O(d(n + k)) | Depends | Yes if inner sort stable | Usually No | Low-Medium |
+| Cyclic Sort | O(n) | O(n) | O(n) | O(1) | No | Yes | High as a pattern |
+
+Where:
+
+```text
+n = number of elements
+k = value range
+d = number of digits or passes
+```
+
+Important interview distinction:
+
+```text
+Stable:
+Equal elements preserve their original relative order.
+
+In-place:
+Uses constant or very small additional memory.
+```
+
+---
+
+# 10. What You Actually Need to Code
+
+For your interview target, divide algorithms into three groups.
+
+## P0: Must code and explain
+
+```text
+Merge Sort
+Quick Sort
+Binary Search
+Lower Bound / First Valid
+Upper Boundary / Last Valid
+Search on Answer
+Custom Comparator
+Merge Intervals
+```
+
+## P1: Understand and code once
+
+```text
+Insertion Sort
+Heap Sort concept
+Counting Sort
+Cyclic Sort
+Rotated Binary Search
+```
+
+## P2: Theory is enough initially
+
+```text
+Bubble Sort
+Selection Sort
+Radix Sort
+Bucket Sort
+Interpolation Search
+External Merge Sort
+```
+
+Interview reality:
+
+> Most interviewers care more about using sorting correctly inside a problem than writing all sorting algorithms from memory.
+
+---
+
+# 11. Bubble Sort Mental Model
+
+```text
+Repeatedly compare adjacent elements
+→ Swap if out of order
+→ Largest unsorted element moves to the end
+```
+
+```mermaid
+flowchart LR
+    A[Compare Adjacent Pair] --> B{Out of Order?}
+    B -- Yes --> C[Swap]
+    B -- No --> D[Move Forward]
+    C --> D
+    D --> E{Pass Complete?}
+    E -- No --> A
+    E -- Yes --> F[Last Unsorted Position Is Fixed]
+```
+
+```java
+public static void bubbleSort(int[] nums) {
+    for (int end = nums.length - 1; end > 0; end--) {
+        boolean swapped = false;
+
+        for (int i = 0; i < end; i++) {
+            if (nums[i] > nums[i + 1]) {
+                int temp = nums[i];
+                nums[i] = nums[i + 1];
+                nums[i + 1] = temp;
+                swapped = true;
+            }
+        }
+
+        if (!swapped) {
+            break;
+        }
+    }
+}
+```
+
+Usefulness:
+
+```text
+Good for learning swaps and invariants.
+Rarely the correct production or interview optimization.
+```
+
+---
+
+# 12. Selection Sort Mental Model
+
+```text
+Find the minimum remaining element
+→ Place it at the current position
+→ Expand sorted prefix
+```
+
+```java
+public static void selectionSort(int[] nums) {
+    for (int i = 0; i < nums.length - 1; i++) {
+        int minIndex = i;
+
+        for (int j = i + 1; j < nums.length; j++) {
+            if (nums[j] < nums[minIndex]) {
+                minIndex = j;
+            }
+        }
+
+        int temp = nums[i];
+        nums[i] = nums[minIndex];
+        nums[minIndex] = temp;
+    }
+}
+```
+
+Important property:
+
+```text
+Selection sort performs few swaps,
+but still performs O(n²) comparisons.
+```
+
+---
+
+# 13. Insertion Sort Mental Model
+
+```text
+Maintain a sorted prefix
+→ Take next element
+→ Shift larger elements right
+→ Insert element at correct position
+```
+
+```mermaid
+flowchart LR
+    A[Sorted Prefix] --> B[Pick Current Element]
+    B --> C[Shift Larger Elements Right]
+    C --> D[Insert Current Element]
+    D --> E[Sorted Prefix Grows]
+```
+
+```java
+public static void insertionSort(int[] nums) {
+    for (int i = 1; i < nums.length; i++) {
+        int current = nums[i];
+        int j = i - 1;
+
+        while (j >= 0 && nums[j] > current) {
+            nums[j + 1] = nums[j];
+            j--;
+        }
+
+        nums[j + 1] = current;
+    }
+}
+```
+
+Best use:
+
+```text
+Small arrays
+Nearly sorted data
+As a helper inside hybrid sorting implementations
+```
+
+Invariant:
+
+```text
+Before every outer iteration,
+nums[0..i-1] is already sorted.
+```
+
+---
+
+# 14. Merge Sort Complete Mental Model
+
+Merge sort follows:
+
+```text
+Divide
+→ Sort Left
+→ Sort Right
+→ Merge Two Sorted Halves
+```
+
+```mermaid
+flowchart TD
+    A[Array] --> B[Split into Left and Right]
+    B --> C[Recursively Sort Left]
+    B --> D[Recursively Sort Right]
+    C --> E[Merge Sorted Halves]
+    D --> E
+    E --> F[Sorted Array]
+```
+
+## Why Merge Sort matters
+
+```text
+Guaranteed O(n log n)
+Stable
+Natural for linked lists
+Useful for external sorting
+Teaches divide-and-conquer
+```
+
+## Java implementation
+
+```java
+public static void mergeSort(int[] nums) {
+    if (nums == null || nums.length < 2) {
+        return;
+    }
+
+    int[] temp = new int[nums.length];
+    mergeSort(nums, temp, 0, nums.length - 1);
+}
+
+private static void mergeSort(int[] nums, int[] temp, int left, int right) {
+    if (left >= right) {
+        return;
+    }
+
+    int mid = left + (right - left) / 2;
+
+    mergeSort(nums, temp, left, mid);
+    mergeSort(nums, temp, mid + 1, right);
+
+    if (nums[mid] <= nums[mid + 1]) {
+        return;
+    }
+
+    merge(nums, temp, left, mid, right);
+}
+
+private static void merge(
+        int[] nums,
+        int[] temp,
+        int left,
+        int mid,
+        int right) {
+
+    int i = left;
+    int j = mid + 1;
+    int k = left;
+
+    while (i <= mid && j <= right) {
+        if (nums[i] <= nums[j]) {
+            temp[k++] = nums[i++];
+        } else {
+            temp[k++] = nums[j++];
+        }
+    }
+
+    while (i <= mid) {
+        temp[k++] = nums[i++];
+    }
+
+    while (j <= right) {
+        temp[k++] = nums[j++];
+    }
+
+    for (int index = left; index <= right; index++) {
+        nums[index] = temp[index];
+    }
+}
+```
+
+## Complexity
+
+```text
+Time: O(n log n)
+Space: O(n)
+Recursion depth: O(log n)
+```
+
+## Common interview applications
+
+```text
+Sort linked list
+Count inversions
+Merge K sorted structures
+External sorting
+```
+
+---
+
+# 15. Quick Sort Complete Mental Model
+
+Quick sort follows:
+
+```text
+Choose Pivot
+→ Partition into smaller and larger sides
+→ Pivot reaches final position
+→ Recursively sort both sides
+```
+
+```mermaid
+flowchart TD
+    A[Choose Pivot] --> B[Partition Array]
+    B --> C[Elements <= Pivot]
+    B --> D[Pivot Final Position]
+    B --> E[Elements > Pivot]
+    C --> F[Recursively Sort Left]
+    E --> G[Recursively Sort Right]
+```
+
+## Java implementation using Lomuto partition
+
+```java
+public static void quickSort(int[] nums) {
+    if (nums == null || nums.length < 2) {
+        return;
+    }
+
+    quickSort(nums, 0, nums.length - 1);
+}
+
+private static void quickSort(int[] nums, int low, int high) {
+    if (low >= high) {
+        return;
+    }
+
+    int pivotIndex = partition(nums, low, high);
+
+    quickSort(nums, low, pivotIndex - 1);
+    quickSort(nums, pivotIndex + 1, high);
+}
+
+private static int partition(int[] nums, int low, int high) {
+    int pivot = nums[high];
+    int smaller = low;
+
+    for (int current = low; current < high; current++) {
+        if (nums[current] <= pivot) {
+            swap(nums, smaller, current);
+            smaller++;
+        }
+    }
+
+    swap(nums, smaller, high);
+    return smaller;
+}
+
+private static void swap(int[] nums, int i, int j) {
+    int temp = nums[i];
+    nums[i] = nums[j];
+    nums[j] = temp;
+}
+```
+
+## Complexity
+
+```text
+Average: O(n log n)
+Worst: O(n²)
+Average recursion space: O(log n)
+Worst recursion space: O(n)
+```
+
+## Why worst case happens
+
+```text
+Bad pivot repeatedly produces:
+0 elements on one side
+n - 1 elements on the other side
+```
+
+Mitigations:
+
+```text
+Random pivot
+Median-like pivot selection
+Three-way partition for many duplicates
+Introspective fallback in library implementations
+```
+
+Important distinction:
+
+```text
+Quick Sort:
+Partition around a pivot.
+
+Quickselect:
+Partition only the side containing the kth answer.
+```
+
+---
+
+# 16. Three-Way Partition for Duplicate-Heavy Data
+
+When many values equal the pivot:
+
+```text
+< pivot | == pivot | > pivot
+```
+
+This avoids repeatedly processing equal values.
+
+```java
+public static void threeWayPartition(int[] nums, int pivot) {
+    int smaller = 0;
+    int current = 0;
+    int greater = nums.length - 1;
+
+    while (current <= greater) {
+        if (nums[current] < pivot) {
+            swap(nums, smaller++, current++);
+        } else if (nums[current] > pivot) {
+            swap(nums, current, greater--);
+        } else {
+            current++;
+        }
+    }
+}
+```
+
+This is also the mental model behind:
+
+```text
+Dutch National Flag
+Sort Colors
+Partition around a value
+```
+
+Connection to your covered patterns:
+
+```text
+Three-way partition is a multi-pointer pattern.
+```
+
+---
+
+# 17. Heap Sort Mental Model
+
+```text
+Build Max Heap
+→ Largest value is at root
+→ Swap root with last unsorted position
+→ Restore heap
+→ Repeat
+```
+
+```mermaid
+flowchart TD
+    A[Build Max Heap] --> B[Root Is Maximum]
+    B --> C[Swap Root with End]
+    C --> D[Reduce Heap Size]
+    D --> E[Heapify Root]
+    E --> F{More Than One Element?}
+    F -- Yes --> B
+    F -- No --> G[Sorted]
+```
+
+```java
+public static void heapSort(int[] nums) {
+    int n = nums.length;
+
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapify(nums, n, i);
+    }
+
+    for (int end = n - 1; end > 0; end--) {
+        swap(nums, 0, end);
+        heapify(nums, end, 0);
+    }
+}
+
+private static void heapify(int[] nums, int heapSize, int root) {
+    int largest = root;
+    int left = 2 * root + 1;
+    int right = 2 * root + 2;
+
+    if (left < heapSize && nums[left] > nums[largest]) {
+        largest = left;
+    }
+
+    if (right < heapSize && nums[right] > nums[largest]) {
+        largest = right;
+    }
+
+    if (largest != root) {
+        swap(nums, root, largest);
+        heapify(nums, heapSize, largest);
+    }
+}
+```
+
+Complexity:
+
+```text
+Build heap: O(n)
+Sorting: O(n log n)
+Extra array space: O(1)
+```
+
+Interview insight:
+
+```text
+Use heap when priority access or Top K matters.
+Use heap sort when guaranteed O(n log n) and in-place sorting matters.
+```
+
+---
+
+# 18. Counting Sort Mental Model
+
+Counting sort does not compare elements.
+
+It uses:
+
+```text
+Value
+→ Frequency
+→ Reconstruct sorted output
+```
+
+```mermaid
+flowchart LR
+    A[Input Values] --> B[Frequency Array]
+    B --> C[Iterate Values in Order]
+    C --> D[Write Each Value Frequency Times]
+```
+
+```java
+public static void countingSort(int[] nums) {
+    if (nums == null || nums.length < 2) {
+        return;
+    }
+
+    int min = nums[0];
+    int max = nums[0];
+
+    for (int num : nums) {
+        min = Math.min(min, num);
+        max = Math.max(max, num);
+    }
+
+    int range = max - min + 1;
+    int[] frequency = new int[range];
+
+    for (int num : nums) {
+        frequency[num - min]++;
+    }
+
+    int index = 0;
+
+    for (int offset = 0; offset < range; offset++) {
+        while (frequency[offset]-- > 0) {
+            nums[index++] = offset + min;
+        }
+    }
+}
+```
+
+Use only when:
+
+```text
+Values are integers
+Range is reasonably small
+O(k) memory is acceptable
+```
+
+Bad choice:
+
+```text
+n = 100
+values range from -10^9 to 10^9
+```
+
+---
+
+# 19. Cyclic Sort Pattern
+
+Cyclic sort is not a general-purpose sort.
+
+It is a special placement pattern for:
+
+```text
+Values belong to a known range,
+usually 1..n or 0..n.
+```
+
+Mental model:
+
+```text
+Every value knows its correct index.
+Put it there.
+```
+
+For values `1..n`:
+
+```text
+Correct index of value x = x - 1
+```
+
+```mermaid
+flowchart TD
+    A[At Index i] --> B[Calculate Correct Index]
+    B --> C{Current Value at Correct Position?}
+    C -- No --> D[Swap with Correct Index]
+    D --> B
+    C -- Yes --> E[Move i Forward]
+```
+
+```java
+public static void cyclicSort(int[] nums) {
+    int i = 0;
+
+    while (i < nums.length) {
+        int correctIndex = nums[i] - 1;
+
+        if (nums[i] != nums[correctIndex]) {
+            swap(nums, i, correctIndex);
+        } else {
+            i++;
+        }
+    }
+}
+```
+
+Use for:
+
+```text
+Missing Number
+Find All Missing Numbers
+Find Duplicate Number
+Set Mismatch
+First Missing Positive
+```
+
+Identification signal:
+
+```text
+Array length n
++
+values constrained around 1..n or 0..n
++
+missing/duplicate question
+```
+
+---
+
+# 20. Java Sorting Mental Model
+
+In interview code, prefer library sorting unless the interviewer explicitly asks you to implement an algorithm.
+
+```java
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
+int[] numbers = {5, 2, 9, 1};
+Arrays.sort(numbers);
+
+Integer[] boxed = {5, 2, 9, 1};
+Arrays.sort(boxed, Comparator.reverseOrder());
+
+List<String> names = List.of("Danish", "Ali", "Zoya");
+List<String> sorted = names.stream()
+        .sorted()
+        .toList();
+```
+
+Important caution:
+
+```text
+Do not depend on a specific internal sorting algorithm
+unless discussing a particular JDK implementation.
+Program against the documented ordering behavior and complexity expectations.
+```
+
+---
+
+# 21. Custom Comparator Pattern
+
+Custom comparator is one of the most important practical sorting skills.
+
+Mental model:
+
+```text
+Comparator decides:
+negative → first comes before second
+zero     → equal ordering
+positive → first comes after second
+```
+
+## Safe integer comparison
+
+Avoid:
+
+```java
+(a, b) -> a - b
+```
+
+because subtraction can overflow.
+
+Prefer:
+
+```java
+Integer.compare(a, b)
+```
+
+## Sort objects by multiple fields
+
+```java
+import java.util.Comparator;
+import java.util.List;
+
+record Post(long id, String title, int views, long createdAt) {}
+
+public static void sortPosts(List<Post> posts) {
+    posts.sort(
+        Comparator.comparingInt(Post::views)
+                  .reversed()
+                  .thenComparingLong(Post::createdAt)
+                  .thenComparingLong(Post::id)
+    );
+}
+```
+
+Interview explanation:
+
+> “I use a deterministic tie-breaker so that equal primary values still have a predictable order.”
+
+## Sort intervals
+
+```java
+Arrays.sort(intervals, Comparator.comparingInt(interval -> interval[0]));
+```
+
+## Largest Number comparator
+
+For numbers represented as strings:
+
+```text
+a should come before b
+when a+b is lexicographically larger than b+a
+```
+
+```java
+public static String largestNumber(int[] nums) {
+    String[] values = new String[nums.length];
+
+    for (int i = 0; i < nums.length; i++) {
+        values[i] = String.valueOf(nums[i]);
+    }
+
+    Arrays.sort(values, (a, b) -> (b + a).compareTo(a + b));
+
+    if (values[0].equals("0")) {
+        return "0";
+    }
+
+    return String.join("", values);
+}
+```
+
+---
+
+# 22. Core Sorting Pattern 1: Sort + Adjacent Scan
+
+After sorting:
+
+```text
+Equal or close values become neighbours.
+```
+
+Use for:
+
+```text
+Contains Duplicate
+Minimum Difference
+Longest Consecutive-like sorted variant
+Merge similar records
+Check overlap
+```
+
+## Contains Duplicate
+
+```java
+public static boolean containsDuplicate(int[] nums) {
+    Arrays.sort(nums);
+
+    for (int i = 1; i < nums.length; i++) {
+        if (nums[i] == nums[i - 1]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+```
+
+Complexity:
+
+```text
+Time: O(n log n)
+Extra space: depends on sorting implementation
+```
+
+Compare with HashSet:
+
+```text
+HashSet:
+O(n) average time, O(n) extra space
+
+Sorting:
+O(n log n) time, can use less explicit extra memory
+```
+
+---
+
+# 23. Core Sorting Pattern 2: Sort + Two Pointers
+
+Sorting creates directional meaning:
+
+```text
+Sum too small
+→ Move left pointer right
+
+Sum too large
+→ Move right pointer left
+```
+
+## Pair Sum in Sorted Array
+
+```java
+public static boolean hasPairWithTarget(int[] nums, int target) {
+    Arrays.sort(nums);
+
+    int left = 0;
+    int right = nums.length - 1;
+
+    while (left < right) {
+        long sum = (long) nums[left] + nums[right];
+
+        if (sum == target) {
+            return true;
+        }
+
+        if (sum < target) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+
+    return false;
+}
+```
+
+Use `long` for arithmetic when integer overflow is possible.
+
+## 3Sum Mental Model
+
+```text
+Sort
+→ Fix one number
+→ Run two pointers on the remaining suffix
+→ Skip duplicates
+```
+
+```java
+public static List<List<Integer>> threeSum(int[] nums) {
+    Arrays.sort(nums);
+    List<List<Integer>> result = new java.util.ArrayList<>();
+
+    for (int i = 0; i < nums.length - 2; i++) {
+        if (i > 0 && nums[i] == nums[i - 1]) {
+            continue;
+        }
+
+        if (nums[i] > 0) {
+            break;
+        }
+
+        int left = i + 1;
+        int right = nums.length - 1;
+
+        while (left < right) {
+            long sum = (long) nums[i] + nums[left] + nums[right];
+
+            if (sum == 0) {
+                result.add(List.of(nums[i], nums[left], nums[right]));
+                left++;
+                right--;
+
+                while (left < right && nums[left] == nums[left - 1]) {
+                    left++;
+                }
+
+                while (left < right && nums[right] == nums[right + 1]) {
+                    right--;
+                }
+            } else if (sum < 0) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+    }
+
+    return result;
+}
+```
+
+Connection to covered topics:
+
+```text
+Sorting gives order.
+Two pointers exploit the order.
+```
+
+---
+
+# 24. Core Sorting Pattern 3: Sort + Merge Intervals
+
+Identification signals:
+
+```text
+Intervals
+Overlapping ranges
+Meeting times
+Bookings
+Schedules
+Start and end values
+```
+
+Mental model:
+
+```text
+Sort by start
+→ Keep current merged interval
+→ If next overlaps, extend end
+→ Otherwise, save current and start a new one
+```
+
+```mermaid
+flowchart TD
+    A[Sort Intervals by Start] --> B[Take First as Current]
+    B --> C[Read Next Interval]
+    C --> D{next.start <= current.end?}
+    D -- Yes --> E[current.end = max ends]
+    D -- No --> F[Save Current]
+    F --> G[Next Becomes Current]
+    E --> H{More Intervals?}
+    G --> H
+    H -- Yes --> C
+    H -- No --> I[Save Final Current]
+```
+
+```java
+public static int[][] mergeIntervals(int[][] intervals) {
+    if (intervals.length <= 1) {
+        return intervals;
+    }
+
+    Arrays.sort(intervals, Comparator.comparingInt(interval -> interval[0]));
+
+    List<int[]> merged = new java.util.ArrayList<>();
+    int currentStart = intervals[0][0];
+    int currentEnd = intervals[0][1];
+
+    for (int i = 1; i < intervals.length; i++) {
+        int nextStart = intervals[i][0];
+        int nextEnd = intervals[i][1];
+
+        if (nextStart <= currentEnd) {
+            currentEnd = Math.max(currentEnd, nextEnd);
+        } else {
+            merged.add(new int[]{currentStart, currentEnd});
+            currentStart = nextStart;
+            currentEnd = nextEnd;
+        }
+    }
+
+    merged.add(new int[]{currentStart, currentEnd});
+
+    return merged.toArray(new int[merged.size()][]);
+}
+```
+
+Complexity:
+
+```text
+Sorting: O(n log n)
+Merge scan: O(n)
+Total: O(n log n)
+```
+
+---
+
+# 25. Core Sorting Pattern 4: Sort + Greedy
+
+Sorting is often required before a greedy choice becomes safe.
+
+Example:
+
+```text
+Maximum number of non-overlapping meetings
+```
+
+Correct idea:
+
+```text
+Sort by earliest finish time
+→ Select meeting
+→ Skip meetings starting before selected finish
+```
+
+Why not sort by start time?
+
+```text
+A meeting that starts early may finish very late
+and block many shorter meetings.
+```
+
+```java
+record Meeting(int start, int end) {}
+
+public static int maxNonOverlappingMeetings(List<Meeting> meetings) {
+    meetings.sort(
+        Comparator.comparingInt(Meeting::end)
+                  .thenComparingInt(Meeting::start)
+    );
+
+    int count = 0;
+    int lastEnd = Integer.MIN_VALUE;
+
+    for (Meeting meeting : meetings) {
+        if (meeting.start() >= lastEnd) {
+            count++;
+            lastEnd = meeting.end();
+        }
+    }
+
+    return count;
+}
+```
+
+Greedy proof intuition:
+
+```text
+Choosing the earliest finishing compatible meeting
+leaves maximum remaining time for future meetings.
+```
+
+---
+
+# 26. Core Sorting Pattern 5: Sort Events + Sweep Line
+
+Some interval problems are easier when converted into events.
+
+Example:
+
+```text
+Meeting starts at time t → +1
+Meeting ends at time t   → -1
+```
+
+Then:
+
+```text
+Sort events by time
+→ Maintain active count
+→ Track maximum active count
+```
+
+This solves:
+
+```text
+Minimum meeting rooms
+Maximum simultaneous users
+Maximum overlapping bookings
+```
+
+Tie handling is critical:
+
+```text
+If an ending at time t frees a resource
+before a new start at time t,
+process end before start.
+```
+
+```java
+public static int minMeetingRooms(int[][] intervals) {
+    int[][] events = new int[intervals.length * 2][2];
+    int index = 0;
+
+    for (int[] interval : intervals) {
+        events[index++] = new int[]{interval[0], 1};
+        events[index++] = new int[]{interval[1], -1};
+    }
+
+    Arrays.sort(events, (a, b) -> {
+        int byTime = Integer.compare(a[0], b[0]);
+
+        if (byTime != 0) {
+            return byTime;
+        }
+
+        return Integer.compare(a[1], b[1]); // -1 before +1
+    });
+
+    int active = 0;
+    int maximum = 0;
+
+    for (int[] event : events) {
+        active += event[1];
+        maximum = Math.max(maximum, active);
+    }
+
+    return maximum;
+}
+```
+
+---
+
+# 27. When Not to Sort
+
+Do not sort automatically.
+
+Sorting may destroy information or waste work.
+
+| Situation | Better Choice |
+|---|---|
+| Need original indices | HashMap or store index-value pairs before sorting |
+| Need only one minimum/maximum | Linear scan |
+| Need Top K only | Heap or Quickselect |
+| Need exact lookup in unsorted stream | HashSet/HashMap |
+| Input is continuously changing | Balanced tree, heap, index, or streaming structure |
+| Need stable original order in output | Use stable method or sort decorated records |
+| n is huge and data is on disk | External sorting |
+| Value range is tiny | Counting/frequency technique |
+| Already sorted | Do not sort again |
+
+Important interview line:
+
+> “Sorting is not free. I use it only when the O(n log n) preprocessing unlocks a simpler or more efficient overall solution.”
+
+---
+
+# 28. Searching Technique Hierarchy
+
+```mermaid
+flowchart TD
+    A[Need to Find Something] --> B{Data Structure?}
+
+    B --> C[Unsorted Array/List]
+    C --> C1{How many queries?}
+    C1 -- One or few --> C2[Linear Search]
+    C1 -- Many exact lookups --> C3[Build HashMap/HashSet]
+
+    B --> D[Sorted Array/List]
+    D --> D1[Binary Search]
+
+    B --> E[Monotonic Answer Space]
+    E --> E1[Binary Search on Answer]
+
+    B --> F[Matrix]
+    F --> F1[Flattened Binary Search]
+    F --> F2[Staircase Search]
+
+    B --> G[Tree]
+    G --> G1[DFS/BFS]
+    G --> G2[BST Search]
+
+    B --> H[Graph]
+    H --> H1[BFS/DFS + Visited]
+
+    B --> I[Priority Data]
+    I --> I1[Heap]
+```
+
+---
+
+# 29. Linear Search
+
+Use when:
+
+```text
+Data is unsorted
+Only one or a few searches are needed
+n is small
+Preprocessing is not worth it
+```
+
+```java
+public static int linearSearch(int[] nums, int target) {
+    for (int i = 0; i < nums.length; i++) {
+        if (nums[i] == target) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+```
+
+Complexity:
+
+```text
+Best: O(1)
+Worst: O(n)
+Space: O(1)
+```
+
+Trade-off:
+
+```text
+One query:
+Linear search may be cheaper than sorting.
+
+Many queries:
+Sort once or build a HashMap.
+```
+
+Example:
+
+```text
+n items, q queries
+
+Linear each time: O(qn)
+Sort once + binary search: O(n log n + q log n)
+Hash structure: O(n + q) average with O(n) extra memory
+```
+
+---
+
+# 30. Binary Search Core Mental Model
+
+Binary search is not about “middle element.”
+
+It is about:
+
+```text
+A monotonic condition allows us to discard half of the search space.
+```
+
+The required invariant is:
+
+```text
+The answer, if it exists, remains inside the active search range.
+```
+
+Basic flow:
+
+```mermaid
+flowchart TD
+    A[Initialize low and high] --> B{low <= high?}
+    B -- No --> C[Not Found]
+    B -- Yes --> D[Calculate mid]
+    D --> E{Compare or Evaluate Predicate}
+    E -- Found --> F[Return]
+    E -- Go Right --> G[low = mid + 1]
+    E -- Go Left --> H[high = mid - 1]
+    G --> B
+    H --> B
+```
+
+---
+
+# 31. Binary Search Template 1: Exact Match
+
+Use when:
+
+```text
+Sorted array
+Need any index containing target
+```
+
+```java
+public static int binarySearch(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] == target) {
+            return mid;
+        }
+
+        if (nums[mid] < target) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return -1;
+}
+```
+
+Complexity:
+
+```text
+Time: O(log n)
+Space: O(1)
+```
+
+---
+
+# 32. Binary Search Template 2: Lower Bound / First Valid Position
+
+Lower bound means:
+
+```text
+First index i such that nums[i] >= target
+```
+
+It is also the insertion position before existing equal values.
+
+Mental model:
+
+```text
+False False False True True True
+                  ↑
+             first true
+```
+
+```java
+public static int lowerBound(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length; // exclusive
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] >= target) {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    return low;
+}
+```
+
+Possible result:
+
+```text
+0..n
+```
+
+If it returns `n`, no element is greater than or equal to the target.
+
+Use for:
+
+```text
+Search Insert Position
+First occurrence
+First element >= x
+Count values smaller than x
+Scheduling insertion point
+```
+
+---
+
+# 33. Binary Search Template 3: Upper Bound
+
+Upper bound means:
+
+```text
+First index i such that nums[i] > target
+```
+
+```java
+public static int upperBound(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length;
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] > target) {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    return low;
+}
+```
+
+Powerful formulas:
+
+```text
+First occurrence of target:
+lowerBound(target)
+
+Last occurrence of target:
+upperBound(target) - 1
+
+Count of target:
+upperBound(target) - lowerBound(target)
+
+Count < target:
+lowerBound(target)
+
+Count <= target:
+upperBound(target)
+```
+
+---
+
+# 34. First and Last Position of Target
+
+```java
+public static int[] searchRange(int[] nums, int target) {
+    int first = lowerBound(nums, target);
+
+    if (first == nums.length || nums[first] != target) {
+        return new int[]{-1, -1};
+    }
+
+    int last = upperBound(nums, target) - 1;
+
+    return new int[]{first, last};
+}
+```
+
+Mental shortcut:
+
+```text
+Do not stop at equality.
+Equality may still have a better boundary on the left or right.
+```
+
+---
+
+# 35. Binary Search Template 4: First True
+
+This is the most reusable binary search abstraction.
+
+Suppose a predicate changes like this:
+
+```text
+False False False False True True True
+```
+
+Goal:
+
+```text
+Find first True.
+```
+
+```java
+public static int firstTrue(int low, int high) {
+    int answer = high + 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        if (isFeasible(mid)) {
+            answer = mid;
+            high = mid - 1;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    return answer;
+}
+
+// Replace with problem-specific logic.
+private static boolean isFeasible(int candidate) {
+    throw new UnsupportedOperationException("Define feasibility");
+}
+```
+
+For a real solution, the search range and feasibility function must be defined from the problem.
+
+---
+
+# 36. Binary Search Template 5: Last True
+
+Predicate:
+
+```text
+True True True False False False
+```
+
+Goal:
+
+```text
+Find last True.
+```
+
+```java
+public static int lastTrue(int low, int high) {
+    int answer = low - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        if (isValid(mid)) {
+            answer = mid;
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return answer;
+}
+
+private static boolean isValid(int candidate) {
+    throw new UnsupportedOperationException("Define validity");
+}
+```
+
+Use for:
+
+```text
+Maximum possible minimum distance
+Maximum feasible capacity
+Last acceptable threshold
+```
+
+---
+
+# 37. Binary Search on Answer
+
+This is one of the most important medium-level searching patterns.
+
+The array itself may not be searched.
+
+Instead, search the possible answer values.
+
+Mental model:
+
+```text
+Candidate Answer
+→ Can this candidate work?
+→ Feasibility is monotonic
+→ Binary search the first or last feasible candidate
+```
+
+Identification signals:
+
+```text
+Minimum possible maximum
+Maximum possible minimum
+Smallest capacity
+Minimum speed
+Maximum distance
+Can finish within D days
+Can allocate within M groups
+```
+
+## Required conditions
+
+```text
+1. A numeric or ordered answer range exists.
+2. We can test a candidate.
+3. Feasibility changes monotonically.
+```
+
+Example monotonicity:
+
+```text
+Speed:
+1 2 3 4 5 6 7
+F F F T T T T
+```
+
+Once a speed is sufficient, every larger speed is also sufficient.
+
+---
+
+# 38. Search on Answer Example: Koko Eating Bananas
+
+Goal:
+
+```text
+Find minimum eating speed that finishes all piles within h hours.
+```
+
+```java
+public static int minEatingSpeed(int[] piles, int h) {
+    int low = 1;
+    int high = 0;
+
+    for (int pile : piles) {
+        high = Math.max(high, pile);
+    }
+
+    int answer = high;
+
+    while (low <= high) {
+        int speed = low + (high - low) / 2;
+
+        if (canFinish(piles, h, speed)) {
+            answer = speed;
+            high = speed - 1;
+        } else {
+            low = speed + 1;
+        }
+    }
+
+    return answer;
+}
+
+private static boolean canFinish(int[] piles, int h, int speed) {
+    long hours = 0;
+
+    for (int pile : piles) {
+        hours += (pile + (long) speed - 1) / speed;
+
+        if (hours > h) {
+            return false;
+        }
+    }
+
+    return true;
+}
+```
+
+Complexity:
+
+```text
+Let M = maximum pile.
+Each feasibility check: O(n)
+Number of candidates checked: O(log M)
+
+Total: O(n log M)
+```
+
+Critical expression:
+
+```java
+(pile + speed - 1) / speed
+```
+
+This performs ceiling division for positive values.
+
+---
+
+# 39. Search on Answer Example: Ship Packages Within D Days
+
+Mental model:
+
+```text
+Capacity too small
+→ Requires too many days
+
+Capacity sufficient
+→ Any larger capacity is also sufficient
+```
+
+```java
+public static int shipWithinDays(int[] weights, int days) {
+    int low = 0;
+    int high = 0;
+
+    for (int weight : weights) {
+        low = Math.max(low, weight);
+        high += weight;
+    }
+
+    int answer = high;
+
+    while (low <= high) {
+        int capacity = low + (high - low) / 2;
+
+        if (canShip(weights, days, capacity)) {
+            answer = capacity;
+            high = capacity - 1;
+        } else {
+            low = capacity + 1;
+        }
+    }
+
+    return answer;
+}
+
+private static boolean canShip(int[] weights, int allowedDays, int capacity) {
+    int usedDays = 1;
+    int currentLoad = 0;
+
+    for (int weight : weights) {
+        if (currentLoad + weight > capacity) {
+            usedDays++;
+            currentLoad = 0;
+        }
+
+        currentLoad += weight;
+
+        if (usedDays > allowedDays) {
+            return false;
+        }
+    }
+
+    return true;
+}
+```
+
+Search range design:
+
+```text
+Minimum possible capacity:
+maximum single package
+
+Maximum possible capacity:
+sum of all packages
+```
+
+This search-range derivation is often the hardest interview part.
+
+---
+
+# 40. Rotated Sorted Array Search
+
+A rotated array contains at least one sorted half around every midpoint.
+
+Mental model:
+
+```text
+At mid:
+Either left half is sorted
+or right half is sorted.
+
+Check whether target lies inside the sorted half.
+Discard the other half.
+```
+
+```mermaid
+flowchart TD
+    A[Calculate Mid] --> B{Left Half Sorted?}
+    B -- Yes --> C{Target Inside Left Range?}
+    C -- Yes --> D[Search Left]
+    C -- No --> E[Search Right]
+
+    B -- No --> F[Right Half Sorted]
+    F --> G{Target Inside Right Range?}
+    G -- Yes --> E
+    G -- No --> D
+```
+
+```java
+public static int searchRotated(int[] nums, int target) {
+    int low = 0;
+    int high = nums.length - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] == target) {
+            return mid;
+        }
+
+        if (nums[low] <= nums[mid]) {
+            if (nums[low] <= target && target < nums[mid]) {
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        } else {
+            if (nums[mid] < target && target <= nums[high]) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+    }
+
+    return -1;
+}
+```
+
+Duplicates make this harder because sorted-half detection may become ambiguous.
+
+---
+
+# 41. Find Minimum in Rotated Sorted Array
+
+Mental model:
+
+```text
+Compare mid with high.
+
+nums[mid] > nums[high]
+→ Minimum must be right of mid.
+
+nums[mid] <= nums[high]
+→ Minimum is at mid or left of mid.
+```
+
+```java
+public static int findMinRotated(int[] nums) {
+    int low = 0;
+    int high = nums.length - 1;
+
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+
+        if (nums[mid] > nums[high]) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    return nums[low];
+}
+```
+
+Notice:
+
+```text
+Loop condition is low < high,
+because we are converging to one answer index.
+```
+
+---
+
+# 42. Search in a Sorted Matrix
+
+There are two common matrix shapes.
+
+## Type 1: Each row sorted and next row starts after previous row ends
+
+Treat matrix like a flattened sorted array.
+
+```java
+public static boolean searchMatrix(int[][] matrix, int target) {
+    int rows = matrix.length;
+    int columns = matrix[0].length;
+
+    int low = 0;
+    int high = rows * columns - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        int value = matrix[mid / columns][mid % columns];
+
+        if (value == target) {
+            return true;
+        }
+
+        if (value < target) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return false;
+}
+```
+
+Index mapping:
+
+```text
+row = index / columns
+column = index % columns
+```
+
+## Type 2: Rows and columns independently sorted
+
+Start from top-right:
+
+```text
+Current too large → move left
+Current too small → move down
+```
+
+```java
+public static boolean staircaseSearch(int[][] matrix, int target) {
+    int row = 0;
+    int column = matrix[0].length - 1;
+
+    while (row < matrix.length && column >= 0) {
+        int value = matrix[row][column];
+
+        if (value == target) {
+            return true;
+        }
+
+        if (value > target) {
+            column--;
+        } else {
+            row++;
+        }
+    }
+
+    return false;
+}
+```
+
+Complexity:
+
+```text
+O(rows + columns)
+```
+
+---
+
+# 43. Binary Search Boundary Choices
+
+Most bugs come from mixing templates.
+
+## Closed interval template
+
+```text
+Search range: [low, high]
+Loop: low <= high
+Discard mid with mid + 1 or mid - 1
+```
+
+## Half-open interval template
+
+```text
+Search range: [low, high)
+Loop: low < high
+Use high = mid or low = mid + 1
+```
+
+Rule:
+
+```text
+Choose one template.
+State what low and high mean.
+Do not mix the invariants.
+```
+
+---
+
+# 44. Common Binary Search Bugs
+
+| Bug | Why It Happens | Fix |
+|---|---|---|
+| Infinite loop | `low = mid` without upward-biased mid | Use `mid + 1` or correct bias |
+| Missing first/last duplicate | Return immediately on equality | Continue toward boundary |
+| Overflow in midpoint | `(low + high) / 2` can overflow | `low + (high - low) / 2` |
+| Wrong search range | Minimum/maximum candidate not derived correctly | Prove lower and upper bounds |
+| Non-monotonic predicate | Binary search assumption invalid | Verify true/false transition |
+| Integer overflow in feasibility | Sum or multiplication exceeds int | Use `long` |
+| Off-by-one result | Mixed closed and half-open templates | Write interval invariant |
+| Empty input crash | Accessing first/last element | Validate input |
+| Duplicate ambiguity in rotated array | Cannot identify sorted half | Shrink equal boundaries carefully |
+
+---
+
+# 45. Sorting Bugs and Comparator Bugs
+
+| Bug | Root Cause | Fix |
+|---|---|---|
+| Original indices lost | Sorted values only | Sort `(value, originalIndex)` pairs |
+| Comparator overflow | `a - b` | `Integer.compare(a, b)` |
+| Comparator inconsistent | Violates transitivity | Define a strict deterministic order |
+| Wrong interval sort field | Sorted by end when merge requires start | Match sort key to invariant |
+| Duplicate results in 3Sum | Did not skip equal fixed/pointer values | Explicit duplicate skipping |
+| Integer overflow in sum | Adding int values | Cast to `long` before addition |
+| Unstable ordering surprises | Equal keys need original order | Use stable sort or explicit tie-breaker |
+| Sorting unnecessary | Only min/max needed | Linear scan |
+| Huge range counting array | Range much larger than n | Use comparison sort or map |
+
+---
+
+# 46. Sorting vs HashMap
+
+Both often solve the same problem with different trade-offs.
+
+## Duplicate detection
+
+```text
+HashSet:
+Time O(n) average
+Space O(n)
+Preserves original array
+
+Sorting:
+Time O(n log n)
+May mutate input
+Can scan adjacent values
+May use less explicit auxiliary memory
+```
+
+## Two Sum
+
+```text
+HashMap:
+O(n) average
+Can return original indices directly
+O(n) space
+
+Sort + Two Pointers:
+O(n log n)
+O(1) pointer space after sorting
+Need index tracking if original indices required
+```
+
+Selection rule:
+
+```text
+Need original indices and fast lookup?
+→ HashMap
+
+Need ordered combinations or many duplicate rules?
+→ Sort + two pointers
+```
+
+---
+
+# 47. Sorting vs Two Pointers
+
+Two pointers frequently depends on sorting.
+
+Without order:
+
+```text
+sum < target
+```
+
+does not tell us which pointer movement is safe.
+
+After sorting:
+
+```text
+Move left rightward
+→ Value cannot decrease
+
+Move right leftward
+→ Value cannot increase
+```
+
+So:
+
+```text
+Sorting creates monotonic pointer movement.
+```
+
+---
+
+# 48. Sorting vs Sliding Window
+
+Both may process contiguous ranges, but they mean different things.
+
+| Sliding Window | Sort + Scan |
+|---|---|
+| Original contiguity matters | Original order may be discarded |
+| Window expands/shrinks | Values are reorganized |
+| Typical O(n) | Usually O(n log n) |
+| Subarray/substring | Value grouping/ordering |
+| Cannot sort if original sequence meaning matters | Sorting is useful when value order matters more than original position |
+
+Example:
+
+```text
+Longest substring without repeating:
+Cannot sort because substring order would be destroyed.
+
+Minimum difference between any two values:
+Sort because original positions do not matter.
+```
+
+---
+
+# 49. Sorting vs Prefix Sum
+
+```text
+Prefix Sum:
+Preserves original order
+Answers range aggregation questions
+
+Sorting:
+Changes order
+Reveals relative value relationships
+```
+
+Use prefix sum when:
+
+```text
+Question is about sum/count over original index ranges.
+```
+
+Use sorting when:
+
+```text
+Question is about value order, proximity, grouping or interval structure.
+```
+
+---
+
+# 50. Sorting vs Kadane
+
+```text
+Kadane:
+Optimizes a contiguous segment in original order.
+
+Sorting:
+Reorders values and destroys original contiguity.
+```
+
+Therefore:
+
+```text
+Never sort before Maximum Subarray
+unless the problem explicitly allows reordering.
+```
+
+This is a common pattern-identification mistake.
+
+---
+
+# 51. Searching vs HashMap
+
+For repeated exact lookups:
+
+```text
+HashMap:
+Build O(n), query O(1) average, space O(n)
+
+Sort + Binary Search:
+Build O(n log n), query O(log n), can preserve ordered traversal
+```
+
+Use HashMap when:
+
+```text
+Exact key lookup dominates
+Extra memory is acceptable
+No ordering queries are needed
+```
+
+Use sorted structure when:
+
+```text
+Need lower/upper bound
+Need range queries
+Need predecessor/successor
+Need ordered output
+```
+
+---
+
+# 52. Searching vs Heap
+
+These are different question shapes.
+
+```text
+Binary Search:
+Find position or threshold in ordered/monotonic space.
+
+Heap:
+Repeatedly retrieve minimum/maximum or maintain Top K.
+```
+
+Example:
+
+```text
+Find target in sorted array
+→ Binary search
+
+Find 10 highest viewed posts from a stream
+→ Min heap of size 10
+```
+
+---
+
+# 53. Search Strategy Cost Model
+
+Suppose there are:
+
+```text
+n records
+q search queries
+```
+
+Possible approaches:
+
+| Approach | Preprocessing | Query | Total |
+|---|---:|---:|---:|
+| Linear search | O(1) | O(n) | O(qn) |
+| Sort + binary search | O(n log n) | O(log n) | O(n log n + q log n) |
+| HashMap | O(n) average | O(1) average | O(n + q) average |
+| Balanced search tree | O(n log n) | O(log n) | O((n + q) log n) |
+
+Decision depends on:
+
+```text
+Exact lookup vs range lookup
+Memory limit
+Mutation frequency
+Need for ordering
+Number of queries
+```
+
+This is a strong senior-level explanation.
+
+---
+
+# 54. Common Sorting and Searching Problem Map
+
+| Problem | Primary Pattern | Secondary Pattern |
+|---|---|---|
+| Contains Duplicate | HashSet or Sort + Scan | — |
+| Merge Sorted Arrays | Two Pointers | Sorted order |
+| Sort Colors | Three Pointers | Partition |
+| 3Sum | Sort + Two Pointers | Duplicate skipping |
+| 3Sum Closest | Sort + Two Pointers | Best-distance tracking |
+| Merge Intervals | Sort + Scan | Intervals |
+| Insert Interval | Interval scan | Merge |
+| Non-overlapping Intervals | Sort + Greedy | Intervals |
+| Meeting Rooms | Sort + Scan | Intervals |
+| Meeting Rooms II | Sort events / Heap | Sweep line |
+| Largest Number | Custom Comparator | String ordering |
+| Minimum Difference | Sort + Adjacent Scan | — |
+| Missing Number | Cyclic Sort / XOR / Sum | Range property |
+| Find All Duplicates | Cyclic Sort | Placement |
+| Binary Search | Exact match | — |
+| Search Insert Position | Lower Bound | — |
+| First and Last Position | Lower + Upper Bound | Boundary search |
+| Search Rotated Array | Modified Binary Search | Sorted-half detection |
+| Find Minimum Rotated | Boundary Binary Search | — |
+| Find Peak Element | Binary Search on slope | Local monotonicity |
+| Koko Eating Bananas | Binary Search on Answer | Feasibility |
+| Ship Packages | Binary Search on Answer | Greedy feasibility |
+| Split Array Largest Sum | Binary Search on Answer | Greedy feasibility |
+| Aggressive Cows | Binary Search on Answer | Sort + Greedy feasibility |
+| Search 2D Matrix | Flattened Binary Search | Index mapping |
+| Kth Smallest in Sorted Matrix | Heap or Answer Search | Counting predicate |
+| Top K Frequent | Heap / Bucket Sort | Frequency Map |
+| Kth Largest | Heap / Quickselect | Partition |
+
+---
+
+# 55. The Five Most Important Reusable Templates
+
+For interviews, memorize these five.
+
+## Template 1: Sort + Scan
+
+```text
+Sort
+→ Compare current with previous
+→ Group, merge or update answer
+```
+
+## Template 2: Sort + Two Pointers
+
+```text
+Sort
+→ Fix optional anchor
+→ Move left/right based on ordered condition
+→ Skip duplicates
+```
+
+## Template 3: Sort + Intervals / Greedy
+
+```text
+Sort by the field that makes the greedy or merge invariant valid
+→ Scan once
+```
+
+## Template 4: Boundary Binary Search
+
+```text
+Define monotonic condition
+→ Search first true or last true
+→ Do not stop at equality
+```
+
+## Template 5: Binary Search on Answer
+
+```text
+Derive minimum and maximum candidate
+→ Write O(n) feasibility check
+→ Prove monotonicity
+→ Find minimum feasible or maximum feasible
+```
+
+These templates cover most practical sorting and searching interview questions.
+
+---
+
+# 56. Scenario 1: Many Searches on Static Data
+
+Problem:
+
+```text
+An in-memory list is loaded once,
+then thousands of target lookups are executed.
+```
+
+Options:
+
+```text
+Linear search each time
+Sort once + binary search
+Build HashSet
+```
+
+Decision:
+
+```text
+Only exact membership?
+→ HashSet gives fast average lookup.
+
+Need ranges, insertion position or nearest values?
+→ Sort + binary search.
+```
+
+Interview explanation:
+
+> “I choose preprocessing based on query type. For exact membership, hashing is usually best. For ordered queries such as lower bound, ranges, or predecessor/successor, sorting once and using binary search is more suitable.”
+
+---
+
+# 57. Scenario 2: API Results Must Be Sorted
+
+Flow:
+
+```mermaid
+flowchart TD
+    A[REST Request with Sort Field] --> B[Validate Allowed Sort Fields]
+    B --> C{Can Database Sort?}
+    C -- Yes --> D[ORDER BY with Indexed Column Where Appropriate]
+    C -- No --> E[Fetch Data]
+    E --> F[Sort DTOs In Memory]
+    D --> G[Apply Pagination Consistently]
+    F --> G
+    G --> H[Return Deterministic Response]
+```
+
+Important production principle:
+
+```text
+Prefer database-side sorting and pagination for large datasets.
+Do not fetch the entire table merely to sort it in Java.
+```
+
+Tie-breaker example:
+
+```text
+ORDER BY created_at DESC, id DESC
+```
+
+Why?
+
+```text
+Without a deterministic secondary key,
+pagination may produce inconsistent page boundaries for equal timestamps.
+```
+
+---
+
+# 58. Scenario 3: Merge Overlapping Bookings
+
+Flow:
+
+```text
+Sort bookings by start time
+→ Compare next start with current end
+→ Extend current end if overlapping
+→ Otherwise save current booking
+```
+
+Root cause of incorrect solution:
+
+```text
+Trying to merge unsorted intervals.
+```
+
+Fix:
+
+```text
+Sort first so every possible overlap appears next to the current merged interval.
+```
+
+---
+
+# 59. Scenario 4: Find Minimum Processing Capacity
+
+Example:
+
+```text
+Minimum batch size, worker capacity or throughput
+needed to finish within a deadline.
+```
+
+Flow:
+
+```mermaid
+flowchart TD
+    A[Derive Lowest Candidate] --> B[Derive Highest Candidate]
+    B --> C[Test Middle Capacity]
+    C --> D{Can Finish Within Limit?}
+    D -- Yes --> E[Store Candidate and Search Smaller]
+    D -- No --> F[Search Larger]
+    E --> G{Search Complete?}
+    F --> G
+    G -- No --> C
+    G -- Yes --> H[Minimum Feasible Capacity]
+```
+
+Interview line:
+
+> “This is not searching the input array; it is searching the answer space. The key is that feasibility is monotonic.”
+
+---
+
+# 60. Scenario 5: Top K Posts
+
+Possible strategies:
+
+```text
+Sort all posts:
+O(n log n)
+
+Min heap of size K:
+O(n log k)
+
+Quickselect:
+O(n) average for kth boundary,
+then additional work for ordered output
+```
+
+Decision:
+
+```text
+Need all results sorted?
+→ Full sort
+
+Need only Top K and k << n?
+→ Heap
+
+Need kth element only?
+→ Quickselect
+```
+
+Project-safe explanation:
+
+> “For a database-backed application, I would normally use an indexed query with ORDER BY and LIMIT. For an in-memory stream or algorithmic problem, a min heap of size K avoids sorting all records.”
+
+---
+
+# 61. Project Usage Mapping
+
+| Concept | How It Connects to Your Project | Interview Line |
+|---|---|---|
+| Comparator | Sort post DTOs by views/date/title | “I define explicit comparators and tie-breakers for deterministic ordering.” |
+| Pagination sorting | Stable page ordering | “I combine the primary sort field with a unique secondary key to avoid inconsistent pages.” |
+| Binary search | Search ordered in-memory configuration/version ranges | “For sorted static data, binary search gives O(log n) lookup.” |
+| HashMap vs binary search | Exact lookup vs ordered query | “I choose hashing for exact lookup and binary search for range or boundary queries.” |
+| Merge intervals | Booking, maintenance-window, or schedule ranges | “Sorting by start time makes overlapping ranges mergeable in one scan.” |
+| Sweep line | Concurrent requests/jobs/time windows | “Event sorting can calculate maximum simultaneous activity.” |
+| Heap | Top K posts or priority jobs | “A bounded heap avoids sorting the whole dataset when only K results are needed.” |
+| Counting sort idea | Small known status/category domains | “For a bounded value domain, frequency arrays can outperform comparison sorting.” |
+| Search on answer | Capacity and threshold planning | “I use a monotonic feasibility check to search the smallest workable threshold.” |
+| Database ORDER BY | Sort where data lives | “For large data, I push sorting and pagination to SQL instead of loading everything into application memory.” |
+
+Do not claim that you implemented a production algorithm unless you actually did.
+
+Professional framing:
+
+> “In my project, sorting and pagination were mainly handled through Spring Data and SQL. I use these DSA patterns to reason about complexity, deterministic ordering, in-memory transformations, and interview problems.”
+
+---
+
+# 62. Spring Data Sorting Example
+
+```java
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+PageRequest pageRequest = PageRequest.of(
+    pageNumber,
+    pageSize,
+    Sort.by(
+        Sort.Order.desc("createdAt"),
+        Sort.Order.desc("id")
+    )
+);
+
+Page<Post> page = postRepository.findAll(pageRequest);
+```
+
+Important explanation:
+
+```text
+createdAt gives business order.
+id gives deterministic tie-breaking.
+```
+
+Security consideration:
+
+```text
+Do not blindly accept arbitrary sort-field strings from clients.
+Map allowed API values to known entity fields.
+```
+
+---
+
+# 63. Debugging / Production Issue Flow
+
+```text
+Issue
+→ Is order assumption valid?
+→ Is comparator correct?
+→ Are duplicates handled?
+→ Are boundaries correct?
+→ Can arithmetic overflow?
+→ Is sorting happening in the right layer?
+→ Validate complexity
+```
+
+| Issue | Possible Cause | Where to Check | Fix |
+|---|---|---|---|
+| Wrong binary search answer | Boundary invariant is unclear | low/high updates | Use one standard template |
+| Infinite loop | Search range does not shrink | mid and updates | Force progress |
+| Duplicate triplets | Duplicate skipping absent | anchor and pointers | Skip repeated values |
+| Missing interval merge | Intervals not sorted by start | comparator | Sort by start first |
+| Unstable pagination | Non-deterministic tie order | SQL sort keys | Add unique tie-breaker |
+| API slow | Sorting large result in Java | service layer and query | Sort/page in DB |
+| Comparator exception/wrong order | Inconsistent comparator | comparator chain | Use `comparing`, `thenComparing` |
+| Overflow | int sum/capacity | arithmetic | Use `long` |
+| Memory issue | Counting range too large | min/max range | Use comparison sort/map |
+| Rotated search fails with duplicates | Ambiguous halves | boundary values | Shrink duplicate boundaries or use revised logic |
+
+---
+
+# 64. Interview Questions and Ready Answers
+
+## Q1. Why use sorting if it costs O(n log n)?
+
+> “Sorting is useful when it transforms a difficult relationship into an ordered one. After sorting, duplicates become adjacent, intervals become mergeable, and two-pointer or greedy movement becomes valid. So an O(n log n) preprocessing step can replace an O(n²) brute-force solution.”
+
+## Q2. Merge Sort vs Quick Sort?
+
+> “Merge sort guarantees O(n log n), is stable, and needs O(n) auxiliary array space for arrays. Quick sort is usually fast in practice and mostly in-place, but its worst case is O(n²) without good pivot handling. The choice depends on stability, memory, data structure, and worst-case requirements.”
+
+## Q3. When is Insertion Sort useful?
+
+> “Insertion sort is useful for small or nearly sorted inputs because its best case is O(n), it is stable, and it has low overhead.”
+
+## Q4. What is a stable sort?
+
+> “A stable sort preserves the original relative order of records whose sort keys are equal. This matters when data is sorted by multiple keys in stages or when equal-key records must retain prior ordering.”
+
+## Q5. Why use `Integer.compare` instead of subtraction?
+
+> “Subtraction can overflow for extreme integer values and can violate comparator correctness. `Integer.compare` expresses the intended ordering safely.”
+
+## Q6. What is the real requirement for binary search?
+
+> “The real requirement is not merely a sorted array. It is a monotonic decision rule that lets us safely discard one half of the search space.”
+
+## Q7. What is lower bound?
+
+> “Lower bound is the first position whose value is greater than or equal to the target. It is also the insertion position before existing equal values.”
+
+## Q8. What is binary search on answer?
+
+> “Instead of searching the input, we search a candidate answer range. For each candidate, we run a feasibility check. If feasibility is monotonic, binary search finds the minimum feasible or maximum feasible answer.”
+
+## Q9. HashMap or binary search?
+
+> “For exact repeated lookup, HashMap is generally O(1) average after O(n) preprocessing but uses extra memory. Binary search needs sorted data and gives O(log n), while also supporting ordered queries such as lower bound and ranges.”
+
+## Q10. Sorting or heap for Top K?
+
+> “Sorting all elements costs O(n log n). A min heap of size K costs O(n log k), so it is preferable when K is much smaller than n and full ordering is unnecessary.”
+
+---
+
+# 65. 60–70% Interview Coverage
+
+| Priority | Topic | Code Needed | Why It Matters |
+|---|---|---|---|
+| P0 | Java comparator and library sort | Yes | Practical coding |
+| P0 | Sort + scan | Yes | Duplicate and gap problems |
+| P0 | Sort + two pointers | Yes | 3Sum family |
+| P0 | Merge intervals | Yes | Very common medium problem |
+| P0 | Binary search exact | Yes | Foundation |
+| P0 | Lower/upper bound | Yes | Boundary problems |
+| P0 | Binary search on answer | Yes | Common medium pattern |
+| P1 | Quick sort and partition | Yes | Core algorithm and Quickselect base |
+| P1 | Merge sort | Yes | Divide and conquer |
+| P1 | Rotated array search | Yes | Modified binary search |
+| P1 | Cyclic sort | Yes | Missing/duplicate range problems |
+| P1 | Sweep line | Yes | Interval concurrency |
+| P1 | Heap vs sorting | Concept + code | Top K decisions |
+| P2 | Heap sort | Code once | Algorithm theory |
+| P2 | Counting sort | Code once | Range-based sorting |
+| P3 | Bubble/selection/radix/bucket | Theory | Low interview return |
+
+---
+
+# 66. Must-Solve Problems
+
+## Sorting Foundation
+
+```text
+1. Sort an Array using Merge Sort
+2. Sort an Array using Quick Sort
+3. Sort Colors
+4. Largest Number
+5. Minimum Difference Between Highest and Lowest
+```
+
+## Sort + Two Pointers
+
+```text
+6. Two Sum II
+7. 3Sum
+8. 3Sum Closest
+9. 4Sum
+10. Boats to Save People
+```
+
+## Intervals and Greedy
+
+```text
+11. Merge Intervals
+12. Insert Interval
+13. Non-overlapping Intervals
+14. Meeting Rooms
+15. Meeting Rooms II
+16. Minimum Number of Arrows to Burst Balloons
+```
+
+## Binary Search Foundation
+
+```text
+17. Binary Search
+18. Search Insert Position
+19. First and Last Position
+20. Find Peak Element
+21. Search a 2D Matrix
+```
+
+## Modified Binary Search
+
+```text
+22. Search in Rotated Sorted Array
+23. Find Minimum in Rotated Sorted Array
+24. Single Element in a Sorted Array
+25. Find First Bad Version
+```
+
+## Binary Search on Answer
+
+```text
+26. Koko Eating Bananas
+27. Capacity to Ship Packages Within D Days
+28. Split Array Largest Sum
+29. Minimum Days to Make Bouquets
+30. Aggressive Cows / Magnetic Force Between Two Balls
+```
+
+## Cyclic Sort Range Pattern
+
+```text
+31. Missing Number
+32. Find All Numbers Disappeared in an Array
+33. Find the Duplicate Number
+34. Set Mismatch
+35. First Missing Positive
+```
+
+This set is enough for strong mid-range interview coverage.
+
+---
+
+# 67. Ten Must-Remember Rules
+
+1. Sorting is usually preprocessing, not the final pattern.
+2. Do not sort when original order or contiguity is essential.
+3. Related values become adjacent after sorting.
+4. Two-pointer movement becomes safe only when order creates monotonicity.
+5. Intervals should normally be sorted before merging or greedy selection.
+6. Use a safe, deterministic comparator with tie-breakers.
+7. Binary search requires a monotonic decision rule.
+8. Lower bound is first `>= target`; upper bound is first `> target`.
+9. Search-on-answer requires a proven feasible search range and predicate.
+10. Use `long` where sums, capacities, counts, or midpoint-related arithmetic may overflow.
+
+---
+
+# 68. Ten Common Mistakes
+
+1. Sorting before a subarray/substring problem and destroying original order.
+2. Forgetting that sorting loses original indices.
+3. Using `a - b` inside a comparator.
+4. Returning immediately on equality when a boundary is required.
+5. Mixing `[low, high]` and `[low, high)` binary-search templates.
+6. Writing a non-monotonic feasibility function.
+7. Choosing an invalid lower or upper search bound.
+8. Failing to skip duplicates in 3Sum-like problems.
+9. Sorting all elements when only Top K is required.
+10. Fetching a huge dataset from the database to sort in application memory.
+
+---
+
+# 69. Five Diagrams to Memorize
+
+## Diagram 1
+
+```text
+Raw Data
+→ Sort
+→ Scan / Two Pointers / Greedy / Intervals / Binary Search
+```
+
+## Diagram 2
+
+```text
+Sort + Two Pointers:
+sum too small → left++
+sum too large → right--
+```
+
+## Diagram 3
+
+```text
+Merge Intervals:
+sort by start
+→ overlap? extend
+→ no overlap? save and restart
+```
+
+## Diagram 4
+
+```text
+Boundary Binary Search:
+False False False True True
+                  ↑
+              first true
+```
+
+## Diagram 5
+
+```text
+Search on Answer:
+candidate
+→ feasible?
+→ search smaller or larger candidate half
+```
+
+---
+
+# 70. Five Debugging Flows
+
+```text
+Binary search wrong
+→ Write exact meaning of low/high
+→ Verify range shrinks
+→ Test one element and two elements
+```
+
+```text
+Sort + two pointers wrong
+→ Check sorting
+→ Check pointer movement
+→ Check duplicate skipping
+→ Check overflow
+```
+
+```text
+Intervals wrong
+→ Verify sort key
+→ Verify touching-boundary rule
+→ Save final interval
+```
+
+```text
+Comparator wrong
+→ Use safe comparisons
+→ Add tie-breakers
+→ Check transitivity
+```
+
+```text
+Search-on-answer wrong
+→ Recalculate candidate bounds
+→ Prove predicate monotonicity
+→ Test minimum and maximum candidate
+```
+
+---
+
+# 71. Five Project Explanation Points
+
+1. “In my Spring Boot application, pagination and sorting should generally be pushed to the database rather than performed after loading all rows.”
+2. “I use deterministic secondary sort keys so equal primary values do not make pagination unstable.”
+3. “For in-memory objects, I use comparator chains instead of unsafe subtraction-based comparators.”
+4. “For Top K results, I compare full sorting with a bounded heap based on K and data size.”
+5. “Binary search is useful not only for exact lookup but also for thresholds and minimum feasible capacity problems.”
+
+---
+
+# 72. Interview Answer Template
+
+> “First I check whether the input already has an ordering property or whether sorting would expose one. If sorting makes related elements adjacent, I can often replace nested loops with a scan, two pointers, interval merging, or greedy processing. If the data or answer space is monotonic, I use binary search. I explicitly define the search interval, predicate, boundary requirement, duplicate handling, and final time-space complexity.”
+
+---
+
+# 73. Final Learning Strategy
+
+Prepare in this order:
+
+```text
+Step 1:
+Understand sorting as a transformation pattern.
+
+Step 2:
+Memorize:
+Sort + Scan
+Sort + Two Pointers
+Sort + Intervals
+Sort + Greedy
+
+Step 3:
+Code Merge Sort and Quick Sort once.
+
+Step 4:
+Master exact binary search.
+
+Step 5:
+Master lower bound and upper bound.
+
+Step 6:
+Master first true and last true.
+
+Step 7:
+Solve binary search on answer problems.
+
+Step 8:
+Learn rotated search and matrix search.
+
+Step 9:
+Practice comparator, duplicate and overflow edge cases.
+
+Step 10:
+Connect sorting to DB pagination, Top K and deterministic API ordering.
+```
+
+---
+
+# 74. What Is Enough to Start Interviews?
+
+You are ready to start most Java Backend / mid-range product interviews when you can confidently solve and explain:
+
+```text
+Sorting:
+Library sort + Comparator
+Merge Sort
+Quick Sort concept
+Sort + Scan
+Sort + Two Pointers
+Merge Intervals
+Sort + Greedy
+
+Searching:
+Linear vs HashMap vs Binary Search
+Exact Binary Search
+Lower Bound
+Upper Bound
+First/Last Position
+Rotated Search
+Search on Answer
+```
+
+Continue later:
+
+```text
+Quickselect
+Advanced sweep-line problems
+External sorting
+Radix/Bucket details
+Kth element in multiple sorted structures
+Advanced parametric search
+```
+
+---
+
+# 75. Final Pattern Map
+
+```mermaid
+flowchart TD
+    A[Sorting or Searching Problem] --> B{Does Original Order Matter?}
+
+    B -- Yes --> C[Do Not Sort Blindly]
+    C --> C1[Window / Prefix / Kadane / Index-Aware Method]
+
+    B -- No --> D{Will Order Reveal Structure?}
+    D -- Yes --> E[Sort]
+    D -- No --> F[HashMap / Heap / Linear Scan / Graph Search]
+
+    E --> G{After Sorting}
+    G --> G1[Adjacent Values]
+    G1 --> H1[Sort + Scan]
+
+    G --> G2[Pair or Triplet]
+    G2 --> H2[Sort + Two Pointers]
+
+    G --> G3[Intervals]
+    G3 --> H3[Merge / Greedy / Sweep]
+
+    G --> G4[Target or Boundary]
+    G4 --> H4[Binary Search]
+
+    H4 --> I{Search Shape}
+    I --> I1[Exact Match]
+    I --> I2[Lower Bound]
+    I --> I3[Upper Bound]
+    I --> I4[Rotated Search]
+    I --> I5[Answer Space]
+
+    D --> J{Special Constraints}
+    J --> J1[Values 1 to n]
+    J1 --> K1[Cyclic Sort]
+
+    J --> J2[Small Integer Range]
+    J2 --> K2[Counting Sort]
+
+    J --> J3[Only Top K]
+    J3 --> K3[Heap]
+
+    H1 --> L[Complexity and Edge Cases]
+    H2 --> L
+    H3 --> L
+    I1 --> L
+    I2 --> L
+    I3 --> L
+    I4 --> L
+    I5 --> L
+    K1 --> L
+    K2 --> L
+    K3 --> L
+```
+
+---
+
+# 76. Final Mental Model
+
+Do not memorize Sorting and Searching as:
+
+```text
+Bubble Sort
+Selection Sort
+Insertion Sort
+Binary Search
+```
+
+Memorize the problem-solving system:
+
+```text
+1. Does original order matter?
+2. Would sorting expose adjacency or monotonicity?
+3. What pattern becomes available after sorting?
+4. Do I need exact search, a boundary, or an answer threshold?
+5. What invariant allows me to discard work?
+6. How will I handle duplicates, indices and overflow?
+```
+
+## Final Shortcut
+
+```text
+Sorting =
+Create Structure
+
+Searching =
+Use Structure to Eliminate Work
+```
+
+## Final Interview Line
+
+> “Sorting is a transformation that exposes adjacency, ordering, and monotonicity. Searching then exploits that structure to avoid unnecessary comparisons. In interviews, I use sorting mainly with scans, two pointers, intervals, greedy logic, and custom comparators, while I use binary search for exact matches, boundaries, rotated arrays, and monotonic answer spaces.”
+
+# Priority Queue / Heap — Complete Postmortem for DSA Interviews
+
+# 1. Priority Queue Mental Model
+
+The simplest mental model is:
+
+```text
+Priority Queue = Keep the most important element ready for immediate processing
+```
+
+A normal queue processes elements by arrival order:
+
+```text
+First In → First Out
+```
+
+A Priority Queue processes elements by priority:
+
+```text
+Highest/Lowest Priority → Process First
+```
+
+Examples:
+
+```text
+Normal Queue:
+Task A arrived first → Task A processed first
+
+Priority Queue:
+Critical Task B arrived later
+But Task B has higher priority
+→ Task B processed first
+```
+
+In DSA, the priority normally means:
+
+```text
+Smallest value
+Largest value
+Highest frequency
+Lowest distance
+Earliest finishing time
+Nearest point
+Best candidate
+```
+
+---
+
+## One-line shortcut
+
+```text
+Priority Queue = Insert candidates → keep best candidate at root → repeatedly process/remove the best
+```
+
+For Top K problems:
+
+```text
+Priority Queue = Keep only the best K elements and remove the weakest one
+```
+
+The most important mental shortcut:
+
+```text
+Need next best repeatedly? → Heap
+
+Need only best K elements? → Fixed-size Heap
+```
+
+---
+
+# 2. Master Mental Model
+
+```mermaid
+flowchart TD
+    A[New Problem] --> B{What does the problem need?}
+
+    B --> C[Repeated minimum or maximum]
+    B --> D[Top K or Kth element]
+    B --> E[Merge multiple sorted sources]
+    B --> F[Process tasks by priority]
+    B --> G[Continuously changing stream]
+    B --> H[Best candidate from a frontier]
+
+    C --> C1[Min-Heap or Max-Heap]
+
+    D --> D1{Need K largest?}
+    D1 -- Yes --> D2[Min-Heap of size K]
+    D1 -- No --> D3[Max-Heap of size K for K smallest]
+
+    E --> E1[Add first element from each source]
+    E1 --> E2[Poll smallest]
+    E2 --> E3[Add next from same source]
+
+    F --> F1[Comparator defines task priority]
+    F1 --> F2[Poll highest-priority task]
+
+    G --> G1{Need Median?}
+    G1 -- Yes --> G2[Max-Heap + Min-Heap]
+    G1 -- No --> G3[Maintain Top K]
+
+    H --> H1[Dijkstra / Best-First Search]
+    H1 --> H2[Poll best current candidate]
+    H2 --> H3[Add new reachable candidates]
+
+    C1 --> I[PriorityQueue Operations]
+    D2 --> I
+    D3 --> I
+    E3 --> I
+    F2 --> I
+    G2 --> I
+    G3 --> I
+    H3 --> I
+
+    I --> J[offer: O log n]
+    I --> K[poll: O log n]
+    I --> L[peek: O 1]
+```
+
+---
+
+# 3. Priority Queue vs Heap
+
+These terms are related, but they are not exactly identical.
+
+| Term                 | Meaning                                                                 |
+| -------------------- | ----------------------------------------------------------------------- |
+| Priority Queue       | An abstract data structure where elements are processed by priority     |
+| Heap                 | A tree-based data structure commonly used to implement a Priority Queue |
+| Java `PriorityQueue` | Java’s heap-based implementation of the Priority Queue concept          |
+
+Mental model:
+
+```text
+Priority Queue = What behavior we need
+
+Heap = How that behavior is implemented
+```
+
+Java:
+
+```java
+PriorityQueue<Integer> heap = new PriorityQueue<>();
+```
+
+Internally, Java uses a heap structure to keep the highest-priority element at the root.
+
+---
+
+# 4. Heap Internal Working
+
+A heap is a:
+
+```text
+Complete Binary Tree
+```
+
+Complete means:
+
+```text
+Every level is completely filled
+except possibly the last level,
+which is filled from left to right.
+```
+
+However, Java does not need separate tree nodes.
+
+The heap is stored inside an array.
+
+Example Min-Heap:
+
+```text
+          2
+        /   \
+       5     4
+      / \   /
+     9   7  8
+```
+
+Array representation:
+
+```text
+[2, 5, 4, 9, 7, 8]
+```
+
+Index relationships:
+
+```text
+Parent of i      = (i - 1) / 2
+Left child of i  = 2 * i + 1
+Right child of i = 2 * i + 2
+```
+
+---
+
+## Heap property
+
+### Min-Heap
+
+```text
+Parent <= Children
+```
+
+The smallest element remains at the root.
+
+```text
+peek() returns minimum
+```
+
+### Max-Heap
+
+```text
+Parent >= Children
+```
+
+The largest element remains at the root.
+
+```text
+peek() returns maximum
+```
+
+Important:
+
+```text
+A heap is not completely sorted.
+```
+
+For example:
+
+```text
+[2, 5, 4, 9, 7, 8]
+```
+
+This is a valid Min-Heap even though:
+
+```text
+5 > 4
+```
+
+The only required guarantee is:
+
+```text
+Every parent follows the heap property with its children.
+```
+
+---
+
+# 5. How Insertion Works
+
+Suppose the current Min-Heap is:
+
+```text
+[2, 5, 4, 9, 7, 8]
+```
+
+Insert:
+
+```text
+1
+```
+
+Initially add it at the end:
+
+```text
+[2, 5, 4, 9, 7, 8, 1]
+```
+
+Now compare it with its parent.
+
+```text
+1 < 4
+```
+
+Swap:
+
+```text
+[2, 5, 1, 9, 7, 8, 4]
+```
+
+Again:
+
+```text
+1 < 2
+```
+
+Swap:
+
+```text
+[1, 5, 2, 9, 7, 8, 4]
+```
+
+This process is called:
+
+```text
+Heapify Up
+Sift Up
+Bubble Up
+```
+
+Diagram:
+
+```mermaid
+flowchart TD
+    A[Insert element at end] --> B[Compare with parent]
+    B --> C{Heap property violated?}
+    C -- Yes --> D[Swap with parent]
+    D --> B
+    C -- No --> E[Insertion complete]
+```
+
+Complexity:
+
+```text
+O(log n)
+```
+
+Because the height of a complete binary tree is:
+
+```text
+log n
+```
+
+---
+
+# 6. How Removal Works
+
+In a Min-Heap, `poll()` removes the root.
+
+Suppose:
+
+```text
+[1, 5, 2, 9, 7, 8, 4]
+```
+
+Remove root:
+
+```text
+1
+```
+
+Move the last element to the root:
+
+```text
+[4, 5, 2, 9, 7, 8]
+```
+
+Compare it with its smaller child:
+
+```text
+4 > 2
+```
+
+Swap:
+
+```text
+[2, 5, 4, 9, 7, 8]
+```
+
+This process is called:
+
+```text
+Heapify Down
+Sift Down
+Bubble Down
+```
+
+Diagram:
+
+```mermaid
+flowchart TD
+    A[Remove root] --> B[Move last element to root]
+    B --> C[Compare with highest-priority child]
+    C --> D{Heap property violated?}
+    D -- Yes --> E[Swap with child]
+    E --> C
+    D -- No --> F[Removal complete]
+```
+
+Complexity:
+
+```text
+O(log n)
+```
+
+---
+
+# 7. Java PriorityQueue Behaviour
+
+Java’s `PriorityQueue` is a Min-Heap by default.
+
+```java
+PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+```
+
+Example:
+
+```java
+minHeap.offer(7);
+minHeap.offer(2);
+minHeap.offer(5);
+
+System.out.println(minHeap.peek());
+```
+
+Output:
+
+```text
+2
+```
+
+---
+
+## Max-Heap
+
+Use reverse ordering:
+
+```java
+PriorityQueue<Integer> maxHeap =
+        new PriorityQueue<>(Collections.reverseOrder());
+```
+
+Or:
+
+```java
+PriorityQueue<Integer> maxHeap =
+        new PriorityQueue<>((a, b) -> Integer.compare(b, a));
+```
+
+Example:
+
+```java
+maxHeap.offer(7);
+maxHeap.offer(2);
+maxHeap.offer(5);
+
+System.out.println(maxHeap.peek());
+```
+
+Output:
+
+```text
+7
+```
+
+---
+
+## Never use subtraction carelessly
+
+Avoid:
+
+```java
+(a, b) -> b - a
+```
+
+It may overflow for large integer values.
+
+Prefer:
+
+```java
+(a, b) -> Integer.compare(b, a)
+```
+
+For ascending order:
+
+```java
+(a, b) -> Integer.compare(a, b)
+```
+
+---
+
+# 8. PriorityQueue Operation Complexity
+
+| Operation           | Complexity | Explanation                            |
+| ------------------- | ---------: | -------------------------------------- |
+| `peek()`            |       O(1) | Root is directly available             |
+| `element()`         |       O(1) | Same as peek, but throws if empty      |
+| `offer()`           |   O(log n) | Insert followed by heapify-up          |
+| `add()`             |   O(log n) | Similar to offer                       |
+| `poll()`            |   O(log n) | Remove root followed by heapify-down   |
+| `remove()` root     |   O(log n) | Removes highest-priority element       |
+| `contains(value)`   |       O(n) | Heap is not a lookup structure         |
+| `remove(value)`     |       O(n) | Must first search for the element      |
+| `size()`            |       O(1) | Stored internally                      |
+| Build using heapify |       O(n) | More efficient than repeated insertion |
+| Iteration           |       O(n) | But iteration is not in sorted order   |
+
+Important interview point:
+
+```text
+PriorityQueue gives O(1) access only to the root.
+
+It does not give O(1) access to arbitrary elements.
+```
+
+---
+
+# 9. Queue Method Differences
+
+| Safe Method | Exception Method | Behaviour when Empty/Failure           |
+| ----------- | ---------------- | -------------------------------------- |
+| `offer()`   | `add()`          | `offer` returns false; `add` may throw |
+| `poll()`    | `remove()`       | `poll` returns null; `remove` throws   |
+| `peek()`    | `element()`      | `peek` returns null; `element` throws  |
+
+Interview preference:
+
+```java
+heap.offer(value);
+heap.poll();
+heap.peek();
+```
+
+These methods are generally safer for algorithmic coding.
+
+---
+
+# 10. How to Identify Priority Queue Problems
+
+Priority Queue problems normally contain one or more of these signals.
+
+## Signal 1: Top K
+
+Problem language:
+
+```text
+Find K largest elements
+Find K smallest elements
+Top K frequent elements
+K closest points
+K most popular items
+```
+
+Think:
+
+```text
+Fixed-size Heap
+```
+
+---
+
+## Signal 2: Kth Largest or Kth Smallest
+
+Problem language:
+
+```text
+Find kth largest
+Find kth smallest
+Find kth highest score
+Find kth nearest point
+```
+
+Think:
+
+```text
+Heap of size K
+```
+
+---
+
+## Signal 3: Repeated Minimum or Maximum
+
+Problem language:
+
+```text
+Repeatedly remove the smallest
+Repeatedly process the largest
+At every step choose the minimum cost
+Always choose the maximum frequency
+```
+
+Think:
+
+```text
+Min-Heap or Max-Heap
+```
+
+Examples:
+
+```text
+Last Stone Weight
+Connect Ropes
+Huffman Coding
+Reorganize String
+```
+
+---
+
+## Signal 4: Best Next Candidate
+
+Problem language:
+
+```text
+Process the nearest node
+Choose the lowest current distance
+Expand the cheapest candidate
+Select the earliest available task
+```
+
+Think:
+
+```text
+Priority Queue as candidate frontier
+```
+
+Examples:
+
+```text
+Dijkstra
+Prim’s Algorithm
+A* Search
+Best-First Search
+```
+
+---
+
+## Signal 5: Merge K Sorted Sources
+
+Problem language:
+
+```text
+Merge K sorted arrays
+Merge K sorted linked lists
+Find smallest element across multiple sorted sources
+```
+
+Think:
+
+```text
+Min-Heap containing one candidate from each source
+```
+
+---
+
+## Signal 6: Streaming Data
+
+Problem language:
+
+```text
+Numbers arrive continuously
+After each insertion find kth largest
+Find running median
+Maintain top K values from a stream
+```
+
+Think:
+
+```text
+Heap or Two Heaps
+```
+
+---
+
+## Signal 7: Scheduling
+
+Problem language:
+
+```text
+Earliest finishing meeting
+Next available room
+Highest-priority task
+Minimum processing time
+Tasks with cooldown
+```
+
+Think:
+
+```text
+Heap ordered by time, priority or frequency
+```
+
+---
+
+## Signal 8: Replace the Weakest Selected Item
+
+Problem language:
+
+```text
+Maintain the best K items
+When a better item arrives, replace the worst selected item
+```
+
+This is one of the strongest Heap signals.
+
+Think:
+
+```text
+Keep a Heap of size K
+Root represents the weakest selected element
+```
+
+---
+
+# 11. Priority Queue Identification Decision Tree
+
+```mermaid
+flowchart TD
+    A[New Problem] --> B{Need only one minimum or maximum once?}
+
+    B -- Yes --> C[Use simple scan O n]
+    B -- No --> D{Need complete sorted order?}
+
+    D -- Yes --> E[Use sorting O n log n]
+    D -- No --> F{Need Top K or Kth item?}
+
+    F -- Yes --> G[Use fixed-size Heap]
+    F -- No --> H{Need repeated min/max extraction?}
+
+    H -- Yes --> I[Use Min-Heap or Max-Heap]
+    H -- No --> J{Multiple sorted sources?}
+
+    J -- Yes --> K[K-way merge using Heap]
+    J -- No --> L{Streaming median?}
+
+    L -- Yes --> M[Two Heaps]
+    L -- No --> N{Best candidate frontier?}
+
+    N -- Yes --> O[Priority Queue: Dijkstra/Best First]
+    N -- No --> P{Sliding-window max/min?}
+
+    P -- Yes --> Q[Usually Monotonic Deque]
+    P -- No --> R{Need arbitrary search?}
+
+    R -- Yes --> S[HashMap/TreeMap may be better]
+    R -- No --> T[Consider another pattern]
+```
+
+---
+
+# 12. Min-Heap vs Max-Heap Decision
+
+| Requirement                | Heap to Use           | Root Represents                 |
+| -------------------------- | --------------------- | ------------------------------- |
+| Minimum element repeatedly | Min-Heap              | Smallest                        |
+| Maximum element repeatedly | Max-Heap              | Largest                         |
+| K largest elements         | Min-Heap of size K    | Weakest among K largest         |
+| K smallest elements        | Max-Heap of size K    | Weakest among K smallest        |
+| Kth largest                | Min-Heap of size K    | Kth largest                     |
+| Kth smallest               | Max-Heap of size K    | Kth smallest                    |
+| Top K frequent             | Min-Heap by frequency | Lowest frequency among selected |
+| K closest points           | Max-Heap of size K    | Farthest among selected         |
+| Merge sorted sources       | Min-Heap              | Smallest current source element |
+| Running lower half         | Max-Heap              | Largest lower-half value        |
+| Running upper half         | Min-Heap              | Smallest upper-half value       |
+
+---
+
+# 13. Why K Largest Uses a Min-Heap
+
+This initially feels opposite.
+
+Suppose we need:
+
+```text
+3 largest values
+```
+
+Input:
+
+```text
+[7, 2, 9, 4, 8, 1]
+```
+
+Maintain a Min-Heap of size 3.
+
+After processing:
+
+```text
+[7, 8, 9]
+```
+
+The root is:
+
+```text
+7
+```
+
+This root is the weakest element among the selected largest values.
+
+When a new value comes:
+
+```text
+10
+```
+
+Compare it conceptually with the weakest selected element.
+
+```text
+10 > 7
+```
+
+Remove 7 and include 10.
+
+Selected values become:
+
+```text
+[8, 9, 10]
+```
+
+Mental model:
+
+```text
+K largest → Keep strongest K → Root should expose weakest selected item
+
+Therefore:
+Use Min-Heap
+```
+
+Similarly:
+
+```text
+K smallest → Root should expose largest selected item
+
+Therefore:
+Use Max-Heap
+```
+
+---
+
+# 14. Five Core Priority Queue Templates
+
+Most interview problems can be mapped to five reusable templates.
+
+```text
+Template 1: Repeated Priority Processing
+Template 2: Fixed-Size Top K Selection
+Template 3: Frequency Map + Heap
+Template 4: K-Way Merge / Candidate Frontier
+Template 5: Two Heaps for Median or Balance
+```
+
+---
+
+# Template 1: Repeated Priority Processing
+
+Use when:
+
+```text
+Insert all candidates
+Repeatedly remove minimum or maximum
+Process until Heap becomes empty
+```
+
+General structure:
+
+```java
+PriorityQueue<Integer> heap = new PriorityQueue<>();
+
+for (int value : nums) {
+    heap.offer(value);
+}
+
+while (!heap.isEmpty()) {
+    int current = heap.poll();
+    // Process current highest-priority item
+}
+```
+
+For maximum-first processing:
+
+```java
+PriorityQueue<Integer> heap =
+        new PriorityQueue<>(Collections.reverseOrder());
+```
+
+Common problems:
+
+```text
+Last Stone Weight
+Connect Ropes With Minimum Cost
+Huffman Coding
+Reorganize String
+Task Scheduler
+Minimum Cost to Hire Workers
+```
+
+Complexity:
+
+```text
+Insert n elements: O(n log n)
+Remove n elements: O(n log n)
+
+Total: O(n log n)
+```
+
+---
+
+# Template 2: Fixed-Size Top K Selection
+
+Use when:
+
+```text
+Need Top K
+Need Kth largest/smallest
+Need best K from large input
+Input may arrive as a stream
+```
+
+General pattern for K largest:
+
+```java
+PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+for (int value : nums) {
+    minHeap.offer(value);
+
+    if (minHeap.size() > k) {
+        minHeap.poll();
+    }
+}
+```
+
+After processing:
+
+```text
+Heap contains K largest elements
+Heap root is kth largest
+```
+
+Complexity:
+
+```text
+Time: O(n log k)
+Space: O(k)
+```
+
+This is better than sorting everything when:
+
+```text
+K is much smaller than n
+```
+
+Sorting:
+
+```text
+O(n log n)
+```
+
+Heap:
+
+```text
+O(n log k)
+```
+
+---
+
+# Template 3: Frequency Map + Heap
+
+Use when the priority is not the value itself.
+
+Priority may be:
+
+```text
+Frequency
+Count
+Score
+Popularity
+Occurrence
+Weight
+```
+
+Flow:
+
+```mermaid
+flowchart LR
+    A[Input] --> B[Build Frequency Map]
+    B --> C[Add Map Entries to Heap]
+    C --> D[Keep or Poll Based on Priority]
+    D --> E[Top K Results]
+```
+
+General structure:
+
+```java
+Map<Integer, Integer> frequency = new HashMap<>();
+
+for (int value : nums) {
+    frequency.put(value, frequency.getOrDefault(value, 0) + 1);
+}
+
+PriorityQueue<Integer> minHeap =
+        new PriorityQueue<>(
+                (a, b) -> Integer.compare(
+                        frequency.get(a),
+                        frequency.get(b)
+                )
+        );
+
+for (int value : frequency.keySet()) {
+    minHeap.offer(value);
+
+    if (minHeap.size() > k) {
+        minHeap.poll();
+    }
+}
+```
+
+Common problems:
+
+```text
+Top K Frequent Elements
+Top K Frequent Words
+Sort Characters by Frequency
+Reorganize String
+Task Scheduler
+```
+
+---
+
+# Template 4: K-Way Merge / Candidate Frontier
+
+Use when there are:
+
+```text
+K sorted arrays
+K sorted linked lists
+K independently ordered sources
+```
+
+Mental model:
+
+```text
+Each sorted source contributes only its current smallest candidate.
+
+Poll the smallest candidate.
+Then add the next candidate from the same source.
+```
+
+Diagram:
+
+```mermaid
+flowchart TD
+    A[Add first item from every source] --> B[Poll globally smallest item]
+    B --> C[Add item to result]
+    C --> D{Same source has next item?}
+    D -- Yes --> E[Add next item from that source]
+    D -- No --> F[Continue]
+    E --> F
+    F --> G{Heap empty?}
+    G -- No --> B
+    G -- Yes --> H[Merge complete]
+```
+
+Heap size remains approximately:
+
+```text
+K
+```
+
+Complexity for N total elements:
+
+```text
+O(N log K)
+```
+
+Common problems:
+
+```text
+Merge K Sorted Lists
+Merge K Sorted Arrays
+Kth Smallest in Sorted Matrix
+Smallest Range Covering K Lists
+Find K Pairs with Smallest Sums
+```
+
+---
+
+# Template 5: Two Heaps
+
+Use when data is divided into two ordered halves.
+
+Most important example:
+
+```text
+Median from Data Stream
+```
+
+Maintain:
+
+```text
+Max-Heap → Lower half
+Min-Heap → Upper half
+```
+
+Diagram:
+
+```mermaid
+flowchart TD
+    A[New Number] --> B{Belongs to lower half?}
+    B -- Yes --> C[Add to Max-Heap]
+    B -- No --> D[Add to Min-Heap]
+
+    C --> E[Rebalance Heaps]
+    D --> E
+
+    E --> F{Odd total count?}
+    F -- Yes --> G[Median = root of larger Heap]
+    F -- No --> H[Median = average of both roots]
+```
+
+Required invariants:
+
+```text
+1. Every value in lower half <= every value in upper half
+
+2. Heap size difference must not exceed 1
+```
+
+Complexity:
+
+```text
+Insert: O(log n)
+Median: O(1)
+```
+
+---
+
+# 15. Java PriorityQueue Code Templates
+
+## Min-Heap
+
+```java
+PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+```
+
+---
+
+## Max-Heap
+
+```java
+PriorityQueue<Integer> maxHeap =
+        new PriorityQueue<>(Collections.reverseOrder());
+```
+
+---
+
+## Custom Object: Lowest Priority Number First
+
+```java
+PriorityQueue<Task> tasks =
+        new PriorityQueue<>(
+                (a, b) -> Integer.compare(a.priority, b.priority)
+        );
+```
+
+---
+
+## Custom Object: Highest Priority Number First
+
+```java
+PriorityQueue<Task> tasks =
+        new PriorityQueue<>(
+                (a, b) -> Integer.compare(b.priority, a.priority)
+        );
+```
+
+---
+
+## Multiple Sorting Conditions
+
+Suppose:
+
+```text
+Higher priority first
+If priorities are equal, earlier sequence first
+```
+
+```java
+PriorityQueue<Task> tasks = new PriorityQueue<>((a, b) -> {
+    int priorityComparison =
+            Integer.compare(b.priority, a.priority);
+
+    if (priorityComparison != 0) {
+        return priorityComparison;
+    }
+
+    return Long.compare(a.sequence, b.sequence);
+});
+```
+
+This tie-breaker is important because Java PriorityQueue is not stable.
+
+Without a tie-breaker:
+
+```text
+Equal-priority elements do not have guaranteed insertion order.
+```
+
+---
+
+# 16. Problem 1: Kth Largest Element
+
+## Identification
+
+Problem says:
+
+```text
+Find kth largest
+```
+
+Think:
+
+```text
+Keep K largest values in a Min-Heap
+```
+
+The root becomes:
+
+```text
+Kth largest
+```
+
+## Java Solution
+
+```java
+import java.util.PriorityQueue;
+
+public class KthLargestElement {
+
+    public int findKthLargest(int[] nums, int k) {
+        if (nums == null || k <= 0 || k > nums.length) {
+            throw new IllegalArgumentException("Invalid input or k");
+        }
+
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        for (int num : nums) {
+            minHeap.offer(num);
+
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+
+        return minHeap.peek();
+    }
+}
+```
+
+Complexity:
+
+```text
+Time: O(n log k)
+Space: O(k)
+```
+
+---
+
+## Dry Run
+
+Input:
+
+```text
+nums = [3, 2, 1, 5, 6, 4]
+k = 2
+```
+
+| Current value | Heap after insertion/removal |
+| ------------: | ---------------------------- |
+|             3 | `[3]`                        |
+|             2 | `[2, 3]`                     |
+|             1 | Add 1, remove 1 → `[2, 3]`   |
+|             5 | Add 5, remove 2 → `[3, 5]`   |
+|             6 | Add 6, remove 3 → `[5, 6]`   |
+|             4 | Add 4, remove 4 → `[5, 6]`   |
+
+Root:
+
+```text
+5
+```
+
+Therefore:
+
+```text
+Second largest = 5
+```
+
+---
+
+# 17. Problem 2: Top K Largest Elements
+
+```java
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.PriorityQueue;
+
+public class TopKLargestElements {
+
+    public List<Integer> findTopK(int[] nums, int k) {
+        if (nums == null || k <= 0) {
+            return Collections.emptyList();
+        }
+
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        for (int num : nums) {
+            minHeap.offer(num);
+
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+
+        List<Integer> result = new ArrayList<>(minHeap);
+        result.sort(Collections.reverseOrder());
+
+        return result;
+    }
+}
+```
+
+Important:
+
+```text
+new ArrayList<>(heap)
+```
+
+does not guarantee sorted order.
+
+Therefore, either:
+
+```text
+Poll repeatedly
+```
+
+or:
+
+```text
+Sort the final K results
+```
+
+---
+
+# 18. Problem 3: Top K Frequent Elements
+
+## Identification
+
+The problem contains:
+
+```text
+Top K
+Frequency
+```
+
+Therefore:
+
+```text
+HashMap + Min-Heap of size K
+```
+
+## Java Solution
+
+```java
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+
+public class TopKFrequentElements {
+
+    public List<Integer> topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> frequency = new HashMap<>();
+
+        for (int num : nums) {
+            frequency.put(
+                    num,
+                    frequency.getOrDefault(num, 0) + 1
+            );
+        }
+
+        PriorityQueue<Integer> minHeap =
+                new PriorityQueue<>(
+                        (a, b) -> Integer.compare(
+                                frequency.get(a),
+                                frequency.get(b)
+                        )
+                );
+
+        for (int value : frequency.keySet()) {
+            minHeap.offer(value);
+
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+
+        List<Integer> result = new ArrayList<>();
+
+        while (!minHeap.isEmpty()) {
+            result.add(minHeap.poll());
+        }
+
+        return result;
+    }
+}
+```
+
+Complexity:
+
+Let:
+
+```text
+n = number of input elements
+m = number of distinct values
+```
+
+Then:
+
+```text
+Frequency Map: O(n)
+Heap: O(m log k)
+
+Total: O(n + m log k)
+Space: O(m + k)
+```
+
+---
+
+# 19. Problem 4: K Closest Points to Origin
+
+## Identification
+
+Problem says:
+
+```text
+K closest
+```
+
+We need to keep the best K points.
+
+Among selected points, we must quickly remove the farthest point.
+
+Therefore:
+
+```text
+Max-Heap of size K
+```
+
+## Java Solution
+
+```java
+import java.util.PriorityQueue;
+
+public class KClosestPoints {
+
+    public int[][] kClosest(int[][] points, int k) {
+        PriorityQueue<int[]> maxHeap =
+                new PriorityQueue<>(
+                        (a, b) -> Long.compare(
+                                distanceSquared(b),
+                                distanceSquared(a)
+                        )
+                );
+
+        for (int[] point : points) {
+            maxHeap.offer(point);
+
+            if (maxHeap.size() > k) {
+                maxHeap.poll();
+            }
+        }
+
+        int[][] result = new int[k][2];
+
+        for (int i = 0; i < k; i++) {
+            result[i] = maxHeap.poll();
+        }
+
+        return result;
+    }
+
+    private long distanceSquared(int[] point) {
+        long x = point[0];
+        long y = point[1];
+
+        return x * x + y * y;
+    }
+}
+```
+
+Why squared distance?
+
+Instead of:
+
+```text
+sqrt(x² + y²)
+```
+
+compare:
+
+```text
+x² + y²
+```
+
+Square root is unnecessary because it preserves relative order.
+
+Complexity:
+
+```text
+Time: O(n log k)
+Space: O(k)
+```
+
+---
+
+# 20. Problem 5: Merge K Sorted Linked Lists
+
+## Identification
+
+Problem says:
+
+```text
+K sorted lists
+Merge them
+```
+
+At any time, the smallest remaining value must be one of the current list heads.
+
+Therefore:
+
+```text
+Min-Heap containing current head of each list
+```
+
+## Java Solution
+
+```java
+import java.util.PriorityQueue;
+
+public class MergeKSortedLists {
+
+    static class ListNode {
+        int value;
+        ListNode next;
+
+        ListNode(int value) {
+            this.value = value;
+        }
+    }
+
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) {
+            return null;
+        }
+
+        PriorityQueue<ListNode> minHeap =
+                new PriorityQueue<>(
+                        (a, b) -> Integer.compare(a.value, b.value)
+                );
+
+        for (ListNode head : lists) {
+            if (head != null) {
+                minHeap.offer(head);
+            }
+        }
+
+        ListNode dummy = new ListNode(0);
+        ListNode current = dummy;
+
+        while (!minHeap.isEmpty()) {
+            ListNode smallest = minHeap.poll();
+
+            current.next = smallest;
+            current = current.next;
+
+            if (smallest.next != null) {
+                minHeap.offer(smallest.next);
+            }
+        }
+
+        return dummy.next;
+    }
+}
+```
+
+Complexity:
+
+Let:
+
+```text
+N = total number of nodes
+K = number of lists
+```
+
+Heap holds at most:
+
+```text
+K nodes
+```
+
+Therefore:
+
+```text
+Time: O(N log K)
+Space: O(K)
+```
+
+---
+
+# 21. Problem 6: Median from Data Stream
+
+## Mental Model
+
+```text
+Lower half → Max-Heap
+Upper half → Min-Heap
+```
+
+Example:
+
+```text
+Numbers: [1, 2, 3, 4, 5]
+
+Lower half: [1, 2]
+Upper half: [3, 4, 5]
+```
+
+The middle values are available at Heap roots.
+
+## Java Solution
+
+```java
+import java.util.Collections;
+import java.util.PriorityQueue;
+
+public class MedianFinder {
+
+    private final PriorityQueue<Integer> lowerHalf;
+    private final PriorityQueue<Integer> upperHalf;
+
+    public MedianFinder() {
+        lowerHalf =
+                new PriorityQueue<>(Collections.reverseOrder());
+
+        upperHalf = new PriorityQueue<>();
+    }
+
+    public void addNumber(int number) {
+        if (lowerHalf.isEmpty()
+                || number <= lowerHalf.peek()) {
+            lowerHalf.offer(number);
+        } else {
+            upperHalf.offer(number);
+        }
+
+        rebalance();
+    }
+
+    public double findMedian() {
+        int totalSize = lowerHalf.size() + upperHalf.size();
+
+        if (totalSize == 0) {
+            throw new IllegalStateException("No values available");
+        }
+
+        if (lowerHalf.size() > upperHalf.size()) {
+            return lowerHalf.peek();
+        }
+
+        if (upperHalf.size() > lowerHalf.size()) {
+            return upperHalf.peek();
+        }
+
+        return ((long) lowerHalf.peek() + upperHalf.peek()) / 2.0;
+    }
+
+    private void rebalance() {
+        if (lowerHalf.size() > upperHalf.size() + 1) {
+            upperHalf.offer(lowerHalf.poll());
+        } else if (upperHalf.size() > lowerHalf.size() + 1) {
+            lowerHalf.offer(upperHalf.poll());
+        }
+    }
+}
+```
+
+Complexity:
+
+```text
+Add number: O(log n)
+Find median: O(1)
+Space: O(n)
+```
+
+Important overflow protection:
+
+```java
+((long) lowerHalf.peek() + upperHalf.peek()) / 2.0
+```
+
+Without converting to `long`, adding two large integers could overflow.
+
+---
+
+# 22. Problem 7: Meeting Rooms II
+
+## Identification
+
+Problem asks:
+
+```text
+How many meetings overlap?
+How many rooms are required?
+Which meeting finishes earliest?
+```
+
+Use:
+
+```text
+Min-Heap of meeting end times
+```
+
+The root tells us:
+
+```text
+The room that becomes available first
+```
+
+## Java Solution
+
+```java
+import java.util.Arrays;
+import java.util.PriorityQueue;
+
+public class MeetingRooms {
+
+    public int minMeetingRooms(int[][] intervals) {
+        if (intervals == null || intervals.length == 0) {
+            return 0;
+        }
+
+        Arrays.sort(
+                intervals,
+                (a, b) -> Integer.compare(a[0], b[0])
+        );
+
+        PriorityQueue<Integer> endTimes =
+                new PriorityQueue<>();
+
+        for (int[] meeting : intervals) {
+            int start = meeting[0];
+            int end = meeting[1];
+
+            if (!endTimes.isEmpty()
+                    && endTimes.peek() <= start) {
+                endTimes.poll();
+            }
+
+            endTimes.offer(end);
+        }
+
+        return endTimes.size();
+    }
+}
+```
+
+Mental model:
+
+```text
+Sort meetings by start time.
+
+For every new meeting:
+Check the room that becomes free earliest.
+
+If it is already free:
+Reuse it.
+
+Otherwise:
+Create another room.
+```
+
+Complexity:
+
+```text
+Sorting: O(n log n)
+Heap operations: O(n log n)
+Space: O(n)
+```
+
+---
+
+# 23. Problem 8: Last Stone Weight
+
+## Identification
+
+At every step:
+
+```text
+Take two largest values
+```
+
+Therefore:
+
+```text
+Max-Heap
+```
+
+## Java Solution
+
+```java
+import java.util.Collections;
+import java.util.PriorityQueue;
+
+public class LastStoneWeight {
+
+    public int lastStoneWeight(int[] stones) {
+        PriorityQueue<Integer> maxHeap =
+                new PriorityQueue<>(Collections.reverseOrder());
+
+        for (int stone : stones) {
+            maxHeap.offer(stone);
+        }
+
+        while (maxHeap.size() > 1) {
+            int first = maxHeap.poll();
+            int second = maxHeap.poll();
+
+            if (first != second) {
+                maxHeap.offer(first - second);
+            }
+        }
+
+        return maxHeap.isEmpty() ? 0 : maxHeap.peek();
+    }
+}
+```
+
+Complexity:
+
+```text
+Time: O(n log n)
+Space: O(n)
+```
+
+---
+
+# 24. Dijkstra’s Algorithm Priority Queue Model
+
+Dijkstra is a Graph algorithm, but Priority Queue is its central optimization.
+
+Problem language:
+
+```text
+Find shortest distance
+All weights are non-negative
+Always process currently nearest node
+```
+
+Mental model:
+
+```text
+Priority Queue stores candidate nodes ordered by current distance.
+```
+
+Flow:
+
+```mermaid
+flowchart TD
+    A[Add source with distance 0] --> B[Poll node with smallest distance]
+    B --> C{Is this entry stale?}
+    C -- Yes --> B
+    C -- No --> D[Relax neighbouring edges]
+    D --> E{Found shorter distance?}
+    E -- Yes --> F[Update distance and add new Heap entry]
+    E -- No --> G[Skip]
+    F --> H{Heap empty?}
+    G --> H
+    H -- No --> B
+    H -- Yes --> I[Shortest distances complete]
+```
+
+Important Java limitation:
+
+```text
+PriorityQueue does not provide an efficient decrease-key operation.
+```
+
+Common approach:
+
+```text
+Insert a new entry with the updated distance.
+
+When an old entry is polled:
+Detect that it is stale and skip it.
+```
+
+Simplified template:
+
+```java
+PriorityQueue<State> minHeap =
+        new PriorityQueue<>(
+                (a, b) -> Integer.compare(a.distance, b.distance)
+        );
+
+minHeap.offer(new State(source, 0));
+
+while (!minHeap.isEmpty()) {
+    State current = minHeap.poll();
+
+    if (current.distance != distance[current.node]) {
+        continue;
+    }
+
+    for (Edge edge : graph.get(current.node)) {
+        int newDistance =
+                current.distance + edge.weight;
+
+        if (newDistance < distance[edge.to]) {
+            distance[edge.to] = newDistance;
+
+            minHeap.offer(
+                    new State(edge.to, newDistance)
+            );
+        }
+    }
+}
+```
+
+Complexity:
+
+```text
+O((V + E) log V)
+```
+
+Often simplified as:
+
+```text
+O(E log V)
+```
+
+---
+
+# 25. Priority Queue vs Sorting
+
+| Requirement              |                            Sorting |              Priority Queue |
+| ------------------------ | ---------------------------------: | --------------------------: |
+| Complete sorted result   |                          Excellent |                   Not ideal |
+| One-time minimum/maximum |                        Unnecessary | Unnecessary; scan is enough |
+| Repeated minimum/maximum |             Possible after sorting |                   Excellent |
+| Top K where K is small   |                         O(n log n) |                  O(n log k) |
+| Streaming data           |                          Difficult |                   Excellent |
+| Dynamic insertion        | Expensive to maintain sorted array |                    O(log n) |
+| Kth element              |              O(n log n) by sorting |                  O(n log k) |
+| Random access by rank    |                 Easy after sorting |               Not supported |
+| Sorted iteration         |                                Yes |                          No |
+
+Interview line:
+
+> “I would not use a heap merely because the question contains minimum or maximum. For a single minimum, a linear scan is enough. Heap is useful when minimum or maximum must be maintained dynamically or extracted repeatedly.”
+
+---
+
+# 26. Heap vs Quickselect
+
+For Kth largest:
+
+| Approach        |         Time |                 Space | Best Use                  |
+| --------------- | -----------: | --------------------: | ------------------------- |
+| Sorting         |   O(n log n) |               Depends | Need sorted result        |
+| Heap            |   O(n log k) |                  O(k) | Stream or Top K           |
+| Quickselect     | O(n) average | O(1) average/in-place | One-time kth element      |
+| Counting/Bucket | O(n + range) |              O(range) | Small bounded value range |
+
+Quickselect may be asymptotically faster for one-time Kth selection.
+
+Heap is often preferred when:
+
+```text
+Input is streaming
+Need all Top K elements
+Need repeated updates
+Need easier worst-case reasoning
+K is small compared with N
+```
+
+---
+
+# 27. Priority Queue vs TreeMap / TreeSet
+
+| Requirement                | PriorityQueue            | TreeMap / TreeSet          |
+| -------------------------- | ------------------------ | -------------------------- |
+| Access minimum             | O(1) peek                | O(log n)                   |
+| Access maximum             | Need Max-Heap comparator | O(log n)                   |
+| Insert                     | O(log n)                 | O(log n)                   |
+| Remove root                | O(log n)                 | O(log n)                   |
+| Search arbitrary value     | O(n)                     | O(log n)                   |
+| Remove arbitrary value     | O(n)                     | O(log n)                   |
+| Sorted traversal           | No                       | Yes                        |
+| Duplicate handling         | Yes                      | TreeMap frequency required |
+| Best candidate repeatedly  | Excellent                | Possible                   |
+| Ordered lookup/range query | Poor                     | Excellent                  |
+
+Use `TreeMap` when you need:
+
+```text
+Arbitrary deletion
+Floor/ceiling
+Minimum and maximum together
+Sorted keys
+Range queries
+```
+
+Use PriorityQueue when you mainly need:
+
+```text
+The next highest-priority item
+```
+
+---
+
+# 28. Priority Queue vs Monotonic Deque
+
+Problem:
+
+```text
+Maximum in every sliding window
+```
+
+A Heap solution is possible using lazy deletion or indexes.
+
+But the better pattern is normally:
+
+```text
+Monotonic Deque
+```
+
+| Approach        | Complexity |
+| --------------- | ---------: |
+| Heap            | O(n log k) |
+| Monotonic Deque |       O(n) |
+
+Therefore:
+
+```text
+Top K / global best candidates → Heap
+
+Maximum/minimum for every contiguous window → Monotonic Deque
+```
+
+---
+
+# 29. Priority Queue vs Normal Queue
+
+| Structure      | Processing Rule        | Typical Use                      |
+| -------------- | ---------------------- | -------------------------------- |
+| Queue          | First arrival first    | BFS, task pipeline               |
+| Priority Queue | Highest priority first | Scheduling, Top K, shortest path |
+| Stack          | Most recent first      | DFS, parentheses, undo           |
+| Deque          | Both ends              | Sliding window, BFS variants     |
+
+Mental shortcut:
+
+```text
+Queue = Arrival order
+
+Priority Queue = Importance order
+```
+
+---
+
+# 30. When Not to Use Priority Queue
+
+Do not automatically use a Heap whenever you see:
+
+```text
+Minimum
+Maximum
+Largest
+Smallest
+```
+
+Avoid it in these situations.
+
+## One-time minimum or maximum
+
+Use:
+
+```text
+Single O(n) scan
+```
+
+---
+
+## Need complete sorted output
+
+Use:
+
+```text
+Sorting
+```
+
+---
+
+## Need fast existence lookup
+
+Use:
+
+```text
+HashSet or HashMap
+```
+
+PriorityQueue lookup is O(n).
+
+---
+
+## Need maximum for every sliding window
+
+Usually use:
+
+```text
+Monotonic Deque
+```
+
+---
+
+## Need arbitrary deletion
+
+Consider:
+
+```text
+TreeMap
+Indexed Heap
+Heap + HashMap
+Lazy deletion
+```
+
+---
+
+## Small bounded integer range
+
+Consider:
+
+```text
+Counting
+Bucket Sort
+Frequency Array
+```
+
+Example:
+
+```text
+Top K Frequent Elements
+```
+
+may also be solved using bucket sort in O(n).
+
+---
+
+## Distributed task processing
+
+Java `PriorityQueue` is:
+
+```text
+In-memory
+Non-durable
+Single-process
+Not thread-safe
+```
+
+For distributed systems, use suitable infrastructure such as:
+
+```text
+Kafka
+SQS
+RabbitMQ
+Database-backed scheduler
+Quartz
+Redis-based queue
+```
+
+depending on requirements.
+
+---
+
+# 31. Important Java PriorityQueue Properties
+
+## It allows duplicates
+
+```java
+heap.offer(5);
+heap.offer(5);
+```
+
+Both values are stored.
+
+---
+
+## It does not allow null
+
+```java
+heap.offer(null);
+```
+
+throws:
+
+```text
+NullPointerException
+```
+
+---
+
+## It is not thread-safe
+
+For concurrent access, plain `PriorityQueue` requires external synchronization.
+
+A concurrent alternative is:
+
+```java
+PriorityBlockingQueue
+```
+
+However, `PriorityBlockingQueue` is unbounded by default and has its own production considerations.
+
+---
+
+## Iteration is not sorted
+
+This is incorrect:
+
+```java
+for (int value : heap) {
+    System.out.println(value);
+}
+```
+
+The iteration order is internal Heap order, not complete sorted order.
+
+For priority order:
+
+```java
+while (!heap.isEmpty()) {
+    System.out.println(heap.poll());
+}
+```
+
+---
+
+## It is not stable
+
+Equal-priority elements may not be processed in insertion order.
+
+For stable behaviour, store a sequence number.
+
+```java
+class Task {
+    int priority;
+    long sequence;
+}
+```
+
+Comparator:
+
+```java
+(a, b) -> {
+    int result = Integer.compare(b.priority, a.priority);
+
+    if (result != 0) {
+        return result;
+    }
+
+    return Long.compare(a.sequence, b.sequence);
+}
+```
+
+---
+
+## Do not mutate priority fields after insertion
+
+Suppose an object is added with:
+
+```text
+priority = 5
+```
+
+Later, the object is changed to:
+
+```text
+priority = 100
+```
+
+The Heap will not automatically reposition it.
+
+This can break logical ordering.
+
+Correct approach:
+
+```text
+Remove and reinsert the element
+```
+
+or create immutable Heap entries.
+
+---
+
+# 32. Custom Object Example
+
+```java
+import java.util.PriorityQueue;
+
+public class TaskSchedulerExample {
+
+    static class Task {
+        private final String name;
+        private final int priority;
+        private final long sequence;
+
+        Task(String name, int priority, long sequence) {
+            this.name = name;
+            this.priority = priority;
+            this.sequence = sequence;
+        }
+    }
+
+    public static void main(String[] args) {
+        PriorityQueue<Task> taskQueue =
+                new PriorityQueue<>((a, b) -> {
+                    int priorityResult =
+                            Integer.compare(
+                                    b.priority,
+                                    a.priority
+                            );
+
+                    if (priorityResult != 0) {
+                        return priorityResult;
+                    }
+
+                    return Long.compare(
+                            a.sequence,
+                            b.sequence
+                    );
+                });
+
+        taskQueue.offer(new Task("Normal Report", 1, 1));
+        taskQueue.offer(new Task("Critical Failure", 10, 2));
+        taskQueue.offer(new Task("Security Alert", 10, 3));
+
+        while (!taskQueue.isEmpty()) {
+            Task task = taskQueue.poll();
+
+            System.out.println(
+                    task.name + " - " + task.priority
+            );
+        }
+    }
+}
+```
+
+Output:
+
+```text
+Critical Failure - 10
+Security Alert - 10
+Normal Report - 1
+```
+
+The sequence preserves FIFO order among equal priorities.
+
+---
+
+# 33. Core Priority Queue Problem Families
+
+## Family 1: Top K / Kth Selection
+
+```text
+Kth Largest Element
+Kth Smallest Element
+Top K Largest Elements
+Top K Frequent Elements
+K Closest Points
+Top K Frequent Words
+K Weakest Rows
+Kth Largest in a Stream
+```
+
+Main template:
+
+```text
+Fixed-size Heap of K
+```
+
+---
+
+## Family 2: Repeated Min/Max Simulation
+
+```text
+Last Stone Weight
+Connect Ropes
+Huffman Coding
+Minimum Cost to Connect Sticks
+Reorganize String
+Task Scheduler
+Furthest Building You Can Reach
+```
+
+Main template:
+
+```text
+Add candidates → repeatedly poll best priority
+```
+
+---
+
+## Family 3: K-Way Merge
+
+```text
+Merge K Sorted Lists
+Merge K Sorted Arrays
+Kth Smallest in Sorted Matrix
+Smallest Range Covering K Lists
+Find K Pairs with Smallest Sums
+```
+
+Main template:
+
+```text
+One current candidate per sorted source
+```
+
+---
+
+## Family 4: Scheduling and Intervals
+
+```text
+Meeting Rooms II
+Single-Threaded CPU
+Process Tasks Using Servers
+Maximum Performance of a Team
+Task Scheduler
+Minimum Number of Machines
+```
+
+Main priority:
+
+```text
+End time
+Available time
+Processing time
+Task priority
+```
+
+---
+
+## Family 5: Graph Frontier
+
+```text
+Dijkstra
+Prim’s Minimum Spanning Tree
+Network Delay Time
+Path With Minimum Effort
+Swim in Rising Water
+A* Search
+```
+
+Main template:
+
+```text
+Poll best current state
+Expand it
+Add improved states
+```
+
+---
+
+## Family 6: Two-Heap Problems
+
+```text
+Median from Data Stream
+Sliding Window Median
+IPO
+Find Median from Running Stream
+Balance lower and upper halves
+```
+
+Main template:
+
+```text
+Max-Heap lower half
+Min-Heap upper half
+```
+
+---
+
+# 34. Problem Recognition Map
+
+| Problem wording               | Heap interpretation               |
+| ----------------------------- | --------------------------------- |
+| “K largest”                   | Min-Heap of size K                |
+| “K smallest”                  | Max-Heap of size K                |
+| “Kth largest”                 | Root of Min-Heap size K           |
+| “Kth smallest”                | Root of Max-Heap size K           |
+| “Most frequent”               | Max-Heap by frequency             |
+| “Top K frequent”              | Frequency Map + Min-Heap size K   |
+| “Closest K”                   | Max-Heap size K                   |
+| “Repeatedly smallest”         | Min-Heap                          |
+| “Repeatedly largest”          | Max-Heap                          |
+| “Earliest finishing”          | Min-Heap by end time              |
+| “Next available server”       | Min-Heap by available time        |
+| “Merge sorted sources”        | Min-Heap with one item per source |
+| “Running median”              | Two Heaps                         |
+| “Shortest current distance”   | Min-Heap frontier                 |
+| “Replace worst selected item” | Fixed-size Heap                   |
+| “Stream of numbers”           | Heap maintained online            |
+
+---
+
+# 35. Scenario-Based Mental Models
+
+## Scenario 1: Top K Viewed Posts
+
+Suppose post views are:
+
+```text
+[120, 500, 70, 300, 900, 250]
+```
+
+Need:
+
+```text
+Top 3 viewed posts
+```
+
+Flow:
+
+```mermaid
+flowchart TD
+    A[Read post view count] --> B[Add to Min-Heap]
+    B --> C{Heap size > 3?}
+    C -- Yes --> D[Remove smallest selected count]
+    C -- No --> E[Continue]
+    D --> E
+    E --> F[Heap contains Top 3]
+```
+
+Why Min-Heap?
+
+```text
+The root represents the weakest post among the current Top 3.
+```
+
+Complexity:
+
+```text
+O(n log 3)
+```
+
+Real project note:
+
+```text
+For persisted production data, SQL ORDER BY views DESC LIMIT 3
+would usually be more appropriate.
+
+The Heap approach is useful for in-memory streams or aggregated events.
+```
+
+---
+
+## Scenario 2: Retry Tasks by Next Execution Time
+
+Each retry task has:
+
+```text
+nextRetryAt
+```
+
+Priority:
+
+```text
+Earliest nextRetryAt first
+```
+
+Use:
+
+```text
+Min-Heap ordered by retry time
+```
+
+Flow:
+
+```text
+Failed task
+→ calculate next retry time
+→ add to Priority Queue
+→ poll earliest retry
+→ execute when due
+```
+
+Production caution:
+
+```text
+An in-memory PriorityQueue loses tasks when the application restarts.
+
+For durable retries, use a database, message broker,
+distributed scheduler or delayed queue.
+```
+
+---
+
+## Scenario 3: Highest-Priority Support Ticket
+
+Ticket fields:
+
+```text
+Severity
+Creation time
+```
+
+Priority rule:
+
+```text
+Higher severity first
+For equal severity, older ticket first
+```
+
+Comparator:
+
+```text
+severity descending
+creation time ascending
+```
+
+This requires a tie-breaker because PriorityQueue is not stable.
+
+---
+
+## Scenario 4: Merge Logs from Multiple Services
+
+Suppose every service produces logs sorted by timestamp.
+
+Need:
+
+```text
+One globally timestamp-ordered stream
+```
+
+Use:
+
+```text
+Min-Heap with the current earliest log from every service
+```
+
+After polling one log:
+
+```text
+Insert the next log from the same service
+```
+
+Complexity:
+
+```text
+O(N log K)
+
+N = total logs
+K = number of services
+```
+
+---
+
+## Scenario 5: Shortest Network Route
+
+Need:
+
+```text
+Process the node with smallest known distance
+```
+
+Use:
+
+```text
+Min-Heap ordered by tentative distance
+```
+
+This is the Dijkstra model.
+
+---
+
+# 36. Project Usage Mapping
+
+| Concept              | Realistic Project Usage                                  | Interview Line                                                                                                                                      |
+| -------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Top K                | Trending posts, highest error categories, most-used APIs | “For in-memory Top K aggregation, I can maintain a Min-Heap of size K instead of sorting every record.”                                             |
+| Priority scheduling  | Local background tasks ordered by urgency                | “A PriorityQueue can process critical tasks before normal tasks inside one application instance.”                                                   |
+| Retry ordering       | Execute retries according to next retry timestamp        | “Retry entries can be prioritized by their next eligible execution time, although durable production retries should use persistent infrastructure.” |
+| K-way merge          | Merge timestamp-sorted data from several sources         | “A Min-Heap can merge K sorted streams in O(N log K).”                                                                                              |
+| Median stream        | Running latency or response-time median                  | “Two Heaps can maintain a streaming median with O(log n) insertion and O(1) retrieval.”                                                             |
+| Earliest completion  | Resource availability or job end times                   | “A Min-Heap of completion times identifies which resource becomes available first.”                                                                 |
+| Shortest path        | Network/service routing model                            | “Dijkstra uses a PriorityQueue to process the currently nearest node.”                                                                              |
+| Kafka/SQS comparison | PriorityQueue is local; brokers are distributed/durable  | “I would not replace a message broker with Java PriorityQueue because it is only an in-memory data structure.”                                      |
+| Spring Boot          | Local task ordering or request aggregation               | “For a single-instance in-memory use case, PriorityQueue can order work by business priority.”                                                      |
+| Microservices        | Merge events or model best-next candidate logic          | “For distributed workloads, queue durability and coordination must be handled outside the JVM.”                                                     |
+
+---
+
+# 37. Production Design Limitations
+
+A Java PriorityQueue is appropriate when:
+
+```text
+Data is local to one JVM
+Loss on restart is acceptable or state can be reconstructed
+One process owns the queue
+Queue size is controlled
+```
+
+It is not sufficient when you need:
+
+```text
+Durability
+Distributed consumers
+Exactly-once coordination
+Cross-instance ordering
+Persistence after restart
+Dead-letter handling
+Message acknowledgements
+Horizontal scaling
+```
+
+For those requirements, use appropriate production infrastructure.
+
+Interview line:
+
+> “PriorityQueue solves ordering inside a process. It does not provide the durability, distribution, acknowledgements or fault tolerance of a message broker.”
+
+---
+
+# 38. Debugging and Common Failure Flow
+
+| Issue                              | Possible Cause                           | Where to Check        | Fix                                              |
+| ---------------------------------- | ---------------------------------------- | --------------------- | ------------------------------------------------ |
+| Wrong Kth result                   | Wrong Heap direction                     | Min vs Max comparator | K largest uses Min-Heap size K                   |
+| Results not sorted                 | Iterating directly over Heap             | `for-each` usage      | Poll repeatedly or sort final result             |
+| Integer overflow                   | Comparator uses subtraction              | Comparator code       | Use `Integer.compare` or `Long.compare`          |
+| Equal tasks processed randomly     | No tie-breaker                           | Comparator            | Add sequence/time comparison                     |
+| Priority suddenly incorrect        | Object changed after insertion           | Mutable fields        | Remove/reinsert or use immutable entries         |
+| Heap grows indefinitely            | No size bound                            | Offer logic           | Enforce K or capacity policy                     |
+| Concurrent corruption              | Multiple threads use plain PriorityQueue | Thread access         | Synchronize or use suitable concurrent structure |
+| `NullPointerException`             | Null inserted                            | Input validation      | Reject or handle null before insertion           |
+| Unexpected exception on empty Heap | Used `remove`/`element`                  | Queue API             | Prefer `poll`/`peek`                             |
+| Dijkstra processes node repeatedly | Old entries remain                       | Distance validation   | Skip stale Heap entries                          |
+| Sliding-window solution is slow    | Heap used instead of deque               | Problem pattern       | Use monotonic deque where applicable             |
+| Arbitrary removal is slow          | `remove(value)` is O(n)                  | Algorithm design      | Use TreeMap, indexed Heap or lazy deletion       |
+
+---
+
+# 39. Common Mistakes
+
+## Mistake 1: Choosing the wrong Heap
+
+Wrong:
+
+```text
+K largest → Max-Heap of size K
+```
+
+A Max-Heap exposes the largest selected element, but we need to remove the weakest selected element.
+
+Correct:
+
+```text
+K largest → Min-Heap of size K
+```
+
+---
+
+## Mistake 2: Forgetting the size limit
+
+```java
+heap.offer(value);
+```
+
+but no:
+
+```java
+if (heap.size() > k) {
+    heap.poll();
+}
+```
+
+Then the solution becomes:
+
+```text
+O(n) space
+```
+
+instead of:
+
+```text
+O(k) space
+```
+
+---
+
+## Mistake 3: Assuming Heap is fully sorted
+
+Only the root is guaranteed.
+
+```text
+Heap property != sorted array
+```
+
+---
+
+## Mistake 4: Comparator subtraction
+
+Avoid:
+
+```java
+(a, b) -> a - b
+```
+
+Use:
+
+```java
+Integer.compare(a, b)
+```
+
+---
+
+## Mistake 5: Polling without checking
+
+Safe:
+
+```java
+if (!heap.isEmpty()) {
+    int value = heap.poll();
+}
+```
+
+---
+
+## Mistake 6: Forgetting tie-breaking
+
+This matters in:
+
+```text
+Task scheduling
+Top K words
+Server assignment
+Equal-frequency values
+```
+
+---
+
+## Mistake 7: Using Heap when sorting is simpler
+
+If the problem needs the complete sorted result:
+
+```text
+Sort directly
+```
+
+---
+
+## Mistake 8: Using Heap for arbitrary lookup
+
+PriorityQueue:
+
+```text
+contains → O(n)
+```
+
+Use HashMap/HashSet for lookup.
+
+---
+
+## Mistake 9: Mutating an inserted object
+
+The Heap does not automatically re-heapify after an object's priority changes.
+
+---
+
+## Mistake 10: Faking production queue capability
+
+Do not describe Java PriorityQueue as equivalent to Kafka or SQS.
+
+---
+
+# 40. Complexity Reasoning Patterns
+
+## Full Heap
+
+Insert all n elements:
+
+```text
+O(n log n)
+```
+
+Poll all n elements:
+
+```text
+O(n log n)
+```
+
+---
+
+## Fixed Heap of K
+
+For every one of n elements:
+
+```text
+Heap operation costs O(log k)
+```
+
+Therefore:
+
+```text
+O(n log k)
+```
+
+Space:
+
+```text
+O(k)
+```
+
+---
+
+## K-Way Merge
+
+Total elements:
+
+```text
+N
+```
+
+Maximum Heap size:
+
+```text
+K
+```
+
+Every element enters and leaves once:
+
+```text
+O(N log K)
+```
+
+---
+
+## Two Heaps
+
+Each insertion:
+
+```text
+O(log n)
+```
+
+Median:
+
+```text
+O(1)
+```
+
+---
+
+## Dijkstra
+
+Each edge may create a Heap operation:
+
+```text
+O(E log V)
+```
+
+depending on implementation and representation.
+
+---
+
+# 41. Priority Queue Interview Problem Roadmap
+
+## P0 — Must Solve
+
+| Problem                         | Core Template         | Main Learning             |
+| ------------------------------- | --------------------- | ------------------------- |
+| Kth Largest Element in an Array | Fixed Min-Heap        | K largest logic           |
+| Top K Frequent Elements         | Frequency + Heap      | Map and Heap combination  |
+| K Closest Points to Origin      | Fixed Max-Heap        | Keep K smallest distances |
+| Last Stone Weight               | Repeated Max-Heap     | Priority simulation       |
+| Merge K Sorted Lists            | K-way merge           | One candidate per source  |
+| Meeting Rooms II                | End-time Min-Heap     | Resource allocation       |
+| Kth Largest in a Stream         | Persistent fixed Heap | Online updates            |
+
+---
+
+## P1 — Very Important
+
+| Problem                         | Core Template          | Main Learning              |
+| ------------------------------- | ---------------------- | -------------------------- |
+| Find Median from Data Stream    | Two Heaps              | Balance two halves         |
+| Connect Sticks / Ropes          | Repeated Min-Heap      | Greedy minimum cost        |
+| Task Scheduler                  | Frequency Max-Heap     | Cooldown scheduling        |
+| Reorganize String               | Frequency Max-Heap     | Avoid adjacent duplicates  |
+| Top K Frequent Words            | Frequency + comparator | Tie-breaking               |
+| Kth Smallest in Sorted Matrix   | K-way merge            | Sorted rows as sources     |
+| Find K Pairs with Smallest Sums | Candidate frontier     | Avoid generating all pairs |
+| Furthest Building You Can Reach | Min-Heap allocation    | Save limited resources     |
+| Single-Threaded CPU             | Scheduling Heap        | Multiple comparator fields |
+
+---
+
+## P2 — After Interviews Start
+
+| Problem                         | Main Pattern                   |
+| ------------------------------- | ------------------------------ |
+| Network Delay Time              | Dijkstra                       |
+| Path With Minimum Effort        | Minimax Dijkstra               |
+| Swim in Rising Water            | Best-first search              |
+| Smallest Range Covering K Lists | K-way merge + range            |
+| Sliding Window Median           | Two Heaps + lazy deletion      |
+| Maximum Performance of a Team   | Sorting + Min-Heap             |
+| IPO                             | Two Heaps / sorting + Max-Heap |
+| Minimum Cost to Hire K Workers  | Sorting ratio + Max-Heap       |
+| Prim’s Minimum Spanning Tree    | Graph frontier                 |
+| A* Search                       | Priority candidate frontier    |
+
+---
+
+## P3 — Optional Initially
+
+```text
+Indexed Heap implementation
+Fibonacci Heap
+Advanced decrease-key structures
+External-memory heaps
+Pairing Heap
+Custom concurrent priority schedulers
+Hard graph optimizations
+```
+
+These are not required before beginning most Java backend interviews.
+
+---
+
+# 42. 60–70% Priority Queue Interview Coverage
+
+Focus on these five templates:
+
+| Priority | Template                         | Interview Weight |
+| -------- | -------------------------------- | ---------------- |
+| P0       | Fixed-size Heap for Top K/Kth    | Very High        |
+| P0       | Frequency Map + Heap             | Very High        |
+| P0       | Repeated Min/Max processing      | High             |
+| P1       | K-way merge                      | High             |
+| P1       | Scheduling by end/available time | High             |
+| P1       | Two Heaps                        | Medium-High      |
+| P1       | Dijkstra frontier                | Medium-High      |
+| P2       | Lazy deletion / indexed removal  | Medium           |
+| P3       | Heap implementation from scratch | Low-Medium       |
+
+For immediate preparation, master:
+
+```text
+1. Kth Largest
+2. Top K Frequent
+3. K Closest Points
+4. Last Stone Weight
+5. Merge K Sorted Lists
+6. Meeting Rooms II
+7. Median from Data Stream
+```
+
+---
+
+# 43. Quick Revision Sheet
+
+## Master shortcut
+
+```text
+Priority Queue = Keep the next best candidate at the root
+```
+
+---
+
+## Top K shortcut
+
+```text
+K largest  → Min-Heap size K
+K smallest → Max-Heap size K
+```
+
+---
+
+## Core operation shortcut
+
+```text
+offer → O(log n)
+poll  → O(log n)
+peek  → O(1)
+```
+
+---
+
+## Five templates
+
+```text
+1. Repeated best-item processing
+2. Fixed-size Top K Heap
+3. Frequency Map + Heap
+4. K-way merge
+5. Two Heaps
+```
+
+---
+
+## Identification shortcut
+
+```text
+Top K?
+Kth?
+Repeated min/max?
+Best next candidate?
+Merge K sorted sources?
+Streaming median?
+Earliest finishing task?
+
+→ Think Priority Queue
+```
+
+---
+
+## Internal shortcut
+
+```text
+Heap = Complete Binary Tree stored as Array
+```
+
+```text
+Parent = (i - 1) / 2
+Left   = 2i + 1
+Right  = 2i + 2
+```
+
+---
+
+# 44. Ten Must-Remember Points
+
+1. Java `PriorityQueue` is a Min-Heap by default.
+2. A custom reverse comparator creates a Max-Heap.
+3. A Heap is partially ordered, not completely sorted.
+4. `peek()` is O(1).
+5. `offer()` and `poll()` are O(log n).
+6. Arbitrary search and removal are O(n).
+7. K largest uses a Min-Heap of size K.
+8. K smallest uses a Max-Heap of size K.
+9. Iterating a PriorityQueue does not return sorted order.
+10. PriorityQueue is in-memory and not a substitute for a distributed message broker.
+
+---
+
+# 45. Ten Common Interview Lines
+
+1. “I identified a Heap because the problem repeatedly requires the next minimum or maximum candidate.”
+2. “Since only the Top K values are needed, sorting the complete input is unnecessary.”
+3. “I will maintain a Min-Heap of size K, where the root represents the weakest selected value.”
+4. “Each insertion or removal costs O(log k), so the total complexity is O(n log k).”
+5. “Java PriorityQueue is a Min-Heap by default.”
+6. “For a Max-Heap, I use a reverse comparator with `Integer.compare` to avoid overflow.”
+7. “A Heap guarantees ordering only between parents and children; it is not fully sorted.”
+8. “For K sorted sources, I keep one current candidate from each source in a Min-Heap.”
+9. “For a streaming median, I maintain a Max-Heap for the lower half and a Min-Heap for the upper half.”
+10. “For distributed processing, I would use durable messaging infrastructure rather than an in-memory PriorityQueue.”
+
+---
+
+# 46. Interview Answer Templates
+
+## General identification answer
+
+> “I identified PriorityQueue because the problem requires the best available candidate repeatedly rather than a complete sorted result. A Heap keeps that candidate at the root, giving O(1) access and O(log n) insertion and removal.”
+
+---
+
+## Top K answer
+
+> “Since the problem requires only K elements, I would not sort the complete input. I maintain a fixed-size Heap of K elements. Every new element is inserted, and when the size exceeds K, I remove the weakest selected element. This gives O(n log k) time and O(k) space.”
+
+---
+
+## K largest answer
+
+> “For K largest elements, I use a Min-Heap of size K. The root is the smallest among the selected K values, so it represents the weakest current candidate and can be removed when a larger value arrives.”
+
+---
+
+## K smallest answer
+
+> “For K smallest elements, I use a Max-Heap of size K. The root is the largest among the selected values, which is the first value that should be removed when a smaller candidate arrives.”
+
+---
+
+## Frequency answer
+
+> “The priority is frequency rather than the value itself, so I first create a HashMap of frequencies and then maintain a Heap ordered by those frequencies.”
+
+---
+
+## K-way merge answer
+
+> “Since every source is already sorted, I only need the current smallest value from each source. I keep those K candidates in a Min-Heap, poll the smallest, and insert the next value from the same source. The complexity becomes O(N log K).”
+
+---
+
+## Median answer
+
+> “I divide the stream into two halves. A Max-Heap stores the lower half and a Min-Heap stores the upper half. After every insertion, I rebalance their sizes. The median is then available directly from one or both Heap roots.”
+
+---
+
+## Dijkstra answer
+
+> “The PriorityQueue represents the graph frontier ordered by current distance. I always process the node with the smallest known distance and add improved neighbour states. Since Java PriorityQueue has no efficient decrease-key, I insert a new state and skip stale entries later.”
+
+---
+
+## Java-specific answer
+
+> “Java PriorityQueue is Min-Heap-based, allows duplicates, does not allow nulls, is not thread-safe and does not provide sorted iteration. For a Max-Heap, I provide a reverse comparator.”
+
+---
+
+## Project answer
+
+> “In a Spring Boot application, PriorityQueue can be useful for local in-memory ordering, such as choosing the next retry or maintaining Top K metrics. However, I would not use it as a distributed job queue because it provides no durability, acknowledgements or cross-instance coordination.”
+
+---
+
+# 47. Five Debugging Flows
+
+```text
+Wrong Kth answer
+→ Check Min-Heap vs Max-Heap
+→ Check size limit K
+→ Check when poll is called
+```
+
+```text
+Output not sorted
+→ Check whether Heap was directly iterated
+→ Poll repeatedly or sort final result
+```
+
+```text
+Comparator behaves incorrectly
+→ Check subtraction overflow
+→ Use Integer.compare or Long.compare
+```
+
+```text
+Task order changes unexpectedly
+→ Check equal priorities
+→ Add sequence/time tie-breaker
+```
+
+```text
+Dijkstra processes old distances
+→ Check for duplicate Heap states
+→ Skip entries whose distance is stale
+```
+
+---
+
+# 48. Priority Queue Pattern Comparison
+
+| Problem characteristic    | Preferred pattern |
+| ------------------------- | ----------------- |
+| Pair or complement lookup | HashMap           |
+| Opposite-end movement     | Two Pointers      |
+| Contiguous valid range    | Sliding Window    |
+| Exact range accumulation  | Prefix Sum        |
+| Best contiguous sum       | Kadane            |
+| Sorted/monotonic search   | Binary Search     |
+| Repeated next min/max     | Priority Queue    |
+| Top K / Kth               | Priority Queue    |
+| Sliding-window maximum    | Monotonic Deque   |
+| Complete sorting          | Sorting           |
+| Arbitrary ordered lookup  | TreeMap/TreeSet   |
+| FIFO processing           | Queue             |
+| LIFO processing           | Stack             |
+
+---
+
+# 49. Pattern Interaction With Previously Covered Topics
+
+## Priority Queue + HashMap
+
+Used for:
+
+```text
+Top K Frequent Elements
+Task Scheduler
+Reorganize String
+```
+
+Flow:
+
+```text
+Frequency Map
+→ Heap ordered by frequency
+```
+
+---
+
+## Priority Queue + Sorting
+
+Used for:
+
+```text
+Meeting Rooms II
+Maximum Performance of a Team
+IPO
+Scheduling problems
+```
+
+Flow:
+
+```text
+Sort by one property
+→ Heap by another property
+```
+
+Example:
+
+```text
+Sort meetings by start time
+Heap by end time
+```
+
+---
+
+## Priority Queue + Graph
+
+Used for:
+
+```text
+Dijkstra
+Prim
+Best-first search
+```
+
+Flow:
+
+```text
+Graph neighbours
+→ Candidate states
+→ Heap chooses best candidate
+```
+
+---
+
+## Priority Queue + Sliding Window
+
+Sometimes used for:
+
+```text
+Sliding Window Median
+Sliding Window Maximum using lazy deletion
+```
+
+But:
+
+```text
+Maximum/minimum only → Monotonic Deque is usually better
+Median → Two Heaps
+```
+
+---
+
+## Priority Queue + Greedy
+
+Many Heap problems are actually:
+
+```text
+Greedy choice + Priority Queue implementation
+```
+
+Examples:
+
+```text
+Connect Ropes
+Task Scheduler
+Meeting Rooms
+Furthest Building
+Huffman Coding
+```
+
+Mental model:
+
+```text
+Greedy decides which candidate should be chosen.
+
+Priority Queue finds that candidate efficiently.
+```
+
+---
+
+# 50. Final Learning Strategy
+
+## Step 1: Memorize the main identity
+
+```text
+Priority Queue = Next best candidate always available at root
+```
+
+---
+
+## Step 2: Memorize Heap direction
+
+```text
+K largest  → Min-Heap size K
+K smallest → Max-Heap size K
+```
+
+---
+
+## Step 3: Understand the five templates
+
+```text
+1. Repeated priority processing
+2. Fixed-size Top K
+3. Frequency + Heap
+4. K-way merge
+5. Two Heaps
+```
+
+---
+
+## Step 4: Code these first
+
+```text
+Kth Largest Element
+Top K Frequent Elements
+K Closest Points
+Last Stone Weight
+Merge K Sorted Lists
+Meeting Rooms II
+Median from Data Stream
+```
+
+---
+
+## Step 5: Practice recognition
+
+For every problem, ask:
+
+```text
+Do I need complete sorting?
+
+Or do I need only:
+- the next best item,
+- the best K items,
+- the kth item,
+- or one candidate from every source?
+```
+
+If only partial priority information is needed:
+
+```text
+Think Heap
+```
+
+---
+
+## Step 6: Explain complexity
+
+Be able to say:
+
+```text
+The Heap contains at most K elements.
+Each Heap operation takes O(log K).
+We process N elements.
+Therefore, time is O(N log K) and space is O(K).
+```
+
+---
+
+## Step 7: Connect with backend experience honestly
+
+Use:
+
+```text
+Top K metrics
+Local retry ordering
+Priority-based local tasks
+Merging sorted streams
+Running response-time median
+Resource availability
+Shortest-path algorithms
+```
+
+But clarify:
+
+```text
+Java PriorityQueue is an in-memory structure,
+not a distributed durable queue.
+```
+
+---
+
+# 51. What Is Enough to Start Interviews
+
+You are sufficiently prepared for most Heap/PriorityQueue interview questions when you can:
+
+```text
+Explain Min-Heap and Max-Heap
+Explain offer, poll and peek complexity
+Identify Top K and repeated-min/max problems
+Choose the correct Heap direction
+Write fixed-size K Heap code
+Use custom comparators safely
+Solve Top K Frequent
+Solve K Closest Points
+Solve Merge K Sorted Lists
+Explain Two Heaps for median
+Explain why iteration is not sorted
+Compare Heap with sorting and TreeMap
+```
+
+---
+
+# 52. What to Skip Initially
+
+Skip until the core templates are strong:
+
+```text
+Writing an indexed Heap from scratch
+Fibonacci Heap
+Advanced decrease-key structures
+Hard sliding-window median implementation
+Complex distributed priority schedulers
+Advanced Prim/Dijkstra variations
+Custom lock-free priority structures
+```
+
+---
+
+# 53. Final Priority Queue Mental Model
+
+```text
+Priority Queue is not used because data must be sorted.
+
+Priority Queue is used because:
+
+1. The best candidate must be available repeatedly.
+2. Only Top K candidates must be preserved.
+3. New candidates arrive dynamically.
+4. Multiple sorted sources must be merged.
+5. Data must be processed according to priority.
+```
+
+Final shortcut:
+
+```text
+One min/max once       → Scan
+Complete sorted result → Sort
+Top K / Kth            → Fixed-size Heap
+Repeated min/max       → Heap
+K sorted sources       → K-way Heap
+Running median         → Two Heaps
+Shortest next state    → Priority Queue frontier
+```
+
+Interview-ready explanation:
+
+> “A PriorityQueue is useful when I do not need complete ordering but repeatedly need the highest-priority candidate. Java implements it using a Heap, so the root is available in O(1), while insertion and removal take O(log n). For Top K problems, I keep the Heap size limited to K, which reduces the complexity to O(n log k).”
