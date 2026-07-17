@@ -13,6 +13,10 @@
 10. [Binary Search](#binary-search--complete-postmortem-for-dsa-interviews)
 11. [Sorting and Searching Techniques](#sorting-and-searching-techniques--complete-postmortem-for-dsa-interviews)
 12. [Priority Queue](#priority-queue--heap--complete-postmortem-for-dsa-interviews)
+13. [Time and Space Complexity](#time--space-complexity--complete-postmortem)
+14. [Greedy Algorithm](#greedy-algorithm-mental-model)
+15. [Tree BFS/DFS](#tree-bfsdfs--complete-postmortem)
+16. [Linked List](#linked-list--complete-postmortem)
 
 
 # Prompt
@@ -30337,3 +30341,466 @@ Shortest next state    → Priority Queue frontier
 Interview-ready explanation:
 
 > “A PriorityQueue is useful when I do not need complete ordering but repeatedly need the highest-priority candidate. Java implements it using a Heap, so the root is available in O(1), while insertion and removal take O(log n). For Top K problems, I keep the Heap size limited to K, which reduces the complexity to O(n log k).”
+
+# Time & Space Complexity — Complete Postmortem
+
+I added the complete chapter to your existing DSA strategy notes and updated the Introduction index with:
+
+```text
+13. Time and Space Complexity
+```
+
+The original notes were used as the base so the new chapter follows the same mental-model-first and interview-focused structure. 
+
+## Master Mental Model
+
+```text
+Time Complexity
+= Input Size
+→ Dominant Operation
+→ Total Execution Count
+→ Remove Constants/Lower Terms
+→ Big-O
+
+Space Complexity
+= Extra Collections
++ Temporary Buffers
++ Recursion Stack
++ Output Space when applicable
+```
+
+## Most Important Shortcut
+
+```text
+Do not count loops blindly.
+
+Count how many times the operation executes
+across the complete algorithm.
+```
+
+For example:
+
+```java
+for (int right = 0; right < n; right++) {
+    while (windowInvalid()) {
+        left++;
+    }
+}
+```
+
+Although one loop is inside another:
+
+```text
+right moves at most n times
+left moves at most n times
+
+Total = n + n = O(n)
+```
+
+It is **not automatically O(n²)**.
+
+## What the Chapter Covers
+
+The completed chapter includes:
+
+* Big O, Big Theta and Big Omega
+* Best, average and worst cases
+* Constants and dominant terms
+* Single, sequential and nested loops
+* Triangular and logarithmic loops
+* Sliding-window aggregate analysis
+* Geometric-series loop calculations
+* Recursion trees and recurrences
+* Master Theorem at interview level
+* Auxiliary, total and output space
+* Recursion-stack calculation
+* Amortized complexity
+* Time-space trade-offs
+* Java collection complexity tables
+* Java String and StringBuilder traps
+* Hidden costs of Java Streams and library methods
+* Array, matrix, tree and graph complexity
+* Backtracking and DP calculations
+* Complexity of every pattern already covered:
+
+  * HashMap
+  * Two Pointers
+  * Sliding Window
+  * Prefix Sum
+  * Kadane
+  * Binary Search
+  * Sorting
+  * PriorityQueue
+* Constraints-to-complexity decision map
+* Backend project examples
+* Production performance versus Big O
+* Debugging flow
+* Common mistakes
+* Interview-ready answers
+* Revision sheet and learning strategy
+
+## Final Interview Answer
+
+> “Time complexity describes how the number of operations grows with input size, while space complexity describes how the algorithm’s extra live memory grows. I first define the input variables, count the dominant operations—including collection and library-call costs—and then simplify constants and lower-order terms. For space, I count growing collections, temporary buffers and recursion depth, and I state separately whether output space is included.”
+
+[Download the updated DSA Strategy notes](sandbox:/mnt/data/dsaStrategy%288%29-with-time-space-complexity.md)
+
+## Greedy Algorithm Mental Model
+
+```text
+Greedy = Make the best safe choice now → Commit permanently → Never undo
+```
+
+The word **safe** is the most important part. Greedy does **not** mean “always choose the biggest or smallest.” You must prove that the local choice cannot make the final answer worse.
+
+### How to identify it
+
+Think Greedy when:
+
+```text
+Optimization problem
++ Candidates can be ordered
++ One locally best choice can be committed now
++ The choice leaves the best possible state for the future
++ No previous decision needs to be reversed
+```
+
+Typical signals:
+
+```text
+Maximum non-overlapping intervals → Earliest finish
+Reach the destination → Farthest reach
+Minimum groups/resources → Sort + pair extremes
+Scheduling under deadlines → Earliest deadline / remove costliest
+Lexicographically smallest result → Monotonic stack
+Repeated highest/lowest priority → PriorityQueue
+```
+
+Avoid forcing Greedy when future decisions depend on remaining capacity, transaction count, or previous selections. Those problems usually require DP, backtracking, or graph search.
+
+I followed the same mental-model-first format as your cumulative DSA notes and added Greedy as the next complete chapter. 
+
+The chapter contains:
+
+* 8 reusable Greedy templates
+* Greedy identification and decision trees
+* Exchange argument, staying-ahead proof, cut property, and invariants
+* 22 important problems with Java solutions
+* Greedy versus DP, Heap, Two Pointers, and Backtracking
+* Counterexamples where Greedy fails
+* Interval, reachability, scheduling, heap, stack, and graph Greedy patterns
+* Debugging flows, interview questions, revision notes, and project mappings
+
+### Files
+
+[Download the complete updated DSA Strategy notes](sandbox:/mnt/data/dsaStrategy%289%29-with-greedy-algorithm.md)
+
+[Download the standalone Greedy Algorithm chapter](sandbox:/mnt/data/Greedy-Algorithm-Complete-Postmortem.md)
+
+# Tree BFS/DFS — Complete Postmortem
+
+I added a complete **Tree BFS/DFS chapter** to your existing DSA Strategy notes, following the same mental-model-first structure used for HashMap, Two Pointers, Sliding Window, Prefix Sum, Binary Search, Heap, and Complexity. 
+
+## Master Mental Model
+
+```text
+Tree Problem
+     ↓
+What information is required?
+     ↓
+Subtree / Depth / Path / BST          Level / Nearest / Distance
+              ↓                                  ↓
+             DFS                                BFS
+              ↓                                  ↓
+Define dfs(node) contract             Define queue-level invariant
+              ↓                                  ↓
+Left → Right → Combine                Process levelSize nodes
+              ↓                                  ↓
+Return result to parent               Add children for next level
+```
+
+## One-Line Shortcut
+
+```text
+DFS = What should this subtree return?
+BFS = What nodes belong to this level?
+```
+
+## How to Identify the Pattern
+
+### Think DFS when the problem asks for
+
+```text
+Height or depth
+Diameter
+Balanced tree
+Subtree result
+Root-to-leaf path
+Path sum
+Lowest common ancestor
+BST validation
+Kth smallest in BST
+Tree comparison or transformation
+```
+
+### Think BFS when the problem asks for
+
+```text
+Level-order traversal
+Minimum depth
+Nearest node
+Right/left side view
+Average or maximum of each level
+Zigzag traversal
+Nodes at distance K
+Level-wise output
+```
+
+## Traversal Timing Shortcut
+
+```text
+Preorder  = Root → Left → Right
+            Parent passes information to children
+
+Inorder   = Left → Root → Right
+            Produces sorted order for a BST
+
+Postorder = Left → Right → Root
+            Children return information to parent
+```
+
+## Three Most Important Templates
+
+### 1. Bottom-Up DFS
+
+```java
+int dfs(TreeNode node) {
+    if (node == null) {
+        return 0;
+    }
+
+    int left = dfs(node.left);
+    int right = dfs(node.right);
+
+    return 1 + Math.max(left, right);
+}
+```
+
+Used for:
+
+```text
+Maximum depth
+Diameter
+Balanced tree
+Maximum path sum
+Subtree aggregation
+```
+
+### 2. Top-Down DFS
+
+```java
+void dfs(TreeNode node, State state) {
+    if (node == null) {
+        return;
+    }
+
+    State nextState = update(state, node);
+
+    dfs(node.left, nextState);
+    dfs(node.right, nextState);
+}
+```
+
+Used for:
+
+```text
+Path Sum
+Root-to-leaf paths
+Running maximum/minimum
+Current depth
+Ancestor-based conditions
+```
+
+### 3. Level-Order BFS
+
+```java
+Queue<TreeNode> queue = new ArrayDeque<>();
+queue.offer(root);
+
+while (!queue.isEmpty()) {
+    int levelSize = queue.size();
+
+    for (int i = 0; i < levelSize; i++) {
+        TreeNode node = queue.poll();
+
+        if (node.left != null) {
+            queue.offer(node.left);
+        }
+
+        if (node.right != null) {
+            queue.offer(node.right);
+        }
+    }
+}
+```
+
+Used for:
+
+```text
+Level order
+Right side view
+Minimum depth
+Level averages
+Zigzag traversal
+Nearest-node problems
+```
+
+## Information-Flow Rule
+
+| Information movement       | Technique             |
+| -------------------------- | --------------------- |
+| Child → Parent             | DFS return value      |
+| Parent → Child             | DFS parameter         |
+| Best answer anywhere       | Global/class variable |
+| Actual current path        | List + backtracking   |
+| Current level → Next level | BFS queue             |
+
+## Complexity
+
+```text
+DFS Time  = O(n)
+DFS Space = O(h)
+
+BFS Time  = O(n)
+BFS Space = O(w)
+```
+
+Where:
+
+```text
+n = number of nodes
+h = tree height
+w = maximum tree width
+```
+
+For a balanced tree:
+
+```text
+DFS space = O(log n)
+```
+
+For a skewed tree:
+
+```text
+DFS space = O(n)
+```
+
+For a complete tree, BFS may store nearly half the nodes at the widest level:
+
+```text
+BFS space = O(n)
+```
+
+## Most Important Interview Problems
+
+### P0 — Must prepare first
+
+1. Maximum Depth of Binary Tree
+2. Same Tree
+3. Symmetric Tree
+4. Invert Binary Tree
+5. Binary Tree Level Order Traversal
+6. Diameter of Binary Tree
+7. Balanced Binary Tree
+8. Path Sum
+9. Validate Binary Search Tree
+10. Lowest Common Ancestor
+11. Right Side View
+12. Kth Smallest Element in BST
+
+### P1 — Prepare next
+
+```text
+Binary Tree Maximum Path Sum
+Subtree of Another Tree
+Minimum Depth
+Zigzag Level Order
+Average of Levels
+Binary Tree Paths
+Path Sum II
+Search in BST
+LCA in BST
+Nodes at Distance K
+```
+
+## Final Interview Explanation
+
+> “For tree problems, I first identify the direction in which information must move. If children must calculate something and return it to their parent, I use bottom-up postorder DFS. If ancestor or path information must move from the parent to children, I use top-down DFS. If the question asks for level-wise information, minimum distance, or the nearest result, I use BFS. I define the recursive contract or queue invariant before writing code, and then explain O(n) traversal time with O(h) DFS-stack or O(w) BFS-queue space.”
+
+The updated file includes detailed diagrams, Java templates, DFS and BFS problem families, BST patterns, path backtracking, diameter and maximum-path patterns, debugging flows, common mistakes, project mappings, interview answers, revision notes, and the learning sequence.
+
+[Download the updated DSA Strategy notes](sandbox:/mnt/data/dsaStrategy%2810%29-with-tree-bfs-dfs.md)
+
+# Linked List — Complete Postmortem
+
+I’ve added a complete **Linked List chapter** to your existing DSA strategy notes and updated the table of contents. It follows the same mental-model-first structure as your previously covered DSA patterns. 
+
+## Master Mental Model
+
+```text
+Linked List = Save next → Rewire link → Move pointers → Preserve remaining chain
+```
+
+## How to Identify the Pattern
+
+| Problem Signal                  | Pattern                                  |
+| ------------------------------- | ---------------------------------------- |
+| Reverse complete/partial list   | `prev → current → next`                  |
+| Head may be deleted or replaced | Dummy/sentinel node                      |
+| Find middle                     | Slow-fast pointers                       |
+| Detect cycle                    | Floyd’s slow-fast algorithm              |
+| Find cycle beginning            | Meet → reset one pointer → move both     |
+| Nth node from end               | Fixed-gap pointers                       |
+| Merge sorted lists              | Dummy + tail + two pointers              |
+| Palindrome                      | Middle → reverse second half → compare   |
+| Reorder list                    | Middle → reverse → alternate merge       |
+| Intersection                    | Pointer switching + reference comparison |
+| Partition list                  | Build two temporary chains               |
+| Complex/random pointer          | HashMap or interleaving                  |
+
+## Five Templates to Memorize
+
+```text
+1. Traversal
+2. Reverse using prev-current-next
+3. Slow-fast pointers
+4. Dummy + deletion/fixed gap
+5. Merge using dummy and tail
+```
+
+## Core Interview Problems Covered
+
+The chapter includes detailed diagrams, Java code, dry runs, complexity, identification signals, debugging, and interview explanations for:
+
+* Reverse Linked List
+* Middle of Linked List
+* Linked List Cycle
+* Linked List Cycle II
+* Merge Two Sorted Lists
+* Remove Nth Node From End
+* Intersection of Two Linked Lists
+* Palindrome Linked List
+* Reorder List
+* Partition List
+* Add Two Numbers
+* Remove Duplicates
+* Remove All Duplicate Values
+* Reverse Linked List II
+* Copy List With Random Pointer
+* Sort List
+* Merge K Sorted Lists
+* Reverse Nodes in K Group
+
+It also covers Java `LinkedList` internals, `LinkedList` vs `ArrayList`, `LinkedList` vs `ArrayDeque`, LRU Cache design, pointer invariants, null safety, common bugs, project mapping, priority roadmap, revision sheets, and interview-ready answers.
+
+[Download the updated DSA Strategy with Linked List chapter](sandbox:/mnt/data/dsaStrategy%2811%29-with-linked-list.md)
