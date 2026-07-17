@@ -14,7 +14,7 @@
 11. [Sorting and Searching Techniques](#sorting-and-searching-techniques--complete-postmortem-for-dsa-interviews)
 12. [Priority Queue](#priority-queue--heap--complete-postmortem-for-dsa-interviews)
 13. [Time and Space Complexity](#time--space-complexity--complete-postmortem)
-14. [Greedy Algorithm](#greedy-algorithm-mental-model)
+14. [Greedy Algorithm](#greedy-algorithm--complete-postmortem-for-dsa-interviews)
 15. [Tree BFS/DFS](#tree-bfsdfs--complete-postmortem)
 16. [Linked List](#linked-list--complete-postmortem)
 
@@ -30445,57 +30445,2611 @@ The completed chapter includes:
 
 [Download the updated DSA Strategy notes](sandbox:/mnt/data/dsaStrategy%288%29-with-time-space-complexity.md)
 
-## Greedy Algorithm Mental Model
+Your existing DSA notes classify Greedy among the later interview patterns and already connect it with sorting, intervals, heaps, and feasibility checks. This section expands Greedy into a complete standalone mental model that you can add to those notes. 
+
+# Greedy Algorithm — Complete Postmortem for DSA Interviews
+
+# 1. What Is a Greedy Algorithm?
+
+A Greedy algorithm builds the solution step by step by making the **best valid choice available at the current moment**, without revisiting previous decisions.
 
 ```text
-Greedy = Make the best safe choice now → Commit permanently → Never undo
+Greedy = Best valid choice now → Commit → Move forward
 ```
 
-The word **safe** is the most important part. Greedy does **not** mean “always choose the biggest or smallest.” You must prove that the local choice cannot make the final answer worse.
-
-### How to identify it
-
-Think Greedy when:
+Simple examples:
 
 ```text
-Optimization problem
-+ Candidates can be ordered
-+ One locally best choice can be committed now
-+ The choice leaves the best possible state for the future
-+ No previous decision needs to be reversed
+Select the meeting that finishes earliest.
+Give a cookie to the least-demanding child first.
+At every index, maintain the farthest position reachable.
+Choose the minimum number of intervals to remove.
 ```
 
-Typical signals:
+The most important warning:
 
 ```text
-Maximum non-overlapping intervals → Earliest finish
-Reach the destination → Farthest reach
-Minimum groups/resources → Sort + pair extremes
-Scheduling under deadlines → Earliest deadline / remove costliest
-Lexicographically smallest result → Monotonic stack
-Repeated highest/lowest priority → PriorityQueue
+Local best choice does not always produce the global best answer.
 ```
 
-Avoid forcing Greedy when future decisions depend on remaining capacity, transaction count, or previous selections. Those problems usually require DP, backtracking, or graph search.
+Therefore:
 
-I followed the same mental-model-first format as your cumulative DSA notes and added Greedy as the next complete chapter. 
+> Greedy is not simply “choose minimum” or “choose maximum.”
+> Greedy works only when the local choice can be proven safe.
 
-The chapter contains:
+---
 
-* 8 reusable Greedy templates
-* Greedy identification and decision trees
-* Exchange argument, staying-ahead proof, cut property, and invariants
-* 22 important problems with Java solutions
-* Greedy versus DP, Heap, Two Pointers, and Backtracking
-* Counterexamples where Greedy fails
-* Interval, reachability, scheduling, heap, stack, and graph Greedy patterns
-* Debugging flows, interview questions, revision notes, and project mappings
+# 2. Core Mental Model
 
-### Files
+## One-line mental shortcut
 
-[Download the complete updated DSA Strategy notes](sandbox:/mnt/data/dsaStrategy%289%29-with-greedy-algorithm.md)
+```text
+Greedy = Define the safest local choice → Commit permanently → Preserve future options
+```
 
-[Download the standalone Greedy Algorithm chapter](sandbox:/mnt/data/Greedy-Algorithm-Complete-Postmortem.md)
+An even stronger shortcut:
+
+```text
+Greedy = Local best choice that leaves maximum freedom for the future
+```
+
+Examples:
+
+```text
+Meeting scheduling:
+Choose the meeting ending earliest
+→ leaves maximum time for future meetings.
+
+Minimum arrows:
+Shoot at the earliest ending balloon
+→ maximizes the chance that the same arrow hits later balloons.
+
+Assign cookies:
+Use the smallest sufficient cookie
+→ save larger cookies for more demanding children.
+```
+
+---
+
+# 3. Master Greedy Mental Model
+
+```mermaid
+flowchart TD
+    A[Optimization Problem] --> B[Understand Goal]
+
+    B --> C{Can solution be built through choices?}
+    C -- No --> D[Consider another pattern]
+    C -- Yes --> E[Identify possible local choices]
+
+    E --> F{Is there a safest or best current choice?}
+    F -- No --> D
+    F -- Yes --> G[Define Greedy Rule]
+
+    G --> H{Does this choice preserve an optimal solution?}
+    H -- No / Cannot Prove --> I[Try DP, Backtracking or Search]
+    H -- Yes --> J[Sort or Select by Greedy Criterion]
+
+    J --> K[Make Choice]
+    K --> L[Update State / Boundary / Resources]
+
+    L --> M{More candidates?}
+    M -- Yes --> J
+    M -- No --> N[Return Global Result]
+
+    N --> O[Explain Correctness]
+    O --> O1[Greedy Choice Property]
+    O --> O2[Optimal Substructure]
+    O --> O3[Exchange Argument]
+```
+
+---
+
+# 4. What Greedy Actually Requires
+
+A Greedy solution normally requires two properties.
+
+## Property 1: Greedy-choice property
+
+A globally optimal solution can be obtained after making the greedy choice first.
+
+In simple language:
+
+```text
+The choice that looks best now is safe.
+It does not destroy the possibility of reaching the optimal answer.
+```
+
+Example:
+
+```text
+Maximum number of non-overlapping meetings:
+
+Choosing the meeting with the earliest finishing time is safe because
+it leaves the largest remaining timeline for future meetings.
+```
+
+---
+
+## Property 2: Optimal substructure
+
+After making the greedy choice, the remaining problem should still be an optimization problem of the same type.
+
+Example:
+
+```text
+After selecting the earliest-ending meeting,
+we need to select the maximum number of meetings
+from the remaining compatible meetings.
+```
+
+That is the same problem on a smaller input.
+
+---
+
+# 5. The Most Important Greedy Insight
+
+Before applying Greedy, ask:
+
+> “Why can I permanently commit to this choice without checking all future combinations?”
+
+A valid Greedy explanation should contain:
+
+```text
+1. What choice am I making?
+2. Why is this choice safe?
+3. What future options does it preserve?
+4. Why is reconsideration unnecessary?
+```
+
+Weak explanation:
+
+> “I selected the smallest value because this is Greedy.”
+
+Strong explanation:
+
+> “I selected the interval with the earliest finishing time because it blocks the least amount of future timeline. Any optimal solution beginning with a later-finishing interval can replace it with this interval without reducing the number of selected intervals.”
+
+---
+
+# 6. How to Identify Greedy Problems
+
+Look for the following signals.
+
+| Problem Signal                       | Possible Greedy Interpretation            |
+| ------------------------------------ | ----------------------------------------- |
+| Maximum/minimum number of activities | Sort and select                           |
+| Non-overlapping intervals            | Earliest finishing time                   |
+| Minimum intervals to remove          | Keep maximum compatible intervals         |
+| Minimum arrows/platforms/resources   | Sort boundaries or use heap               |
+| Can reach the end                    | Maintain farthest reachable position      |
+| Minimum jumps                        | Process current reachable range           |
+| Assign resources to requests         | Match smallest sufficient resource        |
+| Buy/sell multiple times              | Take every positive incremental gain      |
+| Rearrange characters/tasks           | Select highest-frequency valid item       |
+| Select maximum jobs before deadline  | Sort plus heap                            |
+| Minimize total merging cost          | Repeatedly combine smallest values        |
+| Circular start position              | Reset start when current balance fails    |
+| Partition into valid segments        | Track last required boundary              |
+| Every decision appears irreversible  | Greedy may apply                          |
+| Need global combinations             | Greedy may fail; consider DP/backtracking |
+
+---
+
+# 7. Greedy Identification Decision Tree
+
+```mermaid
+flowchart TD
+    A[New Problem] --> B{Optimization Goal?}
+
+    B -- No --> C[Probably not Greedy]
+    B -- Yes --> D{Can answer be built one decision at a time?}
+
+    D -- No --> E[DP / Binary Search / Graph / Other]
+    D -- Yes --> F{What kind of decision?}
+
+    F --> G[Select intervals or activities]
+    G --> G1[Sort by start/end time]
+
+    F --> H[Assign limited resources]
+    H --> H1[Sort both sides and match]
+
+    F --> I[Reachability or movement]
+    I --> I1[Maintain farthest boundary]
+
+    F --> J[Maximize incremental profit]
+    J --> J1[Take every safe positive gain]
+
+    F --> K[Need best candidate dynamically]
+    K --> K1[Greedy + Heap]
+
+    F --> L[Need minimum groups/resources]
+    L --> L1[Sort events / Heap / Sweep line]
+
+    G1 --> M{Can local choice be proven safe?}
+    H1 --> M
+    I1 --> M
+    J1 --> M
+    K1 --> M
+    L1 --> M
+
+    M -- Yes --> N[Apply Greedy]
+    M -- No --> O[Try DP or exhaustive search]
+```
+
+---
+
+# 8. Greedy vs Other Patterns
+
+## Greedy vs Dynamic Programming
+
+| Greedy                                | Dynamic Programming                      |
+| ------------------------------------- | ---------------------------------------- |
+| Makes one choice and commits          | Evaluates multiple states/choices        |
+| Does not reconsider decisions         | Stores and compares subproblem results   |
+| Usually simpler and faster            | Usually more memory and state management |
+| Requires greedy-choice proof          | Requires state and transition            |
+| Often O(n) or O(n log n)              | Often O(n²), O(n × state), etc.          |
+| May fail if choices interact globally | Handles interacting decisions            |
+
+Mental shortcut:
+
+```text
+Greedy asks:
+“What is the safest choice right now?”
+
+DP asks:
+“What are all meaningful states, and which transition gives the best answer?”
+```
+
+Example where Greedy works:
+
+```text
+Fractional Knapsack
+→ choose maximum value/weight ratio.
+```
+
+Example where Greedy fails:
+
+```text
+0/1 Knapsack
+→ taking the highest ratio item may block a better combination.
+```
+
+---
+
+## Greedy vs Backtracking
+
+```text
+Greedy:
+Choose one path and never undo.
+
+Backtracking:
+Choose → Explore → Undo → Try another choice.
+```
+
+Use Backtracking when:
+
+```text
+Multiple combinations may be valid
+Choices can invalidate future possibilities
+All possible arrangements may need exploration
+```
+
+---
+
+## Greedy vs Binary Search on Answer
+
+Binary Search on Answer often uses a Greedy function.
+
+Example:
+
+```text
+Ship Packages Within D Days
+
+Binary Search:
+Guess capacity.
+
+Greedy feasibility:
+Load packages sequentially and count required days.
+```
+
+Mental model:
+
+```text
+Binary Search decides which answer to test.
+Greedy decides whether that answer is feasible.
+```
+
+---
+
+## Greedy vs Heap
+
+A heap is a data structure, while Greedy is a strategy.
+
+```text
+Greedy rule:
+Always process the best currently available candidate.
+
+Heap:
+Efficiently provides that candidate.
+```
+
+Examples:
+
+```text
+Task Scheduler
+Course Schedule III
+Minimum Cost to Connect Ropes
+Reorganize String
+Meeting Rooms II
+```
+
+---
+
+# 9. The Four Most Important Greedy Templates
+
+Most interview Greedy problems can be organized under four templates.
+
+```text
+Template 1: Sort + Select
+Template 2: Greedy Boundary / Reachability
+Template 3: Greedy Resource Matching
+Template 4: Greedy + Heap
+```
+
+---
+
+# 10. Template 1 — Sort + Select
+
+Use when:
+
+```text
+Candidates must be chosen in a strategic order.
+The original order does not help.
+The correct order makes a safe decision obvious.
+```
+
+General flow:
+
+```text
+Sort by greedy criterion
+→ Scan candidates
+→ Accept candidate if compatible
+→ Update last selected state
+```
+
+Java skeleton:
+
+```java
+Arrays.sort(items, comparator);
+
+int answer = 0;
+int boundary = initialBoundary;
+
+for (Item item : items) {
+    if (isCompatible(item, boundary)) {
+        answer++;
+        boundary = updateBoundary(item);
+    }
+}
+```
+
+Common problems:
+
+```text
+Activity Selection
+Non-overlapping Intervals
+Minimum Number of Arrows
+Maximum Length Chain
+Meeting Rooms
+Job Sequencing
+Fractional Knapsack
+```
+
+---
+
+# 11. Choosing the Correct Sorting Criterion
+
+Sorting itself is not the Greedy logic.
+
+The critical question is:
+
+> “Which field should I sort by, and why?”
+
+| Objective                                | Common Sorting Criterion       | Reason                                             |
+| ---------------------------------------- | ------------------------------ | -------------------------------------------------- |
+| Select maximum non-overlapping intervals | End ascending                  | Finish early and preserve future space             |
+| Remove minimum overlapping intervals     | End ascending                  | Equivalent to keeping maximum compatible intervals |
+| Merge intervals                          | Start ascending                | Overlapping intervals become adjacent              |
+| Minimum arrows for balloons              | End ascending                  | Shoot at earliest possible ending point            |
+| Assign cookies                           | Requirement and size ascending | Use smallest sufficient resource                   |
+| Fractional knapsack                      | Ratio descending               | Maximum value gained per unit capacity             |
+| Job sequencing                           | Profit descending              | Consider valuable jobs first                       |
+| Form largest number                      | Custom string comparator       | Choose concatenation order                         |
+| Schedule maximum courses                 | End/deadline ascending         | Respect the earliest deadline first                |
+| Minimum cost to connect ropes            | Value ascending through heap   | Merge smallest costs first                         |
+
+A wrong comparator usually produces a wrong Greedy algorithm.
+
+---
+
+# 12. Template 2 — Greedy Boundary / Reachability
+
+Use when:
+
+```text
+The problem asks how far we can reach.
+Each element expands or restricts a boundary.
+We do not need the exact path, only feasibility or minimum steps.
+```
+
+General flow:
+
+```text
+Maintain best boundary achieved so far
+→ At each position, update boundary
+→ If current position exceeds boundary, fail
+```
+
+Java skeleton:
+
+```java
+int farthest = 0;
+
+for (int i = 0; i < nums.length; i++) {
+    if (i > farthest) {
+        return false;
+    }
+
+    farthest = Math.max(farthest, i + nums[i]);
+}
+
+return true;
+```
+
+Common problems:
+
+```text
+Jump Game
+Jump Game II
+Gas Station
+Partition Labels
+Candy
+Can Place Flowers
+Minimum Number of Taps
+```
+
+---
+
+# 13. Template 3 — Greedy Resource Matching
+
+Use when:
+
+```text
+There are requests and resources.
+Each resource can satisfy certain requests.
+We want to maximize satisfied requests or minimize waste.
+```
+
+General strategy:
+
+```text
+Sort requests
+Sort resources
+Use the smallest sufficient resource for the smallest pending request
+```
+
+Why?
+
+```text
+Using a larger resource unnecessarily may prevent a harder request
+from being satisfied later.
+```
+
+Java skeleton:
+
+```java
+Arrays.sort(requirements);
+Arrays.sort(resources);
+
+int request = 0;
+int resource = 0;
+
+while (request < requirements.length &&
+       resource < resources.length) {
+
+    if (resources[resource] >= requirements[request]) {
+        request++;
+    }
+
+    resource++;
+}
+
+return request;
+```
+
+Common problems:
+
+```text
+Assign Cookies
+Boats to Save People
+Minimum Platforms
+Task Assignment
+Matching workers and jobs
+```
+
+---
+
+# 14. Template 4 — Greedy + Heap
+
+Use when:
+
+```text
+The best candidate changes dynamically.
+Several candidates become available over time.
+We repeatedly need the smallest/largest valid candidate.
+```
+
+General flow:
+
+```text
+Sort by availability/deadline
+→ Add eligible candidates to heap
+→ Select or remove best candidate
+→ Continue
+```
+
+Skeleton:
+
+```java
+Arrays.sort(items, comparator);
+PriorityQueue<Integer> heap = new PriorityQueue<>();
+
+for (Item item : items) {
+    heap.offer(item.value);
+
+    if (invalidState(heap, item)) {
+        heap.poll();
+    }
+}
+```
+
+Common problems:
+
+```text
+Course Schedule III
+Meeting Rooms II
+Task Scheduler
+Reorganize String
+Minimum Cost to Connect Ropes
+IPO
+Maximum Performance of a Team
+```
+
+---
+
+# 15. Three Ways to Prove a Greedy Solution
+
+In interviews, you normally do not need a mathematical proof, but you should provide convincing reasoning.
+
+## Method 1: Exchange argument
+
+Show that any optimal solution can replace its first choice with your Greedy choice without becoming worse.
+
+Example:
+
+```text
+Suppose an optimal meeting schedule starts with meeting X.
+
+Greedy selected meeting G, which finishes no later than X.
+
+Replace X with G.
+
+The remaining meetings are still possible because G finishes earlier.
+
+Therefore, an optimal solution exists that starts with G.
+```
+
+---
+
+## Method 2: Staying-ahead argument
+
+Show that after every step, the Greedy solution is at least as good as any competing solution.
+
+Example:
+
+```text
+In Jump Game, farthest always represents the maximum position
+reachable using all choices processed so far.
+```
+
+---
+
+## Method 3: Contradiction
+
+Assume that not making the Greedy choice is better, and show that it leads to an impossible or inferior result.
+
+Example:
+
+```text
+If we use a larger cookie when a smaller cookie is sufficient,
+the smaller cookie cannot help a more demanding child later,
+but the larger cookie may have helped.
+
+Therefore, using the smallest sufficient cookie is never worse.
+```
+
+---
+
+# 16. Interval Greedy Mental Model
+
+Intervals are the most important Greedy category.
+
+```mermaid
+flowchart TD
+    A[Interval Problem] --> B{Objective?}
+
+    B --> C[Merge all overlaps]
+    C --> C1[Sort by start]
+
+    B --> D[Maximum non-overlapping intervals]
+    D --> D1[Sort by end]
+
+    B --> E[Minimum intervals to remove]
+    E --> E1[Keep maximum non-overlapping]
+    E1 --> E2[Sort by end]
+
+    B --> F[Minimum points/arrows to cover intervals]
+    F --> F1[Sort by end]
+
+    B --> G[Minimum simultaneous resources]
+    G --> G1[Sort starts and ends / Min Heap]
+
+    B --> H[Insert a new interval]
+    H --> H1[Scan before, merge overlap, append after]
+```
+
+Critical distinction:
+
+```text
+Merge intervals:
+Sort by start time.
+
+Select maximum compatible intervals:
+Sort by end time.
+```
+
+---
+
+# 17. Problem 1 — Activity Selection
+
+## Problem
+
+Select the maximum number of non-overlapping activities.
+
+## Greedy rule
+
+```text
+Always select the activity that finishes earliest.
+```
+
+## Why not earliest start?
+
+A meeting may start early but occupy the entire day.
+
+Example:
+
+```text
+A = [1, 10]
+B = [2, 3]
+C = [4, 5]
+D = [6, 7]
+
+Choosing earliest start:
+A only
+
+Choosing earliest end:
+B, C, D
+```
+
+## Java solution
+
+```java
+import java.util.Arrays;
+
+public class ActivitySelection {
+
+    public static int maxActivities(int[][] activities) {
+        if (activities == null || activities.length == 0) {
+            return 0;
+        }
+
+        Arrays.sort(
+            activities,
+            (a, b) -> Integer.compare(a[1], b[1])
+        );
+
+        int count = 1;
+        int previousEnd = activities[0][1];
+
+        for (int i = 1; i < activities.length; i++) {
+            if (activities[i][0] >= previousEnd) {
+                count++;
+                previousEnd = activities[i][1];
+            }
+        }
+
+        return count;
+    }
+}
+```
+
+Complexity:
+
+```text
+Sorting: O(n log n)
+Scanning: O(n)
+Total: O(n log n)
+Space: O(1), excluding sorting implementation
+```
+
+Interview explanation:
+
+> “I sort activities by finishing time and always choose the earliest-finishing compatible activity. This leaves the maximum remaining time for future activities.”
+
+---
+
+# 18. Problem 2 — Non-overlapping Intervals
+
+## Problem
+
+Find the minimum number of intervals to remove so that the remaining intervals do not overlap.
+
+## Transformation
+
+```text
+Minimum removals
+= Total intervals − Maximum non-overlapping intervals
+```
+
+## Java solution
+
+```java
+import java.util.Arrays;
+
+public class NonOverlappingIntervals {
+
+    public int eraseOverlapIntervals(int[][] intervals) {
+        if (intervals == null || intervals.length == 0) {
+            return 0;
+        }
+
+        Arrays.sort(
+            intervals,
+            (a, b) -> Integer.compare(a[1], b[1])
+        );
+
+        int kept = 1;
+        int previousEnd = intervals[0][1];
+
+        for (int i = 1; i < intervals.length; i++) {
+            if (intervals[i][0] >= previousEnd) {
+                kept++;
+                previousEnd = intervals[i][1];
+            }
+        }
+
+        return intervals.length - kept;
+    }
+}
+```
+
+Alternative Greedy interpretation:
+
+```text
+When two intervals overlap,
+remove the one ending later.
+```
+
+Why?
+
+```text
+The interval ending earlier leaves more room for future intervals.
+```
+
+---
+
+# 19. Problem 3 — Minimum Number of Arrows
+
+## Problem
+
+Each balloon is represented by an interval. One arrow shot at coordinate `x` bursts every balloon containing `x`.
+
+Find the minimum number of arrows.
+
+## Greedy rule
+
+```text
+Sort balloons by ending position.
+Shoot an arrow at the first balloon’s end.
+Reuse the arrow while subsequent balloons contain that point.
+```
+
+## Java solution
+
+```java
+import java.util.Arrays;
+
+public class MinimumArrows {
+
+    public int findMinArrowShots(int[][] points) {
+        if (points == null || points.length == 0) {
+            return 0;
+        }
+
+        Arrays.sort(
+            points,
+            (a, b) -> Integer.compare(a[1], b[1])
+        );
+
+        int arrows = 1;
+        int arrowPosition = points[0][1];
+
+        for (int i = 1; i < points.length; i++) {
+            if (points[i][0] > arrowPosition) {
+                arrows++;
+                arrowPosition = points[i][1];
+            }
+        }
+
+        return arrows;
+    }
+}
+```
+
+Interview line:
+
+> “I shoot at the earliest ending point because this point covers the current balloon while providing the greatest possibility of covering future overlapping balloons.”
+
+---
+
+# 20. Problem 4 — Assign Cookies
+
+## Problem
+
+Each child has a greed factor. Each cookie has a size. A child is satisfied if cookie size is at least the greed factor.
+
+Maximize satisfied children.
+
+## Greedy rule
+
+```text
+Give the smallest sufficient cookie to the least-demanding unsatisfied child.
+```
+
+## Java solution
+
+```java
+import java.util.Arrays;
+
+public class AssignCookies {
+
+    public int findContentChildren(int[] greed, int[] cookies) {
+        Arrays.sort(greed);
+        Arrays.sort(cookies);
+
+        int child = 0;
+        int cookie = 0;
+
+        while (child < greed.length && cookie < cookies.length) {
+            if (cookies[cookie] >= greed[child]) {
+                child++;
+            }
+
+            cookie++;
+        }
+
+        return child;
+    }
+}
+```
+
+Complexity:
+
+```text
+O(n log n + m log m)
+```
+
+Proof intuition:
+
+```text
+A small cookie cannot satisfy a more demanding child.
+Therefore, when it satisfies the current least-demanding child,
+using it is safe and preserves larger cookies.
+```
+
+---
+
+# 21. Problem 5 — Jump Game
+
+## Problem
+
+`nums[i]` tells the maximum distance you can jump from index `i`.
+
+Determine whether the last index is reachable.
+
+## Greedy state
+
+```text
+farthest = farthest index reachable so far
+```
+
+## Java solution
+
+```java
+public class JumpGame {
+
+    public boolean canJump(int[] nums) {
+        int farthest = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            if (i > farthest) {
+                return false;
+            }
+
+            farthest = Math.max(farthest, i + nums[i]);
+
+            if (farthest >= nums.length - 1) {
+                return true;
+            }
+        }
+
+        return true;
+    }
+}
+```
+
+## Dry run
+
+```text
+nums = [2, 3, 1, 1, 4]
+
+i = 0 → farthest = 2
+i = 1 → farthest = 4
+last index is reachable
+```
+
+Failure:
+
+```text
+nums = [3, 2, 1, 0, 4]
+
+farthest becomes 3.
+At index 4, i > farthest.
+Therefore unreachable.
+```
+
+Interview explanation:
+
+> “I do not need to decide the exact jump path. I only maintain the farthest index reachable using all positions processed so far.”
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+---
+
+# 22. Problem 6 — Jump Game II
+
+## Problem
+
+Find the minimum number of jumps required to reach the last index.
+
+## Mental model
+
+This is similar to level-order traversal.
+
+```text
+Current range = positions reachable using current number of jumps
+Farthest = positions reachable using one additional jump
+```
+
+```mermaid
+flowchart LR
+    A[Current Jump Range] --> B[Scan Every Position in Range]
+    B --> C[Calculate Farthest Next Reach]
+    C --> D[Reach End of Current Range]
+    D --> E[Increase Jump Count]
+    E --> F[Current End = Farthest]
+```
+
+## Java solution
+
+```java
+public class JumpGameTwo {
+
+    public int jump(int[] nums) {
+        if (nums == null || nums.length <= 1) {
+            return 0;
+        }
+
+        int jumps = 0;
+        int currentEnd = 0;
+        int farthest = 0;
+
+        for (int i = 0; i < nums.length - 1; i++) {
+            farthest = Math.max(farthest, i + nums[i]);
+
+            if (i == currentEnd) {
+                jumps++;
+                currentEnd = farthest;
+            }
+        }
+
+        return jumps;
+    }
+}
+```
+
+Mental shortcut:
+
+```text
+Scan current jump range
+→ collect maximum next reach
+→ when range ends, commit one jump
+```
+
+---
+
+# 23. Problem 7 — Gas Station
+
+## Problem
+
+There are circular gas stations.
+
+At station `i`:
+
+```text
+gain = gas[i] − cost[i]
+```
+
+Find a starting station from which the full circuit is possible.
+
+## Two Greedy observations
+
+### Observation 1
+
+```text
+If total gas < total cost,
+no solution exists.
+```
+
+### Observation 2
+
+If starting from `start`, the running balance becomes negative at index `i`, then:
+
+```text
+None of start, start + 1, ..., i can be a valid starting point.
+```
+
+Therefore:
+
+```text
+Reset start = i + 1
+```
+
+## Java solution
+
+```java
+public class GasStation {
+
+    public int canCompleteCircuit(int[] gas, int[] cost) {
+        int totalBalance = 0;
+        int currentBalance = 0;
+        int start = 0;
+
+        for (int i = 0; i < gas.length; i++) {
+            int gain = gas[i] - cost[i];
+
+            totalBalance += gain;
+            currentBalance += gain;
+
+            if (currentBalance < 0) {
+                start = i + 1;
+                currentBalance = 0;
+            }
+        }
+
+        return totalBalance >= 0 ? start : -1;
+    }
+}
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+Interview explanation:
+
+> “If the running balance becomes negative, the current start and every station after it up to the failure point are invalid. I therefore reset the candidate start to the next station.”
+
+---
+
+# 24. Problem 8 — Best Time to Buy and Sell Stock II
+
+## Problem
+
+You may perform multiple transactions, but can hold only one stock at a time.
+
+## Greedy rule
+
+```text
+Take every positive day-to-day price increase.
+```
+
+Example:
+
+```text
+Prices: 1 → 3 → 5
+
+One transaction:
+5 − 1 = 4
+
+Daily gains:
+(3 − 1) + (5 − 3) = 4
+```
+
+Therefore, every increasing segment can be decomposed into positive adjacent gains.
+
+## Java solution
+
+```java
+public class StockTwo {
+
+    public int maxProfit(int[] prices) {
+        int profit = 0;
+
+        for (int i = 1; i < prices.length; i++) {
+            if (prices[i] > prices[i - 1]) {
+                profit += prices[i] - prices[i - 1];
+            }
+        }
+
+        return profit;
+    }
+}
+```
+
+Complexity:
+
+```text
+Time: O(n)
+Space: O(1)
+```
+
+Important distinction:
+
+```text
+Stock I:
+Only one transaction
+→ track minimum price and maximum profit.
+
+Stock II:
+Unlimited transactions
+→ accumulate every positive increase.
+
+Stock with cooldown/fee/limited transactions:
+Usually DP.
+```
+
+---
+
+# 25. Problem 9 — Partition Labels
+
+## Problem
+
+Partition a string so that each character appears in at most one partition.
+
+## Greedy state
+
+```text
+lastOccurrence[character]
+currentPartitionEnd
+```
+
+As we scan:
+
+```text
+currentPartitionEnd =
+maximum last occurrence of every character seen in the partition
+```
+
+When:
+
+```text
+current index == currentPartitionEnd
+```
+
+the partition can safely end.
+
+## Java solution
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+public class PartitionLabels {
+
+    public List<Integer> partitionLabels(String s) {
+        int[] last = new int[26];
+
+        for (int i = 0; i < s.length(); i++) {
+            last[s.charAt(i) - 'a'] = i;
+        }
+
+        List<Integer> result = new ArrayList<>();
+
+        int start = 0;
+        int end = 0;
+
+        for (int i = 0; i < s.length(); i++) {
+            end = Math.max(end, last[s.charAt(i) - 'a']);
+
+            if (i == end) {
+                result.add(end - start + 1);
+                start = i + 1;
+            }
+        }
+
+        return result;
+    }
+}
+```
+
+Mental model:
+
+```text
+A partition cannot end until all characters already included
+have completed their final occurrence.
+```
+
+---
+
+# 26. Problem 10 — Boats to Save People
+
+## Problem
+
+Each boat carries at most two people with a weight limit.
+
+Find the minimum number of boats.
+
+## Greedy rule
+
+```text
+Always place the heaviest remaining person in a boat.
+
+If the lightest person can accompany them:
+Pair them.
+
+Otherwise:
+The heaviest person must go alone.
+```
+
+## Java solution
+
+```java
+import java.util.Arrays;
+
+public class RescueBoats {
+
+    public int numRescueBoats(int[] people, int limit) {
+        Arrays.sort(people);
+
+        int left = 0;
+        int right = people.length - 1;
+        int boats = 0;
+
+        while (left <= right) {
+            if (people[left] + people[right] <= limit) {
+                left++;
+            }
+
+            right--;
+            boats++;
+        }
+
+        return boats;
+    }
+}
+```
+
+Proof intuition:
+
+```text
+The heaviest person must be transported.
+
+If even the lightest person cannot pair with them,
+nobody else can.
+
+If the lightest person can pair,
+using that lightest person preserves heavier people
+for other pairings.
+```
+
+---
+
+# 27. Problem 11 — Lemonade Change
+
+## Problem
+
+Each lemonade costs ₹5. Customers pay with ₹5, ₹10, or ₹20 notes.
+
+Determine whether correct change can always be provided.
+
+## Greedy choice for ₹20
+
+Prefer:
+
+```text
+₹10 + ₹5
+```
+
+instead of:
+
+```text
+₹5 + ₹5 + ₹5
+```
+
+Why?
+
+```text
+₹5 notes are more flexible and are required to give change for ₹10.
+A ₹10 note has fewer future uses.
+```
+
+## Java solution
+
+```java
+public class LemonadeChange {
+
+    public boolean lemonadeChange(int[] bills) {
+        int five = 0;
+        int ten = 0;
+
+        for (int bill : bills) {
+            if (bill == 5) {
+                five++;
+            } else if (bill == 10) {
+                if (five == 0) {
+                    return false;
+                }
+
+                five--;
+                ten++;
+            } else {
+                if (ten > 0 && five > 0) {
+                    ten--;
+                    five--;
+                } else if (five >= 3) {
+                    five -= 3;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+}
+```
+
+This problem demonstrates:
+
+```text
+Use the less flexible resource first
+and preserve the more flexible resource.
+```
+
+---
+
+# 28. Problem 12 — Minimum Cost to Connect Ropes
+
+## Problem
+
+Combining two ropes of lengths `a` and `b` costs:
+
+```text
+a + b
+```
+
+Find the minimum total cost to combine all ropes.
+
+## Greedy rule
+
+```text
+Always combine the two smallest ropes first.
+```
+
+Why?
+
+A rope created early will participate in future combinations repeatedly.
+
+Therefore:
+
+```text
+Small values should receive repeated multiplication,
+not large values.
+```
+
+## Java solution
+
+```java
+import java.util.PriorityQueue;
+
+public class ConnectRopes {
+
+    public long minimumCost(int[] ropes) {
+        PriorityQueue<Long> minHeap = new PriorityQueue<>();
+
+        for (int rope : ropes) {
+            minHeap.offer((long) rope);
+        }
+
+        long totalCost = 0;
+
+        while (minHeap.size() > 1) {
+            long first = minHeap.poll();
+            long second = minHeap.poll();
+
+            long combined = first + second;
+            totalCost += combined;
+
+            minHeap.offer(combined);
+        }
+
+        return totalCost;
+    }
+}
+```
+
+Complexity:
+
+```text
+Time: O(n log n)
+Space: O(n)
+```
+
+This is the same fundamental idea used by Huffman coding.
+
+---
+
+# 29. Problem 13 — Candy
+
+## Problem
+
+Each child has a rating.
+
+Rules:
+
+```text
+Every child gets at least one candy.
+A child with a higher rating than an adjacent child
+must receive more candy.
+```
+
+A single directional Greedy pass is insufficient because there are constraints from both sides.
+
+## Greedy solution
+
+```text
+Left-to-right:
+Satisfy the left-neighbour condition.
+
+Right-to-left:
+Satisfy the right-neighbour condition.
+```
+
+## Java solution
+
+```java
+import java.util.Arrays;
+
+public class CandyDistribution {
+
+    public int candy(int[] ratings) {
+        int n = ratings.length;
+        int[] candies = new int[n];
+
+        Arrays.fill(candies, 1);
+
+        for (int i = 1; i < n; i++) {
+            if (ratings[i] > ratings[i - 1]) {
+                candies[i] = candies[i - 1] + 1;
+            }
+        }
+
+        for (int i = n - 2; i >= 0; i--) {
+            if (ratings[i] > ratings[i + 1]) {
+                candies[i] = Math.max(
+                    candies[i],
+                    candies[i + 1] + 1
+                );
+            }
+        }
+
+        int total = 0;
+
+        for (int candy : candies) {
+            total += candy;
+        }
+
+        return total;
+    }
+}
+```
+
+Mental model:
+
+```text
+Two directional constraints
+→ satisfy each direction independently
+→ take maximum requirement.
+```
+
+---
+
+# 30. Problem 14 — Course Schedule III
+
+## Problem
+
+Each course has:
+
+```text
+duration
+deadline
+```
+
+Take the maximum number of courses without crossing deadlines.
+
+## Greedy + Heap strategy
+
+```text
+Sort by deadline.
+Tentatively take each course.
+If total time exceeds the deadline,
+remove the longest course selected so far.
+```
+
+Why remove the longest?
+
+```text
+It frees the maximum time while reducing the number
+of selected courses by only one.
+```
+
+## Java solution
+
+```java
+import java.util.Arrays;
+import java.util.PriorityQueue;
+
+public class CourseScheduleThree {
+
+    public int scheduleCourse(int[][] courses) {
+        Arrays.sort(
+            courses,
+            (a, b) -> Integer.compare(a[1], b[1])
+        );
+
+        PriorityQueue<Integer> maxHeap =
+            new PriorityQueue<>((a, b) -> Integer.compare(b, a));
+
+        int totalTime = 0;
+
+        for (int[] course : courses) {
+            int duration = course[0];
+            int deadline = course[1];
+
+            totalTime += duration;
+            maxHeap.offer(duration);
+
+            if (totalTime > deadline) {
+                totalTime -= maxHeap.poll();
+            }
+        }
+
+        return maxHeap.size();
+    }
+}
+```
+
+This is an important advanced Greedy pattern:
+
+```text
+Tentatively accept
+→ detect invalid state
+→ remove the most expensive previous choice.
+```
+
+---
+
+# 31. Greedy Patterns Summary
+
+| Pattern                      | State Maintained              | Typical Problems                |
+| ---------------------------- | ----------------------------- | ------------------------------- |
+| Sort by end + select         | Previous end                  | Activity Selection, Non-overlap |
+| Sort by start + merge        | Current merged interval       | Merge Intervals                 |
+| Resource matching            | Request and resource pointers | Assign Cookies                  |
+| Farthest boundary            | Maximum reachable index       | Jump Game                       |
+| Current range + next range   | Current end, farthest         | Jump Game II                    |
+| Running balance              | Current and total balance     | Gas Station                     |
+| Positive incremental gains   | Accumulated profit            | Stock II                        |
+| Last required boundary       | Maximum last occurrence       | Partition Labels                |
+| Two directional constraints  | Left/right requirements       | Candy                           |
+| Dynamic best candidate       | Heap                          | Course Schedule III             |
+| Repeated minimum combination | Min heap                      | Connect Ropes                   |
+| Preserve flexible resource   | Resource counts               | Lemonade Change                 |
+
+---
+
+# 32. When Greedy Fails
+
+Greedy fails when the locally best choice can block a better future combination.
+
+## Failure Example 1 — Coin Change
+
+Coins:
+
+```text
+[1, 3, 4]
+amount = 6
+```
+
+Greedy chooses the largest coin first:
+
+```text
+4 + 1 + 1 = 3 coins
+```
+
+Optimal solution:
+
+```text
+3 + 3 = 2 coins
+```
+
+Therefore, arbitrary coin systems require DP.
+
+Important distinction:
+
+```text
+Some canonical currency systems work with Greedy.
+General coin denominations do not guarantee it.
+```
+
+---
+
+## Failure Example 2 — 0/1 Knapsack
+
+Items:
+
+```text
+Weight  Value  Ratio
+10      60     6
+20      100    5
+30      120    4
+Capacity = 50
+```
+
+Greedy by ratio chooses:
+
+```text
+10 + 20
+Value = 160
+```
+
+Optimal:
+
+```text
+20 + 30
+Value = 220
+```
+
+Therefore:
+
+```text
+Fractional Knapsack → Greedy
+0/1 Knapsack → DP
+```
+
+---
+
+## Failure Example 3 — Longest Path
+
+Choosing the locally largest outgoing edge does not guarantee the globally longest path.
+
+Future connectivity matters.
+
+---
+
+## Failure Example 4 — Stock with Cooldown
+
+Taking every positive difference may prevent a better future transaction because the cooldown creates dependency between decisions.
+
+Use DP.
+
+---
+
+# 33. Greedy Failure Checklist
+
+Do not trust Greedy immediately when:
+
+```text
+A decision changes the value of future choices.
+Items have complex dependencies.
+Selecting one item blocks several combinations.
+The problem asks for arbitrary subset combinations.
+You cannot explain why the decision is safe.
+A small counterexample breaks the rule.
+The same input state can be reached through different decisions.
+```
+
+Decision rule:
+
+```text
+Cannot prove local choice is safe?
+→ Do not use Greedy merely because it passes examples.
+```
+
+---
+
+# 34. Common Greedy Mistakes
+
+## Mistake 1: Sorting by the wrong field
+
+Example:
+
+```text
+Activity Selection
+
+Wrong:
+Sort by start time.
+
+Correct:
+Sort by end time.
+```
+
+---
+
+## Mistake 2: Assuming “largest first” is always Greedy
+
+Sometimes the correct choice is:
+
+```text
+Smallest first
+Earliest end
+Largest benefit/cost ratio
+Smallest sufficient resource
+Most expensive previous choice to remove
+```
+
+The objective decides the rule.
+
+---
+
+## Mistake 3: Writing code before defining the invariant
+
+Before coding, state:
+
+```text
+What does my current variable represent?
+Why does it remain correct after every iteration?
+```
+
+Example:
+
+```text
+Jump Game:
+farthest = maximum position reachable using indices processed so far.
+```
+
+---
+
+## Mistake 4: Not proving correctness
+
+A Greedy algorithm can look convincing while being wrong.
+
+Always provide:
+
+```text
+Exchange argument
+Staying-ahead argument
+Contradiction
+or invariant
+```
+
+---
+
+## Mistake 5: Confusing interval objectives
+
+```text
+Merge overlaps:
+Sort by start.
+
+Select maximum non-overlapping:
+Sort by end.
+
+Count concurrent intervals:
+Sort starts/ends or use heap.
+```
+
+---
+
+## Mistake 6: Integer comparator overflow
+
+Avoid:
+
+```java
+Arrays.sort(intervals, (a, b) -> a[1] - b[1]);
+```
+
+Prefer:
+
+```java
+Arrays.sort(
+    intervals,
+    (a, b) -> Integer.compare(a[1], b[1])
+);
+```
+
+---
+
+## Mistake 7: Ignoring equal boundaries
+
+Clarify whether:
+
+```text
+[1, 2] and [2, 3]
+```
+
+are considered overlapping.
+
+The condition may be:
+
+```java
+start >= previousEnd
+```
+
+or:
+
+```java
+start > previousEnd
+```
+
+depending on the problem.
+
+---
+
+## Mistake 8: Modifying input unexpectedly
+
+Sorting changes the input array.
+
+In production code, consider copying:
+
+```java
+int[][] copy = Arrays.copyOf(intervals, intervals.length);
+```
+
+---
+
+# 35. Greedy Dry-Run Checklist
+
+During an interview, dry-run using:
+
+```text
+1. The smallest possible input
+2. Already optimal ordering
+3. Reverse ordering
+4. Equal values
+5. Fully overlapping intervals
+6. Completely non-overlapping intervals
+7. One impossible position
+8. A case where the obvious Greedy rule fails
+```
+
+For interval problems, always test:
+
+```text
+Nested intervals:
+[1, 10], [2, 3], [4, 5]
+
+Touching boundaries:
+[1, 2], [2, 3]
+
+Same end:
+[1, 5], [3, 5]
+
+Same start:
+[1, 3], [1, 10]
+```
+
+---
+
+# 36. Complexity Mental Model
+
+Most Greedy algorithms fall into one of these categories.
+
+| Structure                      |                 Time |              Space |
+| ------------------------------ | -------------------: | -----------------: |
+| Single scan                    |                 O(n) |               O(1) |
+| Sort + scan                    |           O(n log n) | Depends on sorting |
+| Sort two arrays + two pointers | O(n log n + m log m) |               O(1) |
+| Heap processing                |           O(n log n) |               O(n) |
+| Heap of size k                 |           O(n log k) |               O(k) |
+| Two directional arrays         |                 O(n) |               O(n) |
+| Sorting plus heap              |           O(n log n) |               O(n) |
+
+Interview line:
+
+> “The Greedy scan is linear, but sorting dominates the overall complexity, making it O(n log n).”
+
+---
+
+# 37. Scenario-Based Identification
+
+## Scenario 1: Maximum number of meetings
+
+```text
+Goal:
+Select maximum compatible intervals.
+
+Signal:
+Non-overlapping + maximum count.
+
+Pattern:
+Sort by end + select.
+```
+
+---
+
+## Scenario 2: Minimum intervals to remove
+
+```text
+Goal:
+Minimize removals.
+
+Transformation:
+Maximize intervals kept.
+
+Pattern:
+Sort by end + select.
+```
+
+---
+
+## Scenario 3: Can reach destination
+
+```text
+Goal:
+Check feasibility, not exact path.
+
+Signal:
+Each position increases reachable boundary.
+
+Pattern:
+Maintain farthest reach.
+```
+
+---
+
+## Scenario 4: Minimum jumps
+
+```text
+Goal:
+Minimum number of movement stages.
+
+Signal:
+Every stage exposes a new reachable range.
+
+Pattern:
+Greedy range expansion.
+```
+
+---
+
+## Scenario 5: Assign jobs/resources
+
+```text
+Goal:
+Satisfy maximum requests.
+
+Signal:
+Larger resources can satisfy smaller requests.
+
+Pattern:
+Sort both and use smallest sufficient resource.
+```
+
+---
+
+## Scenario 6: Repeatedly choose current best candidate
+
+```text
+Goal:
+At every step choose minimum/maximum available candidate.
+
+Signal:
+Available candidate set changes dynamically.
+
+Pattern:
+Greedy + PriorityQueue.
+```
+
+---
+
+## Scenario 7: Minimize maximum or maximize minimum
+
+This is often not pure Greedy.
+
+```text
+Search answer range
+→ use Greedy feasibility
+→ Binary Search on Answer.
+```
+
+Examples:
+
+```text
+Ship Packages
+Aggressive Cows
+Split Array Largest Sum
+Minimum Days/Capacity
+```
+
+---
+
+# 38. Greedy Debugging Flow
+
+```mermaid
+flowchart TD
+    A[Greedy Solution Gives Wrong Answer] --> B{Comparator Correct?}
+
+    B -- No --> B1[Choose Correct Sorting Criterion]
+    B -- Yes --> C{Greedy Invariant Clearly Defined?}
+
+    C -- No --> C1[Define State and Safe Choice]
+    C -- Yes --> D{Local Choice Proven Safe?}
+
+    D -- No --> D1[Find Counterexample]
+    D1 --> D2[Use DP / Backtracking / Other]
+
+    D -- Yes --> E{Boundary Conditions Correct?}
+    E -- No --> E1[Check equals, overlap and indexes]
+
+    E -- Yes --> F{State Updated Correctly?}
+    F -- No --> F1[Fix boundary/resource update]
+
+    F -- Yes --> G{Overflow or Comparator Issue?}
+    G -- Yes --> G1[Use Integer.compare or long]
+
+    G -- No --> H[Dry Run Adversarial Cases]
+```
+
+---
+
+# 39. Issue → Cause → Fix
+
+| Issue                                        | Possible Cause                                | Fix                                    |
+| -------------------------------------------- | --------------------------------------------- | -------------------------------------- |
+| Wrong interval count                         | Sorted by start instead of end                | Revisit objective and comparator       |
+| Too many arrows/resources                    | Boundary updated incorrectly                  | Preserve common intersection/end point |
+| Jump Game fails unexpectedly                 | Checked only current jump, not farthest reach | Maintain global farthest               |
+| Gas Station gives wrong start                | Did not reset after negative balance          | Reset to `i + 1`                       |
+| Resource matching wastes resources           | Assigned largest resource first               | Use smallest sufficient resource       |
+| Course scheduling exceeds deadline           | Kept expensive course                         | Remove longest selected duration       |
+| Comparator behaves incorrectly               | Integer subtraction overflow                  | Use `Integer.compare`                  |
+| Greedy passes examples but fails hidden test | Local choice not safe                         | Find counterexample; switch to DP      |
+| Touching intervals mishandled                | Wrong `>` versus `>=`                         | Confirm overlap definition             |
+| Overflow in total cost                       | `int` too small                               | Use `long`                             |
+
+---
+
+# 40. Project Usage Mapping
+
+Greedy algorithms are less visible in CRUD applications than HashMap or sorting, but the decision-making model appears in many backend and infrastructure scenarios.
+
+| Greedy Concept               | Realistic Project Connection              | Interview Line                                                                                                       |
+| ---------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Earliest-deadline scheduling | Batch jobs or timed tasks                 | “When jobs have deadlines, earliest-deadline-first is a common scheduling heuristic.”                                |
+| Resource matching            | Assign worker/thread/server capacity      | “A smallest-sufficient-resource strategy avoids wasting larger resources.”                                           |
+| Heap-based selection         | Top posts/categories or priority jobs     | “PriorityQueue supports repeatedly processing the highest-priority available candidate.”                             |
+| Interval merging             | Booking windows, maintenance slots        | “Intervals can represent deployment windows, schedules, or validity periods.”                                        |
+| Minimum concurrent resources | Thread pools, meeting rooms, server slots | “Overlapping intervals determine the maximum simultaneous resource requirement.”                                     |
+| Reachability                 | Workflow or deployment progression        | “A boundary invariant can represent the furthest completed or reachable stage.”                                      |
+| Rate-limiting windows        | API Gateway                               | “Window-based request processing combines time boundaries with ordered event handling.”                              |
+| Load/resource allocation     | Kubernetes scheduling conceptually        | “Schedulers evaluate constraints and use heuristics to place workloads efficiently.”                                 |
+| Deadline plus heap           | Batch task scheduling                     | “When total scheduled duration exceeds a deadline, dropping the most expensive task can preserve the maximum count.” |
+| Incremental gain             | Optimization decisions                    | “When gains are independent, accumulating every positive contribution can be globally optimal.”                      |
+
+Do not claim:
+
+```text
+“I implemented Kubernetes scheduling using Greedy.”
+```
+
+Better interview framing:
+
+> “I have used sorting, priority queues, interval processing, and resource-allocation logic in coding exercises. Similar optimization concepts appear conceptually in job scheduling and infrastructure resource allocation, although production schedulers use more complex policies.”
+
+---
+
+# 41. Greedy Interview Answer Template
+
+Use this speaking structure:
+
+```text
+1. State the optimization objective.
+2. Explain the Greedy choice.
+3. Explain why the choice is safe.
+4. Define the maintained invariant.
+5. Explain sorting or heap usage.
+6. Give time and space complexity.
+7. Mention edge cases.
+```
+
+Example:
+
+> “The objective is to select the maximum number of non-overlapping intervals. I sort intervals by ending time and greedily select the next compatible interval. Choosing the earliest-ending interval is safe because it leaves the maximum remaining timeline for future intervals. I maintain the end time of the last selected interval. Sorting takes O(n log n), and the scan is O(n).”
+
+---
+
+# 42. Common Interview Questions
+
+## Q1. What is a Greedy algorithm?
+
+> A Greedy algorithm builds a solution by repeatedly making the best safe local choice and committing to it permanently. It works only when the problem has the Greedy-choice property and optimal substructure.
+
+---
+
+## Q2. How is Greedy different from DP?
+
+> Greedy commits to one locally optimal choice without reconsideration, while DP evaluates and stores multiple states before selecting the best result. Greedy is simpler and faster when its local choice can be proven safe.
+
+---
+
+## Q3. How do you know Greedy will work?
+
+> I identify a candidate Greedy rule and validate it using an exchange argument, staying-ahead argument, contradiction, or invariant. I also try small counterexamples before committing to the solution.
+
+---
+
+## Q4. Why sort intervals by end time?
+
+> For maximum non-overlapping interval selection, the interval ending earliest blocks the least future timeline. Therefore, it preserves the maximum number of future choices.
+
+---
+
+## Q5. Is every optimization problem Greedy?
+
+> No. Optimization is only a signal. If local decisions interact with future combinations, DP, backtracking, graph algorithms, or Binary Search may be required.
+
+---
+
+## Q6. Why does Greedy fail for general Coin Change?
+
+> Selecting the largest denomination first may block a combination using fewer coins. For example, with `[1,3,4]` and amount `6`, Greedy uses `4+1+1`, while the optimum is `3+3`.
+
+---
+
+## Q7. Why does Fractional Knapsack use Greedy but 0/1 Knapsack use DP?
+
+> Fractional Knapsack allows taking part of an item, so selecting the highest value-to-weight ratio first is always safe. In 0/1 Knapsack, an item is indivisible, and combinations must be evaluated globally.
+
+---
+
+## Q8. What is the role of a heap in Greedy?
+
+> A heap efficiently returns the minimum or maximum currently available candidate. It is useful when the Greedy choice changes dynamically as new candidates become eligible.
+
+---
+
+## Q9. Why is Jump Game Greedy?
+
+> At every index, only the farthest reachable position matters. Any smaller reachable boundary is dominated, so maintaining the maximum reach is sufficient.
+
+---
+
+## Q10. Can a Greedy algorithm backtrack?
+
+> Normally no. The defining property is that the decision is committed permanently. If choices must be undone and alternatives explored, the approach is Backtracking rather than Greedy.
+
+---
+
+# 43. Interview-Ready Explanation Lines
+
+1. “Greedy is not about selecting the largest or smallest blindly; it is about identifying a safe local choice.”
+
+2. “Before using Greedy, I try to prove that the local decision does not eliminate an optimal global solution.”
+
+3. “For interval scheduling, sorting by finishing time preserves the maximum room for future intervals.”
+
+4. “The key invariant in Jump Game is the farthest index reachable from all positions processed so far.”
+
+5. “When assigning resources, I generally use the smallest sufficient resource to preserve larger resources for harder requests.”
+
+6. “A heap is useful when the best currently available Greedy choice changes dynamically.”
+
+7. “If I cannot justify the Greedy-choice property, I look for a counterexample and consider DP.”
+
+8. “Many Binary Search on Answer problems use a Greedy feasibility check.”
+
+9. “In interval problems, the comparator is usually the most important design decision.”
+
+10. “The scan may be O(n), but sorting usually makes the overall complexity O(n log n).”
+
+---
+
+# 44. 60–70% Important Greedy Interview Coverage
+
+| Priority | Topic                      | Code Needed | Proof Needed | Interview Weight |
+| -------- | -------------------------- | ----------: | -----------: | ---------------- |
+| P0       | Greedy-choice property     |          No |          Yes | Very High        |
+| P0       | Greedy vs DP               |          No |          Yes | Very High        |
+| P0       | Interval scheduling        |         Yes |          Yes | Very High        |
+| P0       | Non-overlapping intervals  |         Yes |          Yes | Very High        |
+| P0       | Jump Game                  |         Yes |          Yes | High             |
+| P0       | Jump Game II               |         Yes |          Yes | High             |
+| P0       | Resource matching          |         Yes |          Yes | High             |
+| P0       | Gas Station                |         Yes |          Yes | High             |
+| P1       | Minimum arrows             |         Yes |          Yes | High             |
+| P1       | Boats to Save People       |         Yes |          Yes | Medium-High      |
+| P1       | Partition Labels           |         Yes |          Yes | Medium-High      |
+| P1       | Stock II                   |         Yes |          Yes | Medium           |
+| P1       | Greedy + Heap              |         Yes |          Yes | High             |
+| P1       | Course Schedule III        |         Yes |          Yes | Medium-High      |
+| P1       | Candy                      |         Yes |          Yes | Medium           |
+| P1       | Connect Ropes              |         Yes |          Yes | Medium           |
+| P2       | Fractional Knapsack        |         Yes |          Yes | Medium           |
+| P2       | Job Sequencing             |         Yes |          Yes | Medium           |
+| P2       | Task Scheduler             |         Yes |          Yes | Medium           |
+| P2       | Huffman Coding             |       Later |          Yes | Low-Medium       |
+| P3       | Advanced scheduling proofs |       Later |          Yes | Low              |
+
+---
+
+# 45. Problems to Practice
+
+## P0 — Must solve
+
+```text
+1. Assign Cookies
+2. Jump Game
+3. Jump Game II
+4. Non-overlapping Intervals
+5. Minimum Number of Arrows
+6. Gas Station
+7. Best Time to Buy and Sell Stock II
+8. Boats to Save People
+9. Partition Labels
+10. Lemonade Change
+```
+
+## P1 — Very important
+
+```text
+11. Candy
+12. Course Schedule III
+13. Minimum Cost to Connect Ropes
+14. Maximum Length of Pair Chain
+15. Can Place Flowers
+16. Queue Reconstruction by Height
+17. Task Scheduler
+18. Reorganize String
+19. Meeting Rooms II
+20. Job Sequencing with Deadlines
+```
+
+## P2 — Learn later
+
+```text
+21. Fractional Knapsack
+22. Remove K Digits
+23. Merge Triplets to Form Target
+24. Minimum Number of Taps
+25. IPO
+26. Maximum Performance of a Team
+27. Video Stitching
+28. Furthest Building You Can Reach
+29. Dota2 Senate
+30. Huffman Coding
+```
+
+---
+
+# 46. Five Diagrams to Memorize
+
+## Diagram 1: General Greedy
+
+```text
+Optimization goal
+→ define local choices
+→ choose safest current option
+→ commit
+→ update state
+→ repeat
+```
+
+## Diagram 2: Interval Selection
+
+```text
+Sort by end
+→ take first
+→ if next.start >= previousEnd, select
+```
+
+## Diagram 3: Reachability
+
+```text
+At every index:
+farthest = max(farthest, index + jump)
+
+index > farthest
+→ impossible
+```
+
+## Diagram 4: Resource Matching
+
+```text
+Sort requests
+Sort resources
+→ smallest sufficient resource satisfies smallest request
+```
+
+## Diagram 5: Greedy + Heap
+
+```text
+Sort by availability/deadline
+→ add candidate
+→ if invalid, remove worst selected candidate
+```
+
+---
+
+# 47. Ten Must-Remember Points
+
+1. Greedy commits to decisions and does not reconsider them.
+2. A locally best choice must be proven globally safe.
+3. Greedy usually requires Greedy-choice property and optimal substructure.
+4. Sorting criterion is often the heart of the algorithm.
+5. Maximum non-overlapping intervals usually means sorting by end.
+6. Reachability problems often maintain a farthest boundary.
+7. Resource assignment often uses the smallest sufficient resource.
+8. Dynamic Greedy selection often requires a heap.
+9. Greedy may be used inside a Binary Search feasibility function.
+10. If a counterexample exists, switch to DP or another pattern.
+
+---
+
+# 48. Ten Common Mistakes
+
+1. Assuming every maximum/minimum problem is Greedy.
+2. Choosing largest or smallest without proof.
+3. Sorting intervals by the wrong field.
+4. Confusing Merge Intervals with Activity Selection.
+5. Ignoring equal-boundary cases.
+6. Forgetting that sorting modifies input.
+7. Using subtraction in comparators.
+8. Not considering integer overflow.
+9. Explaining code but not explaining why the choice is safe.
+10. Using Greedy where future decisions depend on previous choices.
+
+---
+
+# 49. Five Debugging Flows
+
+```text
+Wrong interval result
+→ verify objective
+→ verify sort field
+→ verify overlap condition
+```
+
+```text
+Greedy passes samples but fails hidden cases
+→ search for counterexample
+→ verify Greedy-choice property
+→ consider DP
+```
+
+```text
+Reachability result wrong
+→ verify invariant
+→ check unreachable index before updating farthest
+```
+
+```text
+Heap Greedy wrong
+→ verify min-heap vs max-heap
+→ verify which previous choice should be removed
+```
+
+```text
+Comparator wrong
+→ avoid subtraction
+→ use Integer.compare
+→ handle equal values explicitly
+```
+
+---
+
+# 50. Final Greedy Pattern Map
+
+```mermaid
+mindmap
+  root((Greedy))
+    Core
+      Local Safe Choice
+      Commit Permanently
+      Preserve Future Options
+      Correctness Proof
+    Sort and Select
+      Activity Selection
+      Non-overlapping Intervals
+      Minimum Arrows
+      Pair Chain
+    Boundary
+      Jump Game
+      Jump Game II
+      Partition Labels
+      Can Place Flowers
+    Resource Matching
+      Assign Cookies
+      Boats
+      Lemonade Change
+    Running Balance
+      Gas Station
+      Stock II
+    Two Directions
+      Candy
+    Heap
+      Connect Ropes
+      Course Schedule III
+      Task Scheduler
+      Reorganize String
+    Hybrid
+      Binary Search Feasibility
+      Sort plus Two Pointers
+      Sweep Line
+    Failure Cases
+      Coin Change
+      0/1 Knapsack
+      Stock with Cooldown
+      Global Dependencies
+```
+
+---
+
+# 51. Final Learning Strategy
+
+## Step 1: Memorize the master shortcut
+
+```text
+Greedy = Safest local choice → Commit → Preserve maximum future freedom
+```
+
+## Step 2: Understand correctness
+
+Learn:
+
+```text
+Greedy-choice property
+Optimal substructure
+Exchange argument
+Staying-ahead argument
+```
+
+## Step 3: Master interval Greedy
+
+Code:
+
+```text
+Activity Selection
+Non-overlapping Intervals
+Minimum Arrows
+Meeting Rooms
+```
+
+## Step 4: Master boundary Greedy
+
+Code:
+
+```text
+Jump Game
+Jump Game II
+Gas Station
+Partition Labels
+```
+
+## Step 5: Master resource matching
+
+Code:
+
+```text
+Assign Cookies
+Boats to Save People
+Lemonade Change
+```
+
+## Step 6: Master Greedy + Heap
+
+Code:
+
+```text
+Connect Ropes
+Course Schedule III
+Task Scheduler
+```
+
+## Step 7: Learn failure cases
+
+Compare:
+
+```text
+Fractional Knapsack vs 0/1 Knapsack
+Canonical Coins vs General Coin Change
+Stock II vs Stock with Cooldown
+```
+
+---
+
+# 52. What Is Enough to Start Interviews?
+
+For your Java Backend / Full Stack target, Greedy preparation is sufficient when you can confidently:
+
+```text
+Identify interval Greedy
+Choose the correct sort criterion
+Explain why earliest finishing time is safe
+Solve Jump Game I and II
+Solve Gas Station
+Solve Assign Cookies and Boats
+Use PriorityQueue in a Greedy problem
+Differentiate Greedy from DP
+Give one Greedy failure counterexample
+Explain O(n) versus O(n log n)
+```
+
+You do not need to master advanced scheduling proofs before starting interviews.
+
+---
+
+# 53. Final Interview Answer
+
+> “A Greedy algorithm constructs the result by making the best safe local choice at every step and committing to it permanently. However, I do not apply Greedy only because a problem asks for a maximum or minimum. I first define the local choice and validate that it preserves an optimal solution, usually using an exchange argument or invariant. Common Greedy patterns include sorting intervals by ending time, maintaining a farthest reachable boundary, matching the smallest sufficient resource, and using a heap to repeatedly obtain the best available candidate. If I cannot prove the choice is safe or find a counterexample, I consider Dynamic Programming or another approach.”
+
+---
+
+# Final Mental Model
+
+```text
+Greedy is not:
+
+“Pick what looks best.”
+
+Greedy is:
+
+“Pick the choice that is best now,
+prove that it cannot make the final answer worse,
+commit to it,
+and preserve maximum freedom for the remaining problem.”
+```
+
+For the next coding phase, the strongest progression is: **interval Greedy → reachability Greedy → resource matching → Greedy with PriorityQueue**.
 
 # Tree BFS/DFS — Complete Postmortem
 
