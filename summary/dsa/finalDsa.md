@@ -1,12 +1,701 @@
 # Introduction
-1. [Heap](#hashmap)
-2. [2-Pointers](#2-pointers)
-3. [Sliding Window](#sliding-window)
-4. [Prefix Sum](#prefix-sum)
-5. [Kadane's Algorithms](#kadanes-algorithms)
-6. [Binary Search](#binary-search)
-7. [Priority Queue](#priority-queue)
-8. [Greedy Algorithm](#greedy-algorithm)
+1. [Strategy](#strategy)
+2. [Heap](#hashmap)
+3. [2-Pointers](#2-pointers)
+4. [Sliding Window](#sliding-window)
+5. [Prefix Sum](#prefix-sum)
+6. [Kadane's Algorithms](#kadanes-algorithms)
+7. [Binary Search](#binary-search)
+8. [Priority Queue](#priority-queue)
+9. [Greedy Algorithm](#greedy-algorithm)
+
+# Strategy
+
+## 1. Every Array/String Problem = 5 Questions
+
+Before writing code, ask:
+
+1. **What am I scanning?**
+   Array, string, sorted array, or continuous subarray?
+
+2. **What information must I remember?**
+   Seen values, frequency, index, sum, maximum, minimum?
+
+3. **What makes the current state valid or invalid?**
+
+4. **What should move/change when invalid?**
+   `left`, `right`, map count, heap, or boundary?
+
+5. **When is it safe to update the answer?**
+
+Think:
+
+> **Scan → Maintain state → Check condition → Fix state → Update answer**
+
+---
+
+# 2. Problem Words → Default Pattern
+
+| Question contains                             | First pattern to consider                   |
+| --------------------------------------------- | ------------------------------------------- |
+| Duplicate / already seen / existence          | `HashSet`                                   |
+| Frequency / count / occurrence / anagram      | `HashMap<Value, Count>`                     |
+| Pair equals target                            | HashMap if unsorted; Two Pointers if sorted |
+| Index / distance between occurrences          | `HashMap<Value, Index>`                     |
+| Contiguous subarray or substring              | Sliding Window / Prefix Sum / Kadane        |
+| Longest/shortest window with a condition      | Sliding Window                              |
+| Exact subarray sum, especially with negatives | Prefix Sum + HashMap                        |
+| Maximum/minimum continuous sum                | Kadane                                      |
+| Sorted data / first-last occurrence           | Binary Search                               |
+| Top K / Kth largest / repeatedly best item    | Heap                                        |
+| Intervals / reachability / local selection    | Greedy                                      |
+
+---
+
+# 3. Set vs HashSet
+
+In Java:
+
+```java
+Set<Integer> seen = new HashSet<>();
+```
+
+* `Set` is the **interface/type**.
+* `HashSet` is the **implementation/object**.
+* For approximately 80% of DSA problems, use `HashSet`.
+* Use `TreeSet` only when sorted order, floor, ceiling, minimum or maximum is required.
+* Use `LinkedHashSet` only when insertion order matters.
+
+### Use a Set when only presence matters
+
+```java
+if (seen.contains(num)) {
+    return true;
+}
+
+seen.add(num);
+```
+
+An even shorter duplicate check:
+
+```java
+if (!seen.add(num)) {
+    return true;
+}
+```
+
+### Use a Map when additional information matters
+
+```java
+Map<Integer, Integer> frequency = new HashMap<>();
+```
+
+You need a map when storing:
+
+* Frequency
+* Index
+* List/group
+* Prefix-sum count
+
+---
+
+# 4. `for` vs `while` vs `if`
+
+## Use `for` when every element is scanned once
+
+```java
+for (int right = 0; right < nums.length; right++) {
+}
+```
+
+Typical uses:
+
+* Frequency counting
+* HashMap lookup
+* Moving the right pointer
+* Kadane
+* Heap processing
+
+## Use `while` when an operation may repeat
+
+```java
+while (windowIsInvalid) {
+    remove(nums[left]);
+    left++;
+}
+```
+
+Use `while`, not `if`, when one removal may not be enough.
+
+Example:
+
+```text
+Window = a b c d e
+```
+
+If three elements must be removed to restore validity, an `if` removes only one. A `while` continues until the window becomes valid.
+
+## Use `if` when the action happens at most once per iteration
+
+```java
+if (windowSize > k) {
+    remove(nums[left]);
+    left++;
+}
+```
+
+In a fixed-size window, the size normally increases by only one during each iteration, so one removal is sufficient.
+
+### Important complexity rule
+
+A `while` inside a `for` does **not automatically mean O(n²)**.
+
+```java
+for (right ...) {
+    while (...) {
+        left++;
+    }
+}
+```
+
+If `left` and `right` only move forward, each element enters and leaves once, so it is usually **O(n)**.
+
+---
+
+# 5. The Most Important Add/Remove Rules
+
+Your notes correctly summarize Sliding Window as:
+
+> Right adds, left removes, state describes the window, and the condition decides whether left moves. 
+
+Remember these exact templates.
+
+## A. Frequency Map: Add immediately
+
+```java
+for (int num : nums) {
+    frequency.put(
+        num,
+        frequency.getOrDefault(num, 0) + 1
+    );
+}
+```
+
+Here, every element contributes to the count, so update immediately.
+
+---
+
+## B. Complement Map: Check before adding
+
+Example: Two Sum.
+
+```java
+for (int i = 0; i < nums.length; i++) {
+    int required = target - nums[i];
+
+    if (map.containsKey(required)) {
+        return new int[]{map.get(required), i};
+    }
+
+    map.put(nums[i], i);
+}
+```
+
+### Why check before adding?
+
+To avoid using the current element with itself.
+
+Mental rule:
+
+> **Look for the partner among previous elements, then store the current element.**
+
+---
+
+## C. Prefix Sum: Check before storing current prefix
+
+```java
+prefixSum += num;
+
+count += prefixFrequency.getOrDefault(prefixSum - k, 0);
+
+prefixFrequency.put(
+    prefixSum,
+    prefixFrequency.getOrDefault(prefixSum, 0) + 1
+);
+```
+
+Mental rule:
+
+> **Calculate current prefix → search previous prefix → store current prefix.**
+
+Do not store first, because the current prefix should not incorrectly pair with itself.
+
+---
+
+## D. Sliding Window: Add right, remove left
+
+Universal frequency-map style:
+
+```java
+for (int right = 0; right < nums.length; right++) {
+
+    add(nums[right]);
+
+    while (windowIsInvalid()) {
+        remove(nums[left]);
+        left++;
+    }
+
+    updateAnswer();
+}
+```
+
+Mental rule:
+
+> `right` explores new possibilities.
+> `left` repairs the window.
+
+---
+
+# 6. Longest vs Smallest Window
+
+This is one of the most important distinctions.
+
+## Longest valid window
+
+Examples:
+
+* Longest substring without repetition
+* At most K distinct elements
+* Longest ones after flipping K zeroes
+
+```java
+for (int right = 0; right < n; right++) {
+    add(right);
+
+    while (windowIsInvalid()) {
+        remove(left);
+        left++;
+    }
+
+    maxLength = Math.max(maxLength, right - left + 1);
+}
+```
+
+### Rule
+
+> **While invalid → shrink.
+> Once valid → update maximum.**
+
+---
+
+## Smallest satisfying window
+
+Examples:
+
+* Minimum size subarray sum
+* Minimum window substring
+
+```java
+for (int right = 0; right < n; right++) {
+    add(right);
+
+    while (windowIsValid()) {
+        minLength = Math.min(minLength, right - left + 1);
+
+        remove(left);
+        left++;
+    }
+}
+```
+
+### Rule
+
+> **While valid → record answer → shrink further.**
+
+This exact longest-versus-smallest distinction is also captured in your notes. 
+
+---
+
+# 7. Special Sliding Window with HashSet
+
+For “longest substring without repeating characters”:
+
+```java
+for (int right = 0; right < s.length(); right++) {
+    char current = s.charAt(right);
+
+    while (set.contains(current)) {
+        set.remove(s.charAt(left));
+        left++;
+    }
+
+    set.add(current);
+
+    maxLength = Math.max(maxLength, right - left + 1);
+}
+```
+
+Here you check before adding because a `Set` cannot store duplicate counts.
+
+Mental rule:
+
+> **Duplicate arriving? Remove from left until duplicate disappears, then add it.**
+
+With a frequency map, you may add first and then shrink while the count is greater than one. Both styles work—do not mix their ordering.
+
+---
+
+# 8. Fixed Sliding Window
+
+Question says:
+
+* Size exactly `K`
+* Every `K` consecutive elements
+* Maximum average/sum of size `K`
+
+```java
+for (int right = 0; right < nums.length; right++) {
+    windowSum += nums[right];
+
+    if (right - left + 1 > k) {
+        windowSum -= nums[left];
+        left++;
+    }
+
+    if (right - left + 1 == k) {
+        answer = Math.max(answer, windowSum);
+    }
+}
+```
+
+Rule:
+
+> **Add right → if oversized, remove left → when size is K, calculate answer.**
+
+---
+
+# 9. Two-Pointer Movement Rules
+
+## Opposite direction
+
+Usually:
+
+* Sorted array
+* Pair target
+* Palindrome
+* Container problems
+
+```java
+while (left < right) {
+    int sum = nums[left] + nums[right];
+
+    if (sum == target) {
+        return true;
+    } else if (sum < target) {
+        left++;
+    } else {
+        right--;
+    }
+}
+```
+
+Mental rule:
+
+* Need larger value → move `left`
+* Need smaller value → move `right`
+* Used current left value → move `left`
+* Used current right value → move `right`
+* Palindrome characters equal → move both
+
+Do not move pointers randomly. Move the pointer whose current value can no longer produce the answer.
+
+---
+
+## Same-direction slow/fast
+
+Used for:
+
+* Remove duplicates
+* Move zeroes
+* Remove element
+* In-place filtering
+
+```java
+int slow = 0;
+
+for (int fast = 0; fast < nums.length; fast++) {
+    if (elementShouldBeKept(nums[fast])) {
+        nums[slow] = nums[fast];
+        slow++;
+    }
+}
+```
+
+Mental model:
+
+* `fast` = reader
+* `slow` = writer
+* Accepted element → write and increment `slow`
+* Rejected element → only `fast` moves
+
+---
+
+## Merge two sorted inputs
+
+```java
+while (i < arr1.length && j < arr2.length) {
+    if (arr1[i] <= arr2[j]) {
+        take(arr1[i]);
+        i++;
+    } else {
+        take(arr2[j]);
+        j++;
+    }
+}
+```
+
+Rule:
+
+> **Move the pointer whose element you consumed.**
+
+---
+
+# 10. Prefix Sum Decision
+
+Use Prefix Sum when the problem says:
+
+* Exact subarray sum
+* Count subarrays
+* Range sum
+* Equal number of two types
+* Divisible by K
+* Negative values may be present
+
+## Count subarrays
+
+```java
+map.put(0L, 1);
+```
+
+Map stores:
+
+```text
+prefix sum → frequency
+```
+
+Every occurrence must be stored.
+
+## Longest subarray
+
+```java
+map.put(0L, -1);
+```
+
+Map stores:
+
+```text
+prefix sum → earliest index
+```
+
+Use:
+
+```java
+map.putIfAbsent(prefixSum, i);
+```
+
+Never overwrite the earliest index because an earlier index creates a longer subarray.
+
+Your notes capture the key difference: count stores frequency, while longest stores the earliest index. 
+
+---
+
+# 11. Sliding Window or Prefix Sum?
+
+This confusion is common.
+
+## Use Sliding Window when
+
+* Subarray/substring is contiguous
+* The window condition changes predictably
+* For sum-based windows, values are generally non-negative
+* Expanding increases the sum and shrinking decreases it
+
+## Use Prefix Sum + HashMap when
+
+* Exact sum is required
+* Negative values exist
+* You need the number of matching subarrays
+* Sliding the left pointer cannot predictably fix the sum
+
+### Golden example
+
+```text
+Minimum length with sum >= K, positive values
+→ Sliding Window
+```
+
+```text
+Count subarrays with sum exactly K, negatives possible
+→ Prefix Sum + HashMap
+```
+
+---
+
+# 12. Kadane
+
+Question says:
+
+* Maximum/minimum continuous subarray sum
+* Best continuous gain
+* Choose whether to continue or restart
+
+```java
+current = Math.max(num, current + num);
+answer = Math.max(answer, current);
+```
+
+Mental rule:
+
+> At every element:
+> **Start a new subarray here, or extend the previous subarray?**
+
+No Set, Map, `left`, or `right` is normally required.
+
+---
+
+# 13. Binary Search
+
+Use when:
+
+* Array is sorted
+* First/last occurrence
+* Insertion position
+* Search space has a monotonic answer
+
+## Normal search
+
+```text
+target smaller → high moves left
+target larger → low moves right
+```
+
+## Binary search on answer
+
+Look for:
+
+```text
+Impossible Impossible Impossible Possible Possible
+```
+
+Examples:
+
+* Minimum speed
+* Minimum capacity
+* Maximum minimum distance
+
+Mental rule:
+
+> Guess an answer with `mid`, then ask:
+> **Is this candidate feasible?**
+
+---
+
+# 14. Heap
+
+Use when:
+
+* Top K
+* Kth largest/smallest
+* Repeatedly need the best remaining item
+* Priority changes dynamically
+
+## Top K largest
+
+Keep a **min-heap of size K**:
+
+```java
+for (int value : nums) {
+    minHeap.offer(value);
+
+    if (minHeap.size() > k) {
+        minHeap.poll();
+    }
+}
+```
+
+Rule:
+
+> **Add candidate first, then remove the worst extra candidate.**
+
+Remember:
+
+* K largest → min-heap of size K
+* K smallest → max-heap of size K
+
+---
+
+# 15. Greedy
+
+Consider Greedy when:
+
+* Intervals are present
+* Need maximum non-overlapping selections
+* Need minimum resources/steps
+* Need farthest reachable position
+* Sorting makes the next safe choice obvious
+
+Typical flow:
+
+```java
+sort(items);
+
+for (Item item : items) {
+    if (compatible(item)) {
+        select(item);
+        updateBoundary();
+    }
+}
+```
+
+Rule:
+
+> Select only when compatible; after selecting, update the boundary.
+
+Do not update the boundary for rejected items unless the problem specifically requires replacing the previous selection.
+
+---
+
+# 16. Final 30-Second Interview Decision Flow
+
+Use this exact order:
+
+```text
+1. Is it contiguous?
+   Yes → Sliding Window / Prefix Sum / Kadane
+
+2. Is it sorted or can sorting help?
+   Yes → Two Pointers / Binary Search / Greedy
+
+3. Do I need to remember previous values?
+   Presence → Set
+   Count → Frequency Map
+   Index → Index Map
+   Partner → Complement Map
+
+4. Is it Top K or repeatedly best?
+   Yes → Heap
+
+5. Is it maximum/minimum continuous sum?
+   Yes → Kadane
+
+6. Is the answer space monotonic?
+   Yes → Binary Search on Answer
+```
+
+# The One Line to Remember
+
+> **HashMap remembers, two pointers eliminate, sliding window maintains, prefix sum compares past state, Kadane continues or restarts, binary search removes half, heap keeps the best K, and greedy makes the safest immediate choice.**
 
 # HashMap
 
@@ -145,63 +834,163 @@ public class ValidAnagram {
 
 # 2-Pointers
 
-## Template 1: Opposite Direction
+## Type 1: Opposite Direction
+
+Used when:
+
+```text
+left starts from beginning
+right starts from end
+move based on condition
+```
+
+Template:
+
 ```java
 int left = 0;
 int right = nums.length - 1;
 
 while (left < right) {
     if (condition) {
-        // answer
-    } else if (needToIncrease) {
+        // answer/update
+    } else if (need bigger value) {
         left++;
     } else {
         right--;
     }
 }
 ```
-Pair sum in sorted array
-Palindrome
-Container with most water
-Reverse
 
-## Templat 2: Slow-Fast for In-Place Filtering
+Common problems:
+
+```text
+Two Sum in sorted array
+Valid Palindrome
+Reverse String
+Container With Most Water
+3Sum after sorting
+```
+
+---
+
+## Type 2: Same Direction / Slow-Fast
+
+Used when:
+
+```text
+fast scans all elements
+slow maintains correct position
+```
+
+Template:
 
 ```java
 int slow = 0;
 
 for (int fast = 0; fast < nums.length; fast++) {
-    if (isValid(nums[fast])) {
+    if (condition) {
         nums[slow] = nums[fast];
         slow++;
     }
 }
-
-return slow;
 ```
-Remove element
-Move zeroes
-Remove duplicates
-Partition
 
-## Template 3: Merging Two Sorted Inputs
+Common problems:
+
+```text
+Remove duplicates from sorted array
+Move zeroes
+Remove element
+Partition array
+```
+
+---
+
+## Type 3: Sliding Window
+
+Sliding window is also a two-pointer technique, but usually treated separately.
+
+Used when:
+
+```text
+contiguous subarray/substring
+left and right move forward
+window valid/invalid condition
+```
+
+Template:
+
+```java
+int left = 0;
+
+for (int right = 0; right < nums.length; right++) {
+    // add nums[right]
+
+    while (window invalid) {
+        // remove nums[left]
+        left++;
+    }
+
+    // update answer
+}
+```
+
+Common problems:
+
+```text
+Longest substring without repeating
+Minimum size subarray sum
+Max sum subarray of size K
+```
+
+---
+
+## Type 4: Merge Two Sorted Inputs
+
+Used when:
+
+```text
+two sorted arrays/lists need to be merged or compared
+```
+
+Template:
+
 ```java
 int i = 0;
 int j = 0;
 
 while (i < arr1.length && j < arr2.length) {
     if (arr1[i] <= arr2[j]) {
+        // take arr1[i]
         i++;
     } else {
+        // take arr2[j]
         j++;
     }
 }
 ```
-Merge sorted arrays
-Intersection
-Merge sorted linked lists
 
-## Template 4: Linked List Fast-Slow
+Common problems:
+
+```text
+Merge sorted arrays
+Intersection of two sorted arrays
+Merge two sorted linked lists
+```
+
+---
+
+## Type 5: Fast-Slow Pointer in Linked List
+
+Used when:
+
+```text
+slow moves 1 step
+fast moves 2 steps
+```
+
+Template:
+
 ```java
 ListNode slow = head;
 ListNode fast = head;
@@ -211,28 +1000,15 @@ while (fast != null && fast.next != null) {
     fast = fast.next.next;
 }
 ```
-Middle node
-Cycle detection
-Palindrome linked list
 
-## Template 5: Sliding Window
-```java
-int left = 0;
+Common problems:
 
-for (int right = 0; right < nums.length; right++) {
-    // add nums[right]
-
-    while (windowInvalid) {
-        // remove nums[left]
-        left++;
-    }
-
-    // update answer
-}
+```text
+Middle of linked list
+Detect cycle
+Find start of cycle
+Remove nth node from end
 ```
-Longest substring
-Minimum subarray
-Max window
 
 ## Movement Rule
 Pair sum:
@@ -256,6 +1032,20 @@ Linked list:
 slow 1 step, fast 2 steps
 
 # Sliding Window
+
+## Fixed vs Variable Sliding Window
+
+This is very important.
+
+| Problem                              | Window Type     | Movement                               |
+| ------------------------------------ | --------------- | -------------------------------------- |
+| Max sum subarray of size K           | Fixed window    | Window size always K                   |
+| Minimum size subarray sum            | Variable window | Expand until valid, shrink to optimize |
+| Longest substring without repeat     | Variable window | Expand until duplicate, move left      |
+| Longest ones after flipping K zeroes | Variable window | Maintain invalid count                 |
+| Permutation in string                | Fixed window    | Compare frequency in window            |
+
+
 
 ## Sliding Window Has Four Components
 
@@ -306,11 +1096,22 @@ Alternative Style:
 for (int right = 0; right < nums.length; right++) {
     windowSum += nums[right];
 
-    if (right >= k - 1) {
-        // use window
-        windowSum -= nums[left];
-        left++;
+    int left = 0;
+    int windowSum = 0;
+    int maxSum = Integer.MIN_VALUE;
+
+    for (int right = 0; right < nums.length; right++) {
+        windowSum += nums[right];
+
+        if (right - left + 1 == k) {
+            maxSum = Math.max(maxSum, windowSum);
+
+            windowSum -= nums[left];
+            left++;
+        }
     }
+
+    return maxSum;
 }
 ```
 
@@ -326,12 +1127,17 @@ public int longestValidWindow(int[] nums) {
     int maxLength = 0;
 
     for (int right = 0; right < nums.length; right++) {
-        // Add nums[right] to state
-
-        while (/* window is invalid */) {
+        char current = s.charAt(right);
+       
+       /* window is invalid */
+        while (window.contains(current)) {
             // Remove nums[left] from state
+            window.remove(s.charAt(left));
             left++;
         }
+
+         // Add nums[right] to state
+         window.add(current);
 
         maxLength = Math.max(maxLength, right - left + 1);
     }
@@ -351,14 +1157,17 @@ public int smallestValidWindow(int[] nums) {
 
     for (int right = 0; right < nums.length; right++) {
         // Add nums[right] to window state
+        windowSum += nums[right];
 
-        while (/* window is valid */) {
+        /* window is valid */
+        while (windowSum >= target) {
             minLength = Math.min(
                     minLength,
                     right - left + 1
             );
 
             // Remove nums[left]
+            windowSum -= nums[left];
             left++;
         }
     }
